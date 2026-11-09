@@ -1,0 +1,13 @@
+{
+  "ranks": [2, 4, 8, 16],
+  "init_seeds": [2027, 4027],
+  "final_seed": 2027,
+  "factor_penalty_multiplier": 1.0,
+  "init_scale": 0.05,
+  "optimizer": {"maxiter": 900, "ftol": 1e-10, "gtol": 2e-7},
+  "factor_threads": 2,
+  "log_loss_guardrail_bits": 0.01,
+  "contrast_tie_band": 0.002,
+  "bootstrap_seed": 32028,
+  "bootstrap_replicates": 10000
+}
