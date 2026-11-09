@@ -32,6 +32,17 @@ The default run is `runs/baseline_dev/`, with `predictions.csv`, `language_prior
 
 The archive contains only a top-level `predictions.csv` with `painting,language,p_positive`. Upload `runs/baseline_dev/submission.zip` manually to the development phase. [ST3 on Codabench](https://www.codabench.org/competitions/18468/)
 
+## EXP-002 baseline ablation
+
+After the baseline run, reuse its cached CLIP features on CPU. The following commands add scientific figures and run the optional train-only grouped cross-validation.
+
+```powershell
+.venv/Scripts/python.exe -m pip install -r requirements-analysis.txt
+.venv/Scripts/python.exe scripts/run_st3.py ablation --cv --plots
+```
+
+The core ablation, shuffling diagnostic, and paired bootstrap also run with both flags omitted. If the baseline used custom paths, pass its `run.json` via `--embedding-run` and its cache directory via `--cache-dir`. Outputs go to `runs/exp002_baseline_ablation/`. Choose a new `--run-dir` for repeats. Inference-time shuffled predictions are diagnostic artifacts. [Study protocol and results](reports/exp002_ablation.md)
+
 ## Independent checks
 
 ```powershell
