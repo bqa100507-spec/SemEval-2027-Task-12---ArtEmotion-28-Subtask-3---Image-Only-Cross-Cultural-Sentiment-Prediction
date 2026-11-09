@@ -16,4 +16,6 @@ The project owner reported 0.4466 Contrast for Codabench development submission 
 
 EXP-002 completed the shared-weights ablation, 20 inference-time image shuffles, a 10,000-draw paired painting bootstrap, and five train-only grouped folds. A and C reproduced Task 001. Shared weights scored 0.370386 Contrast and 0.766309 Macro Log Loss. Interactions gained +0.076178 Contrast with a 95% paired percentile interval of [+0.033904, +0.118978]. The study ran from cached embeddings on CPU. [EXP-002 report and commands](../reports/exp002_ablation.md)
 
-The proposed Task 003 is a controlled low-rank interaction study using the same frozen embeddings and grouped folds, with Macro Log Loss as a guardrail.
+EXP-003 completed ranks 2, 4, 8 and 16 under two seeds on the exact five EXP-002 folds, plus matched-rank SVD compression. Every directly trained rank exceeded the 0.748056 Macro Log Loss guardrail, so C remains the baseline and its development results are unchanged. The full interaction effective rank was 20.6235. SVD-16 came closest to C in grouped CV. [EXP-003 study and artifacts](../reports/exp003_low_rank.md)
+
+The proposed Task 004 is a controlled SVD-16 compression test against full C, with prediction quality and inference cost measured on held-out paintings.
