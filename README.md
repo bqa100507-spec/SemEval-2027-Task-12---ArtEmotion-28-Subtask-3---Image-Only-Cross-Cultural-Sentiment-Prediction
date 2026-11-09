@@ -11,7 +11,7 @@ Run from the repository root with Git and 64-bit Python. On Windows, the modern 
 | Windows PowerShell | `py scripts/setup.py` |
 | Linux / WSL | `python3.12 scripts/setup.py` |
 
-Setup creates `.venv`, installs the pinned model and numerical dependencies, and clones the pinned organizer release to `data/upstream/` with the public ST3 resources in the working tree. It runs both the organizer verifier and a separate ST3 audit, saving `runs/data_audit.json`. Repeat setup to verify the existing environment and data. Pass `--torch cpu` for a smaller PyTorch download or `--torch cu126` to select the CUDA 12.6 build explicitly. The default attempts the CUDA build when it detects an NVIDIA driver and can fall back to the CPU wheel.
+Setup creates `.venv`, installs the pinned Python dependencies, and clones the pinned organizer release to `data/upstream/` with the public ST3 resources in the working tree. It runs both the organizer verifier and a separate ST3 audit, saving `runs/data_audit.json`. Repeat setup to verify the existing environment and data. Pass `--torch cpu` for a smaller PyTorch download or `--torch cu126` to select the CUDA 12.6 build explicitly. The default attempts the CUDA build when it detects an NVIDIA driver and can fall back to the CPU wheel.
 
 ## 2. Train and evaluate
 

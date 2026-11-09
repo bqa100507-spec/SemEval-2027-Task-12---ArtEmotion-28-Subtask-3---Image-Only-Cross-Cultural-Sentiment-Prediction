@@ -26,11 +26,13 @@ def test_contrast_per_painting_and_undefined_cases():
 
 
 def test_log_loss_is_clipped_pair_mean_then_language_macro():
-    rows = [(f"a{i}", "A", 3, 5, 0) for i in range(20)]
+    rows = [(f"a{i}", "A", 3, 5, 0) for i in range(19)]
+    rows.append(("a19", "A", 50, 100, .5))
     rows += [(f"b{i}", "B", 8, 10, 1) for i in range(25)]
     rows += [(f"c{i}", "C", 1, 5, .5) for i in range(19)]
     result = evaluate(rows)
-    a = -.6 * math.log2(.01) - .4 * math.log2(.99)
+    clipped_a = -.6 * math.log2(.01) - .4 * math.log2(.99)
+    a = (19 * clipped_a + 1) / 20
     b = -.8 * math.log2(.99) - .2 * math.log2(.01)
     assert result["log_loss"] == pytest.approx((a + b) / 2)
     assert result["pair_mean_log_loss"] == pytest.approx((20 * a + 25 * b + 19) / 64)
