@@ -24,6 +24,21 @@ def file_sha256(path):
         return hashlib.file_digest(handle, "sha256").hexdigest()
 
 
+def feature_cache_path(root, names, cache_dir, identity):
+    digest = hashlib.sha256(json.dumps(identity, sort_keys=True).encode())
+    for name in names:
+        digest.update(name.encode("utf-8") + b"\0" + file_sha256(image_path(root, name)).encode())
+    return cache_dir / f"clip-{digest.hexdigest()}.npz"
+
+
+def load_feature_cache(cache, names):
+    with np.load(cache, allow_pickle=False) as saved:
+        features = saved["features"]
+        if saved["names"].tolist() != names or features.shape != (len(names), 512) or not np.isfinite(features).all():
+            raise ValueError(f"Invalid feature cache: {cache}. Remove it to rebuild embeddings.")
+    return features
+
+
 def image_features(root, names, cache_dir, config, requested_device):
     # Set the cache before importing anything that loads Hugging Face Hub.
     os.environ.setdefault("HF_HUB_CACHE", str(cache_dir / "huggingface"))
@@ -48,16 +63,10 @@ def image_features(root, names, cache_dir, config, requested_device):
                 "transformers": transformers.__version__, "device": device,
                 "device_name": torch.cuda.get_device_name() if device == "cuda" else "CPU",
                 "feature_format": "normalized-clip-projection-fp32-v1"}
-    digest = hashlib.sha256(json.dumps(identity, sort_keys=True).encode())
-    for name in names:
-        digest.update(name.encode("utf-8") + b"\0" + file_sha256(image_path(root, name)).encode())
-    cache = cache_dir / f"clip-{digest.hexdigest()}.npz"
+    cache = feature_cache_path(root, names, cache_dir, identity)
     identity["cache"] = str(cache)
     if cache.is_file():
-        with np.load(cache, allow_pickle=False) as saved:
-            features = saved["features"]
-            if saved["names"].tolist() != names or features.shape != (len(names), 512) or not np.isfinite(features).all():
-                raise ValueError(f"Invalid feature cache: {cache}. Remove it to rebuild embeddings.")
+        features = load_feature_cache(cache, names)
         print(f"Reused {len(names)} embeddings from {cache}", flush=True)
     else:
         from transformers import CLIPModel, CLIPProcessor
@@ -88,8 +97,8 @@ def image_features(root, names, cache_dir, config, requested_device):
     return dict(zip(names, features)), identity
 
 
-def design_matrix(images, langs, embeddings, languages):
-    """The official [image, language one-hot, outer product] in sparse storage."""
+def design_matrix(images, langs, embeddings, languages, *, interactions=True):
+    """Sparse [image, language one-hot], with the official outer product by default."""
     image = np.stack([embeddings[name] for name in images]).astype(np.float64, copy=False)
     width = image.shape[1]
     language_index = {language: i for i, language in enumerate(languages)}
@@ -97,11 +106,14 @@ def design_matrix(images, langs, embeddings, languages):
     rows = np.flatnonzero(indices >= 0)
     columns = indices[rows]
     onehot = sparse.csr_matrix((np.ones(len(rows)), (rows, columns)), shape=(len(image), len(languages)))
+    blocks = [sparse.csr_matrix(image), onehot]
+    if not interactions:
+        return sparse.hstack(blocks, format="csr")
     interaction = sparse.csr_matrix(
         (image[rows].ravel(), (np.repeat(rows, width), (columns[:, None] * width + np.arange(width)).ravel())),
         shape=(len(image), len(languages) * width),
     )
-    return sparse.hstack([sparse.csr_matrix(image), onehot, interaction], format="csr")
+    return sparse.hstack([*blocks, interaction], format="csr")
 
 
 def fit_lr(matrix, train, seed):

@@ -95,6 +95,13 @@ def aggregate(frame):
     return counts.loc[counts["n"] >= MIN_ANNOTATORS].assign(p=lambda pairs: pairs["k"] / pairs["n"])
 
 
+def training_pairs(annotations):
+    train = annotations[annotations["split"] == "train"]
+    image_of = train.groupby("painting")["image_name"].first()
+    pairs = aggregate(train)
+    return pairs.assign(image=pairs["painting"].map(image_of))
+
+
 def validation_gold(annotations, dev):
     gold = aggregate(annotations[annotations["split"] == "val"])
     require_same_pairs(dev, gold)

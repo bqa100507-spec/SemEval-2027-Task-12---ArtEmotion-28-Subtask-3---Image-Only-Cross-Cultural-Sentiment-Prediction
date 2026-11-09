@@ -1,0 +1,9 @@
+{
+  "fit_seed": 2027,
+  "shuffle_first_seed": 12000,
+  "shuffle_permutations": 20,
+  "bootstrap_seed": 22027,
+  "bootstrap_replicates": 10000,
+  "cv_seed": 32027,
+  "cv_folds": 5
+}

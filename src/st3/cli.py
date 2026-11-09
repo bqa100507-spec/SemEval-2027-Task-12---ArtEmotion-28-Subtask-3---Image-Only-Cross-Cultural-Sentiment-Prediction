@@ -9,6 +9,7 @@ import runpy
 import subprocess
 import sys
 import tempfile
+import time
 from pathlib import Path
 from unittest.mock import patch
 
@@ -65,10 +66,8 @@ def run_baseline(args, dev):
         raise ValueError("Batch size must be positive")
     annotations = data.read_annotations(args.data_dir)
     data.check_dev_isolation(annotations, dev)
-    train_annotations = annotations[annotations["split"] == "train"]
-    train = data.aggregate(train_annotations)
-    image_of = train_annotations.groupby("painting")["image_name"].first()
-    train_images = train["painting"].map(image_of)
+    train = data.training_pairs(annotations)
+    train_images = train["image"]
     languages = sorted(train["language"].unique())
     print(f"{len(train):,} training pairs, {len(dev):,} development rows", flush=True)
     embeddings, feature_metadata = image_features(args.data_dir, set(train_images) | set(dev["image"]),
@@ -112,6 +111,102 @@ def resolved_path(path):
     return Path(path).resolve()
 
 
+def run_ablation(args, dev):
+    import pandas as pd
+
+    from .ablation import (VARIANTS, fit_variants, grouped_cv, load_study_embeddings, paired_analysis,
+                           paired_bootstrap, predict_lr, shuffle_images)
+    from .baseline import C, MAX_ITER
+
+    start = time.perf_counter()
+    if args.run_dir.exists():
+        raise ValueError(f"Run directory already exists: {args.run_dir}. Choose a new --run-dir.")
+    if args.plots:
+        from .study_plots import render_study
+
+    config = json.loads((ROOT / "configs" / "exp002.json").read_text(encoding="utf-8"))
+    baseline_config = json.loads((ROOT / "configs" / "st3.json").read_text(encoding="utf-8"))
+    upstream_revision = git_head(args.data_dir)
+    if upstream_revision != baseline_config["upstream_revision"]:
+        raise ValueError("The ablation requires the pinned organizer checkout")
+    annotations = data.read_annotations(args.data_dir)
+    data.check_dev_isolation(annotations, dev)
+    train = data.training_pairs(annotations)
+    embeddings, provenance = load_study_embeddings(args.data_dir, train, dev, args.cache_dir, args.embedding_run,
+                                                   upstream_revision, baseline_config)
+    print(f"Fitting A-C using {len(embeddings)} cached embeddings on CPU", flush=True)
+    predictions, model_c, languages, iterations = fit_variants(train, dev, embeddings, config["fit_seed"])
+
+    shuffled_predictions = []
+    shuffled_assignments = []
+    first_seed = config["shuffle_first_seed"]
+    for seed in range(first_seed, first_seed + config["shuffle_permutations"]):
+        shuffled, assignments = shuffle_images(dev, seed)
+        shuffled_predictions.append((seed, predict_lr(model_c, shuffled, embeddings, languages)))
+        shuffled_assignments.append(assignments.assign(seed=seed))
+
+    # Gold is aggregated only after A-D predictions have been fixed.
+    gold = data.validation_gold(annotations, dev)
+    metrics = {name: score(gold, frame) for name, frame in predictions.items()}
+    shuffled_metrics = []
+    for seed, frame in shuffled_predictions:
+        result = score(gold, frame)
+        shuffled_metrics.append({"seed": seed, **{key: result[key] for key in
+                                ("cultural_contrast", "log_loss", "contrast_paintings", "log_loss_languages")}})
+    shuffle_table = pd.DataFrame(shuffled_metrics)
+    shuffle_summary = shuffle_table[["cultural_contrast", "log_loss"]].agg(["mean", "std", "min", "max"]).to_dict()
+    pairs, paintings, language = paired_analysis(gold, predictions, metrics)
+    bootstrap, intervals = paired_bootstrap(paintings, config["bootstrap_replicates"], config["bootstrap_seed"])
+    cv_start = time.perf_counter()
+    if args.cv:
+        folds, oof = grouped_cv(train, embeddings, config)
+    cv_seconds = time.perf_counter() - cv_start if args.cv else None
+
+    args.run_dir.parent.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(dir=args.run_dir.parent) as scratch:
+        stage = Path(scratch) / "run"
+        for name, frame in predictions.items():
+            folder = stage / "predictions" / name
+            folder.mkdir(parents=True)
+            frame.to_csv(folder / submission.FILENAME, index=False, lineterminator="\n")
+        diagnostics = stage / "diagnostics"
+        diagnostics.mkdir()
+        tables = {
+            "per_painting.csv": paintings, "per_language.csv": language, "observed_vs_predicted.csv": pairs,
+            "bootstrap_distribution.csv": bootstrap, "diagnostics/shuffled_metrics.csv": shuffle_table,
+            "diagnostics/shuffled_predictions.csv": pd.concat([frame.assign(seed=seed) for seed, frame in shuffled_predictions]),
+            "diagnostics/shuffled_assignments.csv": pd.concat(shuffled_assignments),
+        }
+        if args.cv:
+            tables.update({"train_only_cv_folds.csv": folds, "train_only_cv_predictions.csv": oof})
+        for filename, table in tables.items():
+            table.to_csv(stage / filename, index=False, lineterminator="\n")
+        if args.plots:
+            render_study(stage, pairs, paintings, language, intervals)
+        json_output({"models": metrics, "inference_shuffle": shuffle_summary, "paired_bootstrap": intervals},
+                    stage / "metrics.json")
+        packages = ["numpy", "pandas", "scikit-learn", "scipy", "threadpoolctl"]
+        if args.plots:
+            packages.append("matplotlib")
+        metadata = {
+            "phase": "dev", "project_revision": git_head(ROOT), "upstream_revision": upstream_revision,
+            "data_dir": str(args.data_dir), **provenance, "config": config, "variants": VARIANTS,
+            "lr": {"C": C, "solver": "lbfgs", "max_iter": MAX_ITER, "iterations": iterations,
+                   "penalty": "l2", "positive_weight": "k", "negative_weight": "n-k"},
+            "training_pairs": len(train), "training_paintings": train["painting"].nunique(), "training_languages": languages,
+            "dev_pairs": len(dev), "dev_paintings": dev["painting"].nunique(), "dev_languages": dev["language"].nunique(),
+            "device": "CPU", "lr_thread_limit": 4, "platform": platform.platform(), "processor": platform.processor(),
+            "logical_cpus": os.cpu_count(), "python": platform.python_version(),
+            "packages": {name: importlib.metadata.version(name) for name in packages},
+            "train_only_cv_seconds": cv_seconds, "wall_seconds": time.perf_counter() - start,
+        }
+        json_output(metadata, stage / "run.json")
+        stage.rename(args.run_dir)
+    for name, result in metrics.items():
+        print(f"{name}: contrast={result['cultural_contrast']:.6f}, log_loss={result['log_loss']:.6f}")
+    print(f"Saved ablation and diagnostics to {args.run_dir}")
+
+
 def main():
     if len(sys.argv) == 3 and sys.argv[1] == "_verify":
         run_verifier(Path(sys.argv[2]))
@@ -127,6 +222,12 @@ def main():
     baseline.add_argument("--cache-dir", type=resolved_path, default=ROOT / "cache")
     baseline.add_argument("--device", choices=("auto", "cpu", "cuda"), default="auto")
     baseline.add_argument("--batch-size", type=int)
+    ablation = commands.add_parser("ablation", help="Run the cached-embedding EXP-002 reliability study")
+    ablation.add_argument("--run-dir", type=resolved_path, default=ROOT / "runs" / "exp002_baseline_ablation")
+    ablation.add_argument("--cache-dir", type=resolved_path, default=ROOT / "cache")
+    ablation.add_argument("--embedding-run", type=resolved_path, default=ROOT / "runs" / "baseline_dev" / "run.json")
+    ablation.add_argument("--cv", action="store_true", help="Also run train-only painting-grouped cross-validation")
+    ablation.add_argument("--plots", action="store_true", help="Write figures using requirements-analysis.txt")
     evaluate = commands.add_parser("evaluate", help="Score development predictions using validation gold")
     evaluate.add_argument("--predictions", type=Path, required=True)
     evaluate.add_argument("--output", type=Path)
@@ -145,6 +246,8 @@ def main():
     dev = data.read_dev_input(args.data_dir)
     if args.command == "baseline":
         run_baseline(args, dev)
+    elif args.command == "ablation":
+        run_ablation(args, dev)
     elif args.command == "evaluate":
         annotations = data.read_annotations(args.data_dir)
         data.check_dev_isolation(annotations, dev)
