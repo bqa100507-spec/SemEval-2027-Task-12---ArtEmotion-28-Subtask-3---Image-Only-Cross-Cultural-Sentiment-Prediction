@@ -1,0 +1,26 @@
+{
+  "encoder": {
+    "model": "google/siglip2-large-patch16-256",
+    "revision": "787800c8990e6f058423089178e718139608408c",
+    "license": "Apache-2.0",
+    "width": 1024,
+    "image_size": 256,
+    "batch_size": 16,
+    "feature": "siglip-attention-pool-l2-fp32-v1",
+    "transformers_version": "4.51.3",
+    "checkpoint_bytes": 3526204360,
+    "vision_parameters": 315956224,
+    "assets_sha256": {
+      "config.json": "172e39dbf0143b8fe22d2f08921730eb8c397967e58cb37d133161e28aa34104",
+      "preprocessor_config.json": "d14ba2ee3fd816f3de8abaddc31953565128eaf37c73ad4bed32101a98465aff",
+      "model.safetensors": "fa34f822f016dbb167d8d0e3a8af99b5e199aa28573360d4295252b9ec418e2a"
+    }
+  },
+  "probe_images": 4,
+  "minimum_pooled_contrast_gain": {"M2": 0.005, "M3": 0.002},
+  "minimum_fold_wins": 3,
+  "log_loss_guardrail_bits": 0.005,
+  "bootstrap_replicates": 10000,
+  "bootstrap_seed": 152027,
+  "exp010_predictions_sha256": "fbf8789344a9a98e9e46eefd51d8d6bc85a4ad342c18b96673abfdbced56f1df"
+}
