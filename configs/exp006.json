@@ -1,0 +1,15 @@
+{
+  "model": "google/siglip2-base-patch16-224",
+  "revision": "75de2d55ec2d0b4efc50b3e9ad70dba96a7b2fa2",
+  "weights_sha256": "612923381c76ec5a9bed335d1c48827e3f2e506ac31b044b63b2031fadee6a0b",
+  "transformers_version": "4.51.3",
+  "width": 768,
+  "batch_size": 16,
+  "minimum_contrast_gain": 0.005,
+  "minimum_fold_wins": 4,
+  "maximum_log_loss": 0.748056,
+  "contrast_tie_band": 0.0,
+  "preference_order": ["C-SigLIP2"],
+  "bootstrap_seed": 62028,
+  "bootstrap_replicates": 10000
+}

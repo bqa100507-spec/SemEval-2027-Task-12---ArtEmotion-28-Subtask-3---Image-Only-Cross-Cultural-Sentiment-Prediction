@@ -1,5 +1,6 @@
 /data/
 /.venv/
+/.venv-siglip2/
 /cache/
 /runs/
 __pycache__/
