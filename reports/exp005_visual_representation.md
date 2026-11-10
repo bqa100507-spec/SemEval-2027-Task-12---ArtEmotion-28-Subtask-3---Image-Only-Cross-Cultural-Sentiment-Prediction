@@ -1,0 +1,13 @@
+# EXP-005 frozen visual representations for ST3
+
+## External resources and checkpoint provenance
+
+Before acquiring weights, we verified the official ST3 Codabench Data page through its public competition metadata on 2026-11-10. The page explicitly permits pretrained image and language models, requires citation of every external resource, and bars outside annotations for evaluation paintings, including those in the original ArtELingo release. The public rule covers the pretrained image-model category. It provides no checkpoint-specific clearance or accounting of artwork overlap in pretraining. This study uses only the pinned organizer train/validation release and its public development image list. [Codabench ST3 Data page](https://www.codabench.org/competitions/18468/) · [Public competition metadata](https://www.codabench.org/api/competitions/18468/?format=json) · [Organizer rules](https://github.com/artemotion-28/artemotion-28#competition-rules-and-terms)
+
+The alternative is Meta's `facebook/dinov2-base` at Hugging Face revision `f9e44c814b77203eaa57a6bdbbd535f21ede1415`, using the published safetensors and the image processor from the same revision. The checkpoint is labeled Apache 2.0, and the model card describes self-supervised visual pretraining. The authors describe a curated image corpus and distillation into smaller ViTs. The comparison uses normalized 768-dimensional final CLS features. The pinned slow BitImageProcessor uses RGB input, bicubic shortest-edge resize to 256, a 224 × 224 center crop, 1/255 rescaling and the checkpoint's documented RGB mean and standard deviation. [Pinned model card and files](https://huggingface.co/facebook/dinov2-base/tree/f9e44c814b77203eaa57a6bdbbd535f21ede1415) · [Meta license](https://github.com/facebookresearch/dinov2/blob/main/LICENSE) · [DINOv2 paper](https://arxiv.org/abs/2304.07193)
+
+## Frozen protocol
+
+Use the exact five EXP-002 folds and the original full interaction LR with `C=0.3`, annotation-count weights, original solver settings and unchanged metrics. Compare the official CLIP-512 head, DINOv2-768, and DINOv2 with full-solver, non-whitened PCA to 512 dimensions. Fit PCA only on unique training paintings for each fold, then apply it to held-out images and L2-normalize the projections. This diagnostic controls head width while also changing the feature geometry.
+
+Require mean Contrast gain of at least +0.005, positive gains in at least four folds, Macro Log Loss within +0.01 bits and convergence on all five folds. Among eligible candidates, choose the highest mean Contrast and prefer the 512-dimensional condition within 0.002 of the best. These are engineering thresholds. Save the decision before any development model comparison.

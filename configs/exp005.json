@@ -1,0 +1,14 @@
+{
+  "dino_model": "facebook/dinov2-base",
+  "dino_revision": "f9e44c814b77203eaa57a6bdbbd535f21ede1415",
+  "dino_width": 768,
+  "pca_width": 512,
+  "batch_size": 16,
+  "minimum_contrast_gain": 0.005,
+  "minimum_fold_wins": 4,
+  "log_loss_guardrail_bits": 0.01,
+  "contrast_tie_band": 0.002,
+  "preference_order": ["C-DINO512", "C-DINO768"],
+  "bootstrap_seed": 52028,
+  "bootstrap_replicates": 10000
+}
