@@ -107,8 +107,8 @@ def select_candidate(summary, config):
             "tie_band": config["contrast_tie_band"], "final_seed": config["final_seed"] if model != "C" else None}
 
 
-def study_inputs(args, dev):
-    config = json.loads((ROOT / "configs" / "exp003.json").read_text(encoding="utf-8"))
+def study_inputs(args, dev, config_name="exp003"):
+    config = json.loads((ROOT / "configs" / f"{config_name}.json").read_text(encoding="utf-8"))
     baseline = json.loads((ROOT / "configs" / "st3.json").read_text(encoding="utf-8"))
     upstream = git_head(args.data_dir)
     if upstream != baseline["upstream_revision"]:

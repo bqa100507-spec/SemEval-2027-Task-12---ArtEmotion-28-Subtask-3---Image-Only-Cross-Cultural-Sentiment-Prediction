@@ -236,6 +236,13 @@ def main():
         rank_command.add_argument("--embedding-run", type=resolved_path, default=ROOT / "runs" / "baseline_dev" / "run.json")
         rank_command.add_argument("--exp002-dir", type=resolved_path, default=ROOT / "runs" / "exp002_baseline_ablation")
     rank_dev.add_argument("--plots", action="store_true", help="Write the Model C singular-value spectrum figure")
+    contrast_cv = commands.add_parser("contrast-cv", help="Freeze EXP-004 selection using train-only folds")
+    contrast_dev = commands.add_parser("contrast-dev", help="Evaluate the frozen EXP-004 decision")
+    for contrast_command in (contrast_cv, contrast_dev):
+        contrast_command.add_argument("--run-dir", type=resolved_path, default=ROOT / "runs" / "exp004_contrast_aware")
+        contrast_command.add_argument("--cache-dir", type=resolved_path, default=ROOT / "cache")
+        contrast_command.add_argument("--embedding-run", type=resolved_path, default=ROOT / "runs" / "baseline_dev" / "run.json")
+        contrast_command.add_argument("--exp002-dir", type=resolved_path, default=ROOT / "runs" / "exp002_baseline_ablation")
     evaluate = commands.add_parser("evaluate", help="Score development predictions using validation gold")
     evaluate.add_argument("--predictions", type=Path, required=True)
     evaluate.add_argument("--output", type=Path)
@@ -256,6 +263,11 @@ def main():
         run_baseline(args, dev)
     elif args.command == "ablation":
         run_ablation(args, dev)
+    elif args.command in ("contrast-cv", "contrast-dev"):
+        from .contrast_study import run_contrast_cv, run_contrast_dev
+
+        runner = run_contrast_cv if args.command == "contrast-cv" else run_contrast_dev
+        runner(args, dev)
     elif args.command in ("low-rank-cv", "low-rank-dev"):
         from .low_rank_study import run_rank_cv, run_rank_dev
 
