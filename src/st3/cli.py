@@ -243,6 +243,11 @@ def main():
         contrast_command.add_argument("--cache-dir", type=resolved_path, default=ROOT / "cache")
         contrast_command.add_argument("--embedding-run", type=resolved_path, default=ROOT / "runs" / "baseline_dev" / "run.json")
         contrast_command.add_argument("--exp002-dir", type=resolved_path, default=ROOT / "runs" / "exp002_baseline_ablation")
+    visual_embed = commands.add_parser("visual-embed", help="Extract or validate the pinned DINOv2 cache")
+    visual_embed.add_argument("--cache-dir", type=resolved_path, default=ROOT / "cache")
+    visual_embed.add_argument("--embedding-run", type=resolved_path, default=ROOT / "runs" / "baseline_dev" / "run.json")
+    visual_embed.add_argument("--exp002-dir", type=resolved_path, default=ROOT / "runs" / "exp002_baseline_ablation")
+    visual_embed.add_argument("--device", choices=("auto", "cuda", "cpu"), default="auto")
     evaluate = commands.add_parser("evaluate", help="Score development predictions using validation gold")
     evaluate.add_argument("--predictions", type=Path, required=True)
     evaluate.add_argument("--output", type=Path)
@@ -263,6 +268,10 @@ def main():
         run_baseline(args, dev)
     elif args.command == "ablation":
         run_ablation(args, dev)
+    elif args.command == "visual-embed":
+        from .dino import run_visual_embed
+
+        run_visual_embed(args, dev)
     elif args.command in ("contrast-cv", "contrast-dev"):
         from .contrast_study import run_contrast_cv, run_contrast_dev
 
