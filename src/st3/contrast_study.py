@@ -90,16 +90,21 @@ def summarize(rows, reference="C"):
 
 def choose(summary, config, expected_folds, reference="C"):
     candidates = summary.drop(index=reference)
+    if "maximum_log_loss" in config:
+        maximum_loss = config["maximum_log_loss"]
+        within_loss = candidates["log_loss_mean"].le(maximum_loss)
+    else:
+        maximum_loss = float(summary.loc[reference, "log_loss_mean"] + config["log_loss_guardrail_bits"])
+        within_loss = candidates["log_loss_delta"].le(config["log_loss_guardrail_bits"])
     valid = candidates[
         candidates["converged"].eq(expected_folds) & candidates["folds"].eq(expected_folds)
         & candidates["scored"].eq(expected_folds) & candidates["loss_scored"].eq(expected_folds)
         & candidates["contrast_gain"].ge(config["minimum_contrast_gain"])
         & candidates["fold_wins"].ge(config["minimum_fold_wins"])
-        & candidates["log_loss_delta"].le(config["log_loss_guardrail_bits"])]
+        & within_loss]
     tied = valid[valid["contrast_mean"].ge(valid["contrast_mean"].max() - config["contrast_tie_band"])]
     model = next((name for name in config["preference_order"] if name in tied.index), reference)
-    return {"model": model, "eligible_candidates": list(valid.index),
-            "maximum_log_loss": float(summary.loc[reference, "log_loss_mean"] + config["log_loss_guardrail_bits"])}
+    return {"model": model, "eligible_candidates": list(valid.index), "maximum_log_loss": maximum_loss}
 
 
 def run_contrast_cv(args, dev):

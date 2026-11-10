@@ -254,11 +254,14 @@ def main():
     for visual_command in (visual_cv, visual_dev):
         visual_command.add_argument("--run-dir", type=resolved_path, default=ROOT / "runs" / "exp005_visual_representation")
     siglip_embed = commands.add_parser("siglip-embed", help="Extract the pinned SigLIP 2 cache in the dedicated runtime")
-    siglip_embed.add_argument("--cache-dir", type=resolved_path, default=ROOT / "cache")
-    siglip_embed.add_argument("--embedding-run", type=resolved_path, default=ROOT / "runs" / "baseline_dev" / "run.json")
-    siglip_embed.add_argument("--exp002-dir", type=resolved_path, default=ROOT / "runs" / "exp002_baseline_ablation")
+    siglip_cv = commands.add_parser("siglip-cv", help="Freeze the EXP-006 train-only decision")
+    siglip_dev = commands.add_parser("siglip-dev", help="Evaluate and package the qualifying EXP-006 candidate")
+    for command in (siglip_embed, siglip_cv, siglip_dev):
+        command.add_argument("--cache-dir", type=resolved_path, default=ROOT / "cache")
+        command.add_argument("--embedding-run", type=resolved_path, default=ROOT / "runs" / "baseline_dev" / "run.json")
+        command.add_argument("--exp002-dir", type=resolved_path, default=ROOT / "runs" / "exp002_baseline_ablation")
+        command.add_argument("--run-dir", type=resolved_path, default=ROOT / "runs" / "exp006_siglip2")
     siglip_embed.add_argument("--device", choices=("auto", "cuda", "cpu"), default="auto")
-    siglip_embed.add_argument("--run-dir", type=resolved_path, default=ROOT / "runs" / "exp006_siglip2")
     evaluate = commands.add_parser("evaluate", help="Score development predictions using validation gold")
     evaluate.add_argument("--predictions", type=Path, required=True)
     evaluate.add_argument("--output", type=Path)
@@ -292,6 +295,11 @@ def main():
 
         runner = run_visual_cv if args.command == "visual-cv" else run_visual_dev
         runner(args, dev)
+    elif args.command in ("siglip-cv", "siglip-dev"):
+        from .visual_study import run_visual_cv, run_visual_dev
+
+        runner = run_visual_cv if args.command == "siglip-cv" else run_visual_dev
+        runner(args, dev, "exp006")
     elif args.command in ("contrast-cv", "contrast-dev"):
         from .contrast_study import run_contrast_cv, run_contrast_dev
 
