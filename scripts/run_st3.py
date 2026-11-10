@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run the development-only ST3 workflow from any working directory."""
+"""Run the ST3 workflow from any working directory."""
 
 import sys
 from pathlib import Path
