@@ -133,6 +133,19 @@ The EXP-013 nonlinear-head study runs with `nonlinear-cv` and `nonlinear-dev`. I
 
 The EXP-014 CLIP-L study uses `lora-pilot`, `lora-cv`, and `lora-dev`. The first command checks one outer fold on CUDA before any Contrast scoring. Full CV reuses the pilot only after it passes, and the development stage checks the frozen promotion gate. [Protocol and results](reports/exp014_clip_large_lora.md)
 
+## EXP-015 frozen SigLIP 2 Large
+
+Reuse the EXP-002, EXP-006, EXP-007 and EXP-010 artifacts and the [EXP-006 extraction environment](#exp-006-frozen-siglip-2-representation). Check disk, RAM and CUDA resources before the preflight downloads the pinned 3.526 GB checkpoint. Full extraction requires the verified preflight. Use the same fresh `--run-dir` across stages for a repeat.
+
+```powershell
+.venv-siglip2/Scripts/python.exe scripts/run_st3.py siglip-large-preflight
+.venv-siglip2/Scripts/python.exe scripts/run_st3.py siglip-large-embed
+.venv/Scripts/python.exe scripts/run_st3.py siglip-large-cv
+.venv-siglip2/Scripts/python.exe scripts/run_st3.py siglip-large-dev
+```
+
+The default run directory is `runs/exp015_siglip2_large/`. CPU cross-validation fits the same LR head on the new features in each original fold. The last command checks the frozen decision before opening development labels and uses the original inference head bundles if an ensemble qualifies. [Protocol and results](reports/exp015_siglip2_large.md)
+
 ## Independent checks
 
 ```powershell

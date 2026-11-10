@@ -41,3 +41,5 @@ EXP-012 tested three frozen residual corrections with four inner cross-fits per 
 EXP-013 selected the E50+L and nonlinear-head blend M2 for development after it won four train-only folds and reached 0.447723 pooled Contrast. M2 scored 0.457525 development Contrast and 0.739846 Macro Log Loss. The Contrast drop relative to E50+L supports retaining the existing production system. The separate development artifact was validated and kept locally. [EXP-013 results](../reports/exp013_nonlinear_head.md)
 
 EXP-014 completed the feasible RTX 4060 pilot and all five train-only folds using rank-4 CLIP-L LoRA. The adapted blend gained 0.000891 pooled Contrast, below the frozen +0.003 threshold. E50+L was retained and no new development candidate was scored. [EXP-014 results](../reports/exp014_clip_large_lora.md)
+
+EXP-015 completed the frozen SigLIP 2 Large comparison on all five train-only folds. Replacing SigLIP 2 Base gained 0.000565 pooled Contrast and the two-encoder blend gained 0.000473. Both fell short of their frozen promotion thresholds. E50+L was retained and no development candidate was scored. [EXP-015 results](../reports/exp015_siglip2_large.md)
