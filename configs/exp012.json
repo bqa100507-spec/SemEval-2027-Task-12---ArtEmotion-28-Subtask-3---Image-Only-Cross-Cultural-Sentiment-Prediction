@@ -1,0 +1,15 @@
+{
+  "logit_clip": 0.0001,
+  "global_l2": 0.02,
+  "language_l2": 0.20,
+  "min_language_paintings": 50,
+  "pairwise_weight": 0.10,
+  "huber_delta": 0.20,
+  "inner_folds": 4,
+  "inner_seed": 12027,
+  "optimizer": {"maxiter": 500, "gtol": 1e-9, "ftol": 1e-13},
+  "log_loss_guardrail_bits": 0.005,
+  "minimum_pooled_contrast_gain": 0.001,
+  "bootstrap_replicates": 10000,
+  "bootstrap_seed": 122027
+}
