@@ -54,6 +54,17 @@ After EXP-002, run train-only selection and then evaluate the frozen candidate. 
 
 The commands reuse the Task 001 cache and verify the exact EXP-002 fold membership. Use `--exp002-dir`, `--embedding-run` and `--cache-dir` for custom input locations. The first command saves the decision in `runs/exp003_low_rank/cv/selection.json`. The second verifies that decision and writes the full-training Model C spectrum and, when a low-rank candidate qualifies, its development predictions and analysis. Choose a new `--run-dir` for any repeat. [EXP-003 report](reports/exp003_low_rank.md)
 
+## EXP-004 contrast-aware learning
+
+With the same Task 001 cache and EXP-002 fold artifact, run train-only selection before the development stage.
+
+```powershell
+.venv/Scripts/python.exe scripts/run_st3.py contrast-cv
+.venv/Scripts/python.exe scripts/run_st3.py contrast-dev
+```
+
+The first command writes `runs/exp004_contrast_aware/cv/selection.json`. The second verifies that decision and scores a new development candidate only if the train-only criteria are met. Use a new `--run-dir` for repeats. [EXP-004 protocol and results](reports/exp004_contrast_aware.md)
+
 ## Independent checks
 
 ```powershell
