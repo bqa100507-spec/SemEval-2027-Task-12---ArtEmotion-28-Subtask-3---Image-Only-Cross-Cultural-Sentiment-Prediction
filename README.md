@@ -121,6 +121,10 @@ Use `prepare-e50` and `prepare-e50l` once to persist the verified heads. The ind
 
 Reuse the Task 001, EXP-002, EXP-006 and EXP-007 artifacts, then run `clip-large-cv` followed by `clip-large-dev` with `scripts/run_st3.py`. CV builds the pinned CLIP-L cache on CUDA and compares the four fixed systems on CPU. The second command evaluates a new candidate only if it clears the frozen gate. Both commands use `runs/exp010_clip_large/` by default. Use a shared new `--run-dir` for a repeat. [Protocol and results](reports/exp010_clip_large.md)
 
+## EXP-012 nested residual calibration
+
+The EXP-012 residual study uses `residual-cv` and `residual-dev` with `scripts/run_st3.py`. It reuses the frozen embeddings, builds four inner cross-fits inside each original outer fold, and checks the frozen gate before development. [Protocol and results](reports/exp012_language_residual.md)
+
 ## Independent checks
 
 ```powershell
