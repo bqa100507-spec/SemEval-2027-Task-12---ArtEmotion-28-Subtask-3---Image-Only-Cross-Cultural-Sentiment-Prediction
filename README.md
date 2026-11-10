@@ -125,6 +125,10 @@ Reuse the Task 001, EXP-002, EXP-006 and EXP-007 artifacts, then run `clip-large
 
 The EXP-012 residual study uses `residual-cv` and `residual-dev` with `scripts/run_st3.py`. It reuses the frozen embeddings, builds four inner cross-fits inside each original outer fold, and checks the frozen gate before development. [Protocol and results](reports/exp012_language_residual.md)
 
+## EXP-013 nonlinear image–language head
+
+The EXP-013 nonlinear-head study runs with `nonlinear-cv` and `nonlinear-dev`. It trains only on cached visual features, selects epochs inside each original training fold, and scores development only when the frozen gate is met. [Protocol and results](reports/exp013_nonlinear_head.md)
+
 ## Independent checks
 
 ```powershell
