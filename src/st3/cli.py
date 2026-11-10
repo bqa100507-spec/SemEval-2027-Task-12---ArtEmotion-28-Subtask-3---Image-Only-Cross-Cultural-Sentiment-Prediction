@@ -270,6 +270,17 @@ def main():
         command.add_argument("--exp002-dir", type=resolved_path, default=ROOT / "runs" / "exp002_baseline_ablation")
         command.add_argument("--exp006-dir", type=resolved_path, default=ROOT / "runs" / "exp006_siglip2")
         command.add_argument("--run-dir", type=resolved_path, default=ROOT / "runs" / "exp007_fusion")
+    coverage_audit = commands.add_parser("coverage-audit", help="Audit original CLIP crop coverage without labels")
+    coverage_cv = commands.add_parser("coverage-cv", help="Extract full-image CLIP features and freeze EXP-008 selection")
+    coverage_dev = commands.add_parser("coverage-dev", help="Score and package only a qualifying EXP-008 alternative")
+    for command in (coverage_audit, coverage_cv, coverage_dev):
+        command.add_argument("--cache-dir", type=resolved_path, default=ROOT / "cache")
+        command.add_argument("--run-dir", type=resolved_path, default=ROOT / "runs" / "exp008_full_image")
+    for command in (coverage_cv, coverage_dev):
+        command.add_argument("--embedding-run", type=resolved_path, default=ROOT / "runs" / "baseline_dev" / "run.json")
+        command.add_argument("--exp002-dir", type=resolved_path, default=ROOT / "runs" / "exp002_baseline_ablation")
+        command.add_argument("--exp006-dir", type=resolved_path, default=ROOT / "runs" / "exp006_siglip2")
+        command.add_argument("--exp007-dir", type=resolved_path, default=ROOT / "runs" / "exp007_fusion")
     evaluate = commands.add_parser("evaluate", help="Score development predictions using validation gold")
     evaluate.add_argument("--predictions", type=Path, required=True)
     evaluate.add_argument("--output", type=Path)
@@ -313,6 +324,12 @@ def main():
 
         runner = run_fusion_cv if args.command == "fusion-cv" else run_fusion_dev
         runner(args, dev)
+    elif args.command.startswith("coverage-"):
+        from .coverage_study import run_coverage_audit, run_coverage_cv, run_coverage_dev
+
+        runners = {"coverage-audit": run_coverage_audit, "coverage-cv": run_coverage_cv,
+                   "coverage-dev": run_coverage_dev}
+        runners[args.command](args, dev)
     elif args.command in ("contrast-cv", "contrast-dev"):
         from .contrast_study import run_contrast_cv, run_contrast_dev
 
