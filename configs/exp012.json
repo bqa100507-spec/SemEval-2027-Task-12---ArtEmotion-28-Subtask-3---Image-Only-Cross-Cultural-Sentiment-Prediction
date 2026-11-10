@@ -10,6 +10,7 @@
   "optimizer": {"maxiter": 500, "gtol": 1e-9, "ftol": 1e-13},
   "log_loss_guardrail_bits": 0.005,
   "minimum_pooled_contrast_gain": 0.001,
+  "exp010_predictions_sha256": "fbf8789344a9a98e9e46eefd51d8d6bc85a4ad342c18b96673abfdbced56f1df",
   "bootstrap_replicates": 10000,
   "bootstrap_seed": 122027
 }
