@@ -334,6 +334,20 @@ def main():
         command.add_argument("--run-dir", type=resolved_path, default=ROOT / "runs" / "exp014_clip_large_lora")
     lora_dev.add_argument("--model-dir", type=resolved_path, default=ROOT / "runs" / "e50_inference_models")
     lora_dev.add_argument("--clip-large-model-dir", type=resolved_path, default=ROOT / "runs" / "e50l_inference_models")
+    siglip_large_probe = commands.add_parser("siglip-large-preflight", help="Verify the pinned SigLIP 2 Large on CUDA")
+    siglip_large_embed = commands.add_parser("siglip-large-embed", help="Extract EXP-015 training images after preflight")
+    siglip_large_cv = commands.add_parser("siglip-large-cv", help="Compare EXP-015 on the original grouped folds")
+    siglip_large_dev = commands.add_parser("siglip-large-dev", help="Score only a qualifying EXP-015 candidate")
+    for command in (siglip_large_probe, siglip_large_embed, siglip_large_cv, siglip_large_dev):
+        command.add_argument("--cache-dir", type=resolved_path, default=ROOT / "cache")
+        command.add_argument("--embedding-run", type=resolved_path, default=ROOT / "runs" / "baseline_dev" / "run.json")
+        command.add_argument("--exp002-dir", type=resolved_path, default=ROOT / "runs" / "exp002_baseline_ablation")
+        command.add_argument("--exp006-dir", type=resolved_path, default=ROOT / "runs" / "exp006_siglip2")
+        command.add_argument("--exp007-dir", type=resolved_path, default=ROOT / "runs" / "exp007_fusion")
+        command.add_argument("--exp010-dir", type=resolved_path, default=ROOT / "runs" / "exp010_clip_large")
+        command.add_argument("--run-dir", type=resolved_path, default=ROOT / "runs" / "exp015_siglip2_large")
+    siglip_large_dev.add_argument("--model-dir", type=resolved_path, default=ROOT / "runs" / "e50_inference_models")
+    siglip_large_dev.add_argument("--clip-large-model-dir", type=resolved_path, default=ROOT / "runs" / "e50l_inference_models")
     evaluate = commands.add_parser("evaluate", help="Score development predictions using validation gold")
     evaluate.add_argument("--predictions", type=Path, required=True)
     evaluate.add_argument("--output", type=Path)
@@ -447,6 +461,12 @@ def main():
         from .lora_study import run_lora_cv, run_lora_dev, run_lora_pilot
 
         runners = {"lora-pilot": run_lora_pilot, "lora-cv": run_lora_cv, "lora-dev": run_lora_dev}
+        runners[args.command](args, dev)
+    elif args.command in ("siglip-large-preflight", "siglip-large-embed", "siglip-large-cv", "siglip-large-dev"):
+        from .siglip_large_study import run_large_cv, run_large_dev, run_large_embed, run_large_preflight
+
+        runners = {"siglip-large-preflight": run_large_preflight, "siglip-large-embed": run_large_embed,
+                   "siglip-large-cv": run_large_cv, "siglip-large-dev": run_large_dev}
         runners[args.command](args, dev)
     elif args.command in ("contrast-cv", "contrast-dev"):
         from .contrast_study import run_contrast_cv, run_contrast_dev
