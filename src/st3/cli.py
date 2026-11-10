@@ -308,6 +308,19 @@ def main():
         command.add_argument("--run-dir", type=resolved_path, default=ROOT / "runs" / "exp012_language_residual")
     residual_dev.add_argument("--model-dir", type=resolved_path, default=ROOT / "runs" / "e50_inference_models")
     residual_dev.add_argument("--clip-large-model-dir", type=resolved_path, default=ROOT / "runs" / "e50l_inference_models")
+    nonlinear_cv = commands.add_parser("nonlinear-cv", help="Compare the fixed EXP-013 head on original train folds")
+    nonlinear_dev = commands.add_parser("nonlinear-dev", help="Evaluate only the qualifying EXP-013 system")
+    for command in (nonlinear_cv, nonlinear_dev):
+        command.add_argument("--cache-dir", type=resolved_path, default=ROOT / "cache")
+        command.add_argument("--embedding-run", type=resolved_path, default=ROOT / "runs" / "baseline_dev" / "run.json")
+        command.add_argument("--exp002-dir", type=resolved_path, default=ROOT / "runs" / "exp002_baseline_ablation")
+        command.add_argument("--exp006-dir", type=resolved_path, default=ROOT / "runs" / "exp006_siglip2")
+        command.add_argument("--exp007-dir", type=resolved_path, default=ROOT / "runs" / "exp007_fusion")
+        command.add_argument("--exp010-dir", type=resolved_path, default=ROOT / "runs" / "exp010_clip_large")
+        command.add_argument("--run-dir", type=resolved_path, default=ROOT / "runs" / "exp013_nonlinear_head")
+        command.add_argument("--device", choices=("auto", "cuda", "cpu"), default="auto")
+    nonlinear_dev.add_argument("--model-dir", type=resolved_path, default=ROOT / "runs" / "e50_inference_models")
+    nonlinear_dev.add_argument("--clip-large-model-dir", type=resolved_path, default=ROOT / "runs" / "e50l_inference_models")
     evaluate = commands.add_parser("evaluate", help="Score development predictions using validation gold")
     evaluate.add_argument("--predictions", type=Path, required=True)
     evaluate.add_argument("--output", type=Path)
@@ -411,6 +424,11 @@ def main():
         from .residual_study import run_residual_cv, run_residual_dev
 
         runner = run_residual_cv if args.command == "residual-cv" else run_residual_dev
+        runner(args, dev)
+    elif args.command in ("nonlinear-cv", "nonlinear-dev"):
+        from .nonlinear_study import run_nonlinear_cv, run_nonlinear_dev
+
+        runner = run_nonlinear_cv if args.command == "nonlinear-cv" else run_nonlinear_dev
         runner(args, dev)
     elif args.command in ("contrast-cv", "contrast-dev"):
         from .contrast_study import run_contrast_cv, run_contrast_dev

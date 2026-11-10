@@ -43,8 +43,8 @@ def signals(clip, siglip, large):
     return result
 
 
-def residual_inputs(args, dev):
-    config_path = ROOT / "configs" / "exp012.json"
+def residual_inputs(args, dev, config_name="exp012"):
+    config_path = ROOT / "configs" / f"{config_name}.json"
     config = read_json(config_path)
     baseline = read_json(ROOT / "configs" / "st3.json")
     source = args.exp010_dir / "cv"

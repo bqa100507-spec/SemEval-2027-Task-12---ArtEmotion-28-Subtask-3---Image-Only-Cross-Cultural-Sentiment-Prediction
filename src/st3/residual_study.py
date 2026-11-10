@@ -141,33 +141,34 @@ def run_residual_cv(args, dev):
     print(f"Frozen EXP-012 decision: {decision['model']}", flush=True)
 
 
-def development_components(args, dev):
+def development_components(args, dev, *, include_features=False):
     config = inference_config()
     models, manifest, index = load_bundle(args.model_dir, config, ENCODERS)
     large, large_manifest, large_index = load_clip_large_bundle(args.clip_large_model_dir, manifest)
     by_image = {image: file_sha256(data.image_path(args.data_dir, image)) for image in dev["image"].unique()}
-    predictions = []
+    predictions, features = [], []
     for name in ENCODERS:
         bank, _ = load_legacy(name, by_image.values(), index, manifest["legacy"][name], args.cache_dir,
                               config["encoders"][name]["width"])
         if set(bank) != set(by_image.values()):
             raise ValueError(f"Missing frozen {name} development features")
-        predictions.append(predict_lr(models[name], dev, {image: bank[digest] for image, digest in by_image.items()},
-                                      manifest["languages"]))
+        features.append({image: bank[digest] for image, digest in by_image.items()})
+        predictions.append(predict_lr(models[name], dev, features[-1], manifest["languages"]))
     bank, _ = load_clip_large_legacy(by_image.values(), large_index, large_manifest["legacy"], args.cache_dir,
                                     large_manifest["encoder"]["width"])
     if set(bank) != set(by_image.values()):
         raise ValueError("Missing frozen CLIP-L development features")
-    predictions.append(predict_lr(large, dev, {image: bank[digest] for image, digest in by_image.items()},
-                                  manifest["languages"]))
+    features.append({image: bank[digest] for image, digest in by_image.items()})
+    predictions.append(predict_lr(large, dev, features[-1], manifest["languages"]))
     frame = signals(*predictions)
     reference = args.exp010_dir / "dev" / "predictions" / E50_LARGE / submission.FILENAME
     pins = read_json(ROOT / "configs" / "e50l_inference.json")
     actual = corrected_predictions(frame).to_csv(index=False, lineterminator="\n").encode("utf-8")
     if file_sha256(reference) != pins["reference_csv_sha256"] or actual != reference.read_bytes():
         raise ValueError("Frozen E50+L heads do not reproduce the original development CSV")
-    return frame, {name: file_sha256(path / MANIFEST) for name, path in
-                   (("e50", args.model_dir), (CLIP_LARGE, args.clip_large_model_dir))}
+    manifests = {name: file_sha256(path / MANIFEST) for name, path in
+                 (("e50", args.model_dir), (CLIP_LARGE, args.clip_large_model_dir))}
+    return (frame, manifests, features) if include_features else (frame, manifests)
 
 
 def run_residual_dev(args, dev):
