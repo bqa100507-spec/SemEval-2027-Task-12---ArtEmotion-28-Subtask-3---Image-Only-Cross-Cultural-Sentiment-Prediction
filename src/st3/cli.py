@@ -286,6 +286,16 @@ def main():
         command.add_argument("--exp002-dir", type=resolved_path, default=ROOT / "runs" / "exp002_baseline_ablation")
         command.add_argument("--exp006-dir", type=resolved_path, default=ROOT / "runs" / "exp006_siglip2")
         command.add_argument("--exp007-dir", type=resolved_path, default=ROOT / "runs" / "exp007_fusion")
+    clip_large_cv = commands.add_parser("clip-large-cv", help="Compare frozen CLIP-L systems on the exact EXP-002 folds")
+    clip_large_dev = commands.add_parser("clip-large-dev", help="Score and package only the qualifying EXP-010 system")
+    for command in (clip_large_cv, clip_large_dev):
+        command.add_argument("--cache-dir", type=resolved_path, default=ROOT / "cache")
+        command.add_argument("--embedding-run", type=resolved_path, default=ROOT / "runs" / "baseline_dev" / "run.json")
+        command.add_argument("--exp002-dir", type=resolved_path, default=ROOT / "runs" / "exp002_baseline_ablation")
+        command.add_argument("--exp006-dir", type=resolved_path, default=ROOT / "runs" / "exp006_siglip2")
+        command.add_argument("--exp007-dir", type=resolved_path, default=ROOT / "runs" / "exp007_fusion")
+        command.add_argument("--run-dir", type=resolved_path, default=ROOT / "runs" / "exp010_clip_large")
+        command.add_argument("--device", choices=("cuda", "auto", "cpu"), default="cuda")
     evaluate = commands.add_parser("evaluate", help="Score development predictions using validation gold")
     evaluate.add_argument("--predictions", type=Path, required=True)
     evaluate.add_argument("--output", type=Path)
@@ -369,6 +379,11 @@ def main():
         runners = {"coverage-audit": run_coverage_audit, "coverage-cv": run_coverage_cv,
                    "coverage-dev": run_coverage_dev}
         runners[args.command](args, dev)
+    elif args.command in ("clip-large-cv", "clip-large-dev"):
+        from .clip_large_study import run_clip_large_cv, run_clip_large_dev
+
+        runner = run_clip_large_cv if args.command == "clip-large-cv" else run_clip_large_dev
+        runner(args, dev)
     elif args.command in ("contrast-cv", "contrast-dev"):
         from .contrast_study import run_contrast_cv, run_contrast_dev
 
