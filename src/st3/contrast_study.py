@@ -75,10 +75,10 @@ def fit_variant(held, grid, indices, initial, auxiliary, variant, config, seed):
     return pred, {**info, **variant, "seed": seed, "seconds": time.perf_counter() - start}
 
 
-def summarize(rows):
-    reference = rows[rows.model.eq("C")].set_index("fold")
+def summarize(rows, reference="C"):
+    baseline = rows[rows.model.eq(reference)].set_index("fold")
     for metric in ("contrast", "log_loss"):
-        rows[f"{metric}_delta"] = rows[metric] - rows["fold"].map(reference[metric])
+        rows[f"{metric}_delta"] = rows[metric] - rows["fold"].map(baseline[metric])
     return rows.groupby("model", sort=False).agg(
         contrast_mean=("contrast", "mean"), contrast_sd=("contrast", "std"),
         log_loss_mean=("log_loss", "mean"), log_loss_sd=("log_loss", "std"),
@@ -88,8 +88,8 @@ def summarize(rows):
         folds=("fold", "size"), total_seconds=("seconds", "sum"))
 
 
-def choose(summary, config, expected_folds):
-    candidates = summary.drop(index="C")
+def choose(summary, config, expected_folds, reference="C"):
+    candidates = summary.drop(index=reference)
     valid = candidates[
         candidates["converged"].eq(expected_folds) & candidates["folds"].eq(expected_folds)
         & candidates["scored"].eq(expected_folds) & candidates["loss_scored"].eq(expected_folds)
@@ -97,9 +97,9 @@ def choose(summary, config, expected_folds):
         & candidates["fold_wins"].ge(config["minimum_fold_wins"])
         & candidates["log_loss_delta"].le(config["log_loss_guardrail_bits"])]
     tied = valid[valid["contrast_mean"].ge(valid["contrast_mean"].max() - config["contrast_tie_band"])]
-    model = next((name for name in config["preference_order"] if name in tied.index), "C")
+    model = next((name for name in config["preference_order"] if name in tied.index), reference)
     return {"model": model, "eligible_candidates": list(valid.index),
-            "maximum_log_loss": float(summary.loc["C", "log_loss_mean"] + config["log_loss_guardrail_bits"])}
+            "maximum_log_loss": float(summary.loc[reference, "log_loss_mean"] + config["log_loss_guardrail_bits"])}
 
 
 def run_contrast_cv(args, dev):
@@ -148,7 +148,7 @@ def run_contrast_cv(args, dev):
     print(f"Frozen EXP-004 decision: {decision['model']}", flush=True)
 
 
-def write_development(stage, gold, predictions, candidate, config):
+def write_development(stage, gold, predictions, candidate, config, reference="C"):
     records = {key: [] for key in ("predictions", "paintings", "languages")}
     metrics = {}
     for name, pred in predictions.items():
@@ -167,7 +167,7 @@ def write_development(stage, gold, predictions, candidate, config):
     langs = c.drop(columns="model").rename(columns={"log_loss": "log_loss_C"})
     langs["log_loss_candidate"] = langs["language"].map(model.set_index("language")["log_loss"])
     langs["log_loss_candidate_minus_C"] = langs["log_loss_candidate"] - langs["log_loss_C"]
-    pairs = gold.merge(predictions["C"].rename(columns={"p_positive": "p_C"}), on=data.KEYS, validate="one_to_one")
+    pairs = gold.merge(predictions[reference].rename(columns={"p_positive": "p_C"}), on=data.KEYS, validate="one_to_one")
     pairs = pairs.merge(predictions[candidate].rename(columns={"p_positive": "p_candidate"}), on=data.KEYS,
                         validate="one_to_one")
     for name, frame in (("per_painting", paired), ("per_language", langs), ("observed_vs_predicted", pairs),
