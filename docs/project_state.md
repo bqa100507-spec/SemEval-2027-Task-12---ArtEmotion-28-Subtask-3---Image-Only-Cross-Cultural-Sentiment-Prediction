@@ -39,3 +39,5 @@ TASK 011 made E50+L the default production mode after the project owner reported
 EXP-012 tested three frozen residual corrections with four inner cross-fits per original outer fold. The strongest correction, M3, scored 0.445424 pooled Contrast versus 0.445643 for E50+L and failed the frozen promotion gate. The development stage did not score or package a candidate. [EXP-012 results](../reports/exp012_language_residual.md)
 
 EXP-013 selected the E50+L and nonlinear-head blend M2 for development after it won four train-only folds and reached 0.447723 pooled Contrast. M2 scored 0.457525 development Contrast and 0.739846 Macro Log Loss. The Contrast drop relative to E50+L supports retaining the existing production system. The separate development artifact was validated and kept locally. [EXP-013 results](../reports/exp013_nonlinear_head.md)
+
+EXP-014 completed the feasible RTX 4060 pilot and all five train-only folds using rank-4 CLIP-L LoRA. The adapted blend gained 0.000891 pooled Contrast, below the frozen +0.003 threshold. E50+L was retained and no new development candidate was scored. [EXP-014 results](../reports/exp014_clip_large_lora.md)

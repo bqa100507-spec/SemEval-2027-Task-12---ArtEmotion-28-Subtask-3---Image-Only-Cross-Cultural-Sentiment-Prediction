@@ -129,6 +129,10 @@ The EXP-012 residual study uses `residual-cv` and `residual-dev` with `scripts/r
 
 The EXP-013 nonlinear-head study runs with `nonlinear-cv` and `nonlinear-dev`. It trains only on cached visual features, selects epochs inside each original training fold, and scores development only when the frozen gate is met. [Protocol and results](reports/exp013_nonlinear_head.md)
 
+## EXP-014 CLIP-L LoRA
+
+The EXP-014 CLIP-L study uses `lora-pilot`, `lora-cv`, and `lora-dev`. The first command checks one outer fold on CUDA before any Contrast scoring. Full CV reuses the pilot only after it passes, and the development stage checks the frozen promotion gate. [Protocol and results](reports/exp014_clip_large_lora.md)
+
 ## Independent checks
 
 ```powershell
