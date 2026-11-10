@@ -296,6 +296,18 @@ def main():
         command.add_argument("--exp007-dir", type=resolved_path, default=ROOT / "runs" / "exp007_fusion")
         command.add_argument("--run-dir", type=resolved_path, default=ROOT / "runs" / "exp010_clip_large")
         command.add_argument("--device", choices=("cuda", "auto", "cpu"), default="cuda")
+    residual_cv = commands.add_parser("residual-cv", help="Run strict nested EXP-012 calibration on original train folds")
+    residual_dev = commands.add_parser("residual-dev", help="Evaluate only a qualifying EXP-012 correction")
+    for command in (residual_cv, residual_dev):
+        command.add_argument("--cache-dir", type=resolved_path, default=ROOT / "cache")
+        command.add_argument("--embedding-run", type=resolved_path, default=ROOT / "runs" / "baseline_dev" / "run.json")
+        command.add_argument("--exp002-dir", type=resolved_path, default=ROOT / "runs" / "exp002_baseline_ablation")
+        command.add_argument("--exp006-dir", type=resolved_path, default=ROOT / "runs" / "exp006_siglip2")
+        command.add_argument("--exp007-dir", type=resolved_path, default=ROOT / "runs" / "exp007_fusion")
+        command.add_argument("--exp010-dir", type=resolved_path, default=ROOT / "runs" / "exp010_clip_large")
+        command.add_argument("--run-dir", type=resolved_path, default=ROOT / "runs" / "exp012_language_residual")
+    residual_dev.add_argument("--model-dir", type=resolved_path, default=ROOT / "runs" / "e50_inference_models")
+    residual_dev.add_argument("--clip-large-model-dir", type=resolved_path, default=ROOT / "runs" / "e50l_inference_models")
     evaluate = commands.add_parser("evaluate", help="Score development predictions using validation gold")
     evaluate.add_argument("--predictions", type=Path, required=True)
     evaluate.add_argument("--output", type=Path)
@@ -394,6 +406,11 @@ def main():
         from .clip_large_study import run_clip_large_cv, run_clip_large_dev
 
         runner = run_clip_large_cv if args.command == "clip-large-cv" else run_clip_large_dev
+        runner(args, dev)
+    elif args.command in ("residual-cv", "residual-dev"):
+        from .residual_study import run_residual_cv, run_residual_dev
+
+        runner = run_residual_cv if args.command == "residual-cv" else run_residual_dev
         runner(args, dev)
     elif args.command in ("contrast-cv", "contrast-dev"):
         from .contrast_study import run_contrast_cv, run_contrast_dev

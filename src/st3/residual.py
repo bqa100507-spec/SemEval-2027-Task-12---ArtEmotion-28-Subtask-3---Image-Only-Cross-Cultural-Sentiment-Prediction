@@ -46,8 +46,12 @@ class Residual:
 
     def predict(self, frame):
         baseline, disagreement = calibration_inputs(frame, self.epsilon)
-        x = design(frame["language"], (disagreement - self.center) / self.scale, self.support)
-        shift = x @ self.parameters
+        d = (disagreement - self.center) / self.scale
+        shift = self.parameters[0] + self.parameters[1] * d
+        indices = pd.Index(self.support).get_indexer(frame["language"])
+        rows = np.flatnonzero(indices >= 0)
+        columns = indices[rows]
+        shift[rows] += self.parameters[2 + columns] + self.parameters[2 + len(self.support) + columns] * d[rows]
         if self.model != "M1":
             shift[~frame["language"].isin(self.seen).to_numpy()] = 0.
         return np.where(shift == 0., frame["q0"].to_numpy(), expit(baseline + shift).round(6))
