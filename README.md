@@ -113,9 +113,9 @@ Reuse the original CLIP cache and the EXP-002, EXP-006 and EXP-007 artifacts. Ru
 
 CV uses CUDA for the new CLIP cache and CPU for the Logistic Regression fits. The development command verifies the frozen CV decision and scores and packages a candidate only if it qualifies. This run retained E50. Results are in `runs/exp008_full_image/`. Use the same new `--run-dir` across stages for repeats. [Protocol and results](reports/exp008_full_image.md)
 
-## Frozen E50 inference
+## Frozen ST3 inference
 
-Use `prepare-e50` once to persist the verified EXP-007 heads. The independent `predict` command takes an explicit ST3 CSV and artwork directory, writes a validated archive, and resumes new-image encoding from its per-image cache. E50 is the default. Select `--mode clip` explicitly for the fallback. [Windows commands and evaluation setup](docs/e50_inference.md)
+Use `prepare-e50` and `prepare-e50l` once to persist the verified heads. The independent `predict` command takes an explicit ST3 CSV and artwork directory, writes a validated archive, and resumes new-image encoding from its per-image cache. E50+L is the default. Select `--mode e50` or `--mode clip` for a fallback. [Windows commands and evaluation setup](docs/e50l_inference.md)
 
 ## EXP-010 frozen CLIP-L ensembles
 

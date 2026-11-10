@@ -14,7 +14,9 @@ $py = ".venv/Scripts/python.exe"
 
 Skip preparation when `runs/e50_inference_models/manifest.json` and its bundle already exist. Keep the entire bundle directory. It contains `heads.npz` (float64 coefficients and intercepts), `manifest.json` (version, vocabulary, fit settings and provenance), and `legacy-index.json` (verified image-content SHA-256 to historical image-name mapping). Use `--model-dir` to select a different bundle location. Keep the original feature archives in `cache/` to preserve exact historical reuse. A missing archive can be rebuilt incrementally for requested images using the same frozen encoder. A present archive with a mismatched checksum stops prediction.
 
-## Predict a released evaluation input
+## Predict a released evaluation input with E50
+
+Choose `--mode e50` explicitly. Task 011 sets the unqualified prediction command to E50+L. [Preferred E50+L workflow](e50l_inference.md)
 
 Place the official input CSV at `data/eval_st3/st3_test.csv` and the accompanying artwork under `data/eval_st3/images/`, keeping each image's relative path from the CSV. The directory needs the input CSV and images only. Run from the repository root.
 
@@ -24,7 +26,7 @@ $dataset = "data/eval_st3"
 $inputCsv = "$dataset/st3_test.csv"
 $output = "runs/e50_eval"
 
-& $py scripts/run_st3.py predict --input $inputCsv --data-dir $dataset --output-dir $output
+& $py scripts/run_st3.py predict --mode e50 --input $inputCsv --data-dir $dataset --output-dir $output
 & $py scripts/run_st3.py validate-prediction --input $inputCsv "$output/submission.zip"
 ```
 
