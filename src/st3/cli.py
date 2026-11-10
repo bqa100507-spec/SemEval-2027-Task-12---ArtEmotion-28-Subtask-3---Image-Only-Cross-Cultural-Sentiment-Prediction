@@ -305,21 +305,27 @@ def main():
     validate = commands.add_parser("validate", help="Validate a development ZIP")
     validate.add_argument("archive", type=Path)
     prepare = commands.add_parser("prepare-e50", help="Reconstruct and parity-check the frozen EXP-007 heads")
-    predict = commands.add_parser("predict", help="Predict an explicit ST3 input CSV with frozen E50 or CLIP")
+    prepare_large = commands.add_parser("prepare-e50l", help="Persist the EXP-010 CLIP-L head after exact parity")
+    predict = commands.add_parser("predict", help="Predict an explicit ST3 input CSV with frozen E50+L, E50 or CLIP")
     models = ROOT / "runs" / "e50_inference_models"
-    for command in (prepare, predict):
+    for command in (prepare, prepare_large, predict):
         command.add_argument("--data-dir", type=resolved_path, default=argparse.SUPPRESS)
         command.add_argument("--model-dir", type=resolved_path, default=models)
         command.add_argument("--cache-dir", type=resolved_path, default=ROOT / "cache")
+    for command in (prepare_large, predict):
+        command.add_argument("--clip-large-model-dir", type=resolved_path, default=ROOT / "runs" / "e50l_inference_models")
+    prepare_large.add_argument("--exp010-dir", type=resolved_path, default=ROOT / "runs" / "exp010_clip_large")
     prepare.add_argument("--embedding-run", type=resolved_path, default=ROOT / "runs" / "baseline_dev" / "run.json")
     prepare.add_argument("--exp006-dir", type=resolved_path, default=ROOT / "runs" / "exp006_siglip2")
     prepare.add_argument("--exp007-dir", type=resolved_path, default=ROOT / "runs" / "exp007_fusion")
     predict.add_argument("--input", type=resolved_path, required=True)
     predict.add_argument("--output-dir", type=resolved_path, required=True)
-    predict.add_argument("--mode", choices=("e50", "clip"), default="e50")
+    predict.add_argument("--mode", choices=("e50l", "e50", "clip"), default="e50l")
     predict.add_argument("--device", choices=("auto", "cuda", "cpu"), default="auto")
     predict.add_argument("--clip-batch-size", type=int)
     predict.add_argument("--siglip2-batch-size", type=int)
+    predict.add_argument("--clip-large-batch-size", type=int)
+    predict.add_argument("--feature-cache-dir", type=resolved_path, help="Override the incremental image cache location")
     overlay = ROOT / ".venv-siglip2" / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
     predict.add_argument("--siglip2-python", type=resolved_path, default=overlay)
     general_validate = commands.add_parser("validate-prediction", help="Validate a ZIP against an explicit ST3 input CSV")
@@ -331,6 +337,11 @@ def main():
         from .e50_heads import prepare_heads
 
         prepare_heads(args)
+        return
+    if args.command == "prepare-e50l":
+        from .e50l_heads import prepare_clip_large_head
+
+        prepare_clip_large_head(args)
         return
     if args.command in ("predict", "validate-prediction"):
         from .e50_inference import run_prediction, validate_input_archive

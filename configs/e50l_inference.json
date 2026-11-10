@@ -1,0 +1,6 @@
+{
+  "bundle_version": 1,
+  "training_pairs": 16019,
+  "reference_csv_sha256": "162875b641407efea3bf28d1d147c2d9a3dd3dc2faed8863f9438bee517199a3",
+  "reference_zip_sha256": "38c2eca8ee4c0557bf198bf5df5dbf90571a2851404ded6302f40e42dc138e0d"
+}
