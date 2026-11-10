@@ -321,6 +321,19 @@ def main():
         command.add_argument("--device", choices=("auto", "cuda", "cpu"), default="auto")
     nonlinear_dev.add_argument("--model-dir", type=resolved_path, default=ROOT / "runs" / "e50_inference_models")
     nonlinear_dev.add_argument("--clip-large-model-dir", type=resolved_path, default=ROOT / "runs" / "e50l_inference_models")
+    lora_pilot = commands.add_parser("lora-pilot", help="Check first-fold EXP-014 resource and correctness feasibility")
+    lora_cv = commands.add_parser("lora-cv", help="Complete EXP-014 CV after a successful pilot")
+    lora_dev = commands.add_parser("lora-dev", help="Score only the qualifying EXP-014 blend")
+    for command in (lora_pilot, lora_cv, lora_dev):
+        command.add_argument("--cache-dir", type=resolved_path, default=ROOT / "cache")
+        command.add_argument("--embedding-run", type=resolved_path, default=ROOT / "runs" / "baseline_dev" / "run.json")
+        command.add_argument("--exp002-dir", type=resolved_path, default=ROOT / "runs" / "exp002_baseline_ablation")
+        command.add_argument("--exp006-dir", type=resolved_path, default=ROOT / "runs" / "exp006_siglip2")
+        command.add_argument("--exp007-dir", type=resolved_path, default=ROOT / "runs" / "exp007_fusion")
+        command.add_argument("--exp010-dir", type=resolved_path, default=ROOT / "runs" / "exp010_clip_large")
+        command.add_argument("--run-dir", type=resolved_path, default=ROOT / "runs" / "exp014_clip_large_lora")
+    lora_dev.add_argument("--model-dir", type=resolved_path, default=ROOT / "runs" / "e50_inference_models")
+    lora_dev.add_argument("--clip-large-model-dir", type=resolved_path, default=ROOT / "runs" / "e50l_inference_models")
     evaluate = commands.add_parser("evaluate", help="Score development predictions using validation gold")
     evaluate.add_argument("--predictions", type=Path, required=True)
     evaluate.add_argument("--output", type=Path)
@@ -430,6 +443,11 @@ def main():
 
         runner = run_nonlinear_cv if args.command == "nonlinear-cv" else run_nonlinear_dev
         runner(args, dev)
+    elif args.command in ("lora-pilot", "lora-cv", "lora-dev"):
+        from .lora_study import run_lora_cv, run_lora_dev, run_lora_pilot
+
+        runners = {"lora-pilot": run_lora_pilot, "lora-cv": run_lora_cv, "lora-dev": run_lora_dev}
+        runners[args.command](args, dev)
     elif args.command in ("contrast-cv", "contrast-dev"):
         from .contrast_study import run_contrast_cv, run_contrast_dev
 
