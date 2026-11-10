@@ -24,4 +24,6 @@ EXP-005 compared CLIP with frozen DINOv2-base CLS features and fold-local PCA to
 
 EXP-006 completed the final predefined single-backbone comparison. Frozen SigLIP 2 scored 0.439767 Contrast and 0.735555 Macro Log Loss, winning four of five folds. Its +0.004062 mean Contrast gain fell short of the frozen +0.005 gate. The development fallback retained C-CLIP. [EXP-006 report](../reports/exp006_siglip2.md)
 
-The research synthesis records the findings and the limits of reusing the same folds across studies. The next direction is a preregistered replication of the visual-interaction effect on genuinely untouched paintings. [EXP-001–006 synthesis](../reports/research_synthesis_001_006.md)
+The project now prioritizes reliable competition Contrast, with concise paper records. [EXP-001–006 synthesis](../reports/research_synthesis_001_006.md)
+
+EXP-007 selected the fixed 50/50 CLIP and SigLIP 2 blend E50. It scored 0.442055 pooled CV Contrast and 0.460026 development Contrast, with development Macro Log Loss 0.744214. Its separate development ZIP is validated at `runs/exp007_fusion/dev/submission.zip` for manual upload. C-CLIP remains available as the lower-cost fallback. [EXP-007 comparison](../reports/exp007_fusion.md)

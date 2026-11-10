@@ -90,6 +90,17 @@ After EXP-002, use the dedicated extraction environment, then use the unchanged 
 
 All three run commands share `runs/exp006_siglip2/` and its extraction manifest. Choose the same new `--run-dir` across stages for repeats. Pass `--device cpu` to the extraction command to select CPU. [EXP-006 report](reports/exp006_siglip2.md) · [Research synthesis](reports/research_synthesis_001_006.md)
 
+## EXP-007 CLIP and SigLIP 2 fusion
+
+Reuse the existing CLIP and SigLIP 2 feature caches and the EXP-002 and EXP-006 artifacts.
+
+```powershell
+.venv/Scripts/python.exe scripts/run_st3.py fusion-cv
+.venv/Scripts/python.exe scripts/run_st3.py fusion-dev
+```
+
+CV evaluates the three fixed probability blends and one normalized concatenation, then freezes the selection. The development command fits the chosen head or heads on all original training pairs and validates its separate ZIP. Both stages write to `runs/exp007_fusion/`. Use the same new `--run-dir` for a repeat. [Protocol and results](reports/exp007_fusion.md)
+
 ## Independent checks
 
 ```powershell
