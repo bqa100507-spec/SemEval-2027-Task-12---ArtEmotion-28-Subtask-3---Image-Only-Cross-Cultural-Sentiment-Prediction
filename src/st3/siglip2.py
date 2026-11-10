@@ -31,8 +31,8 @@ def extract_siglip2(root, names, cache_dir, config, requested_device="auto"):
                           prefix=PREFIX, load_model=load_vision, encode=pooled_features)
 
 
-def load_siglip2_features(args, dev, train, config):
-    pointer = args.run_dir / "extraction" / "features.json"
+def load_siglip2_features(args, dev, train, config, *, extraction_dir=None):
+    pointer = (extraction_dir or args.run_dir / "extraction") / "features.json"
     saved = json.loads(pointer.read_text(encoding="utf-8"))
     identity = saved["identity"]
     names = sorted(set(train["image"]) | set(dev["image"]))

@@ -1,0 +1,9 @@
+{
+  "alphas": {"E25": 0.25, "E50": 0.50, "E75": 0.75},
+  "log_loss_guardrail_bits": 0.01,
+  "contrast_tie_band": 0.001,
+  "negligible_log_loss_bits": 0.001,
+  "complexity": {"C-SigLIP2": 1, "EarlyFusion": 2, "E25": 3, "E50": 3, "E75": 3},
+  "bootstrap_seed": 72028,
+  "bootstrap_replicates": 10000
+}

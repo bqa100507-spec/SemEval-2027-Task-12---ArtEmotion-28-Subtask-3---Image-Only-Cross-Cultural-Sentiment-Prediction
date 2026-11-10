@@ -262,6 +262,14 @@ def main():
         command.add_argument("--exp002-dir", type=resolved_path, default=ROOT / "runs" / "exp002_baseline_ablation")
         command.add_argument("--run-dir", type=resolved_path, default=ROOT / "runs" / "exp006_siglip2")
     siglip_embed.add_argument("--device", choices=("auto", "cuda", "cpu"), default="auto")
+    fusion_cv = commands.add_parser("fusion-cv", help="Compare the fixed EXP-007 fusion models and freeze selection")
+    fusion_dev = commands.add_parser("fusion-dev", help="Fit and evaluate the frozen EXP-007 winner")
+    for command in (fusion_cv, fusion_dev):
+        command.add_argument("--cache-dir", type=resolved_path, default=ROOT / "cache")
+        command.add_argument("--embedding-run", type=resolved_path, default=ROOT / "runs" / "baseline_dev" / "run.json")
+        command.add_argument("--exp002-dir", type=resolved_path, default=ROOT / "runs" / "exp002_baseline_ablation")
+        command.add_argument("--exp006-dir", type=resolved_path, default=ROOT / "runs" / "exp006_siglip2")
+        command.add_argument("--run-dir", type=resolved_path, default=ROOT / "runs" / "exp007_fusion")
     evaluate = commands.add_parser("evaluate", help="Score development predictions using validation gold")
     evaluate.add_argument("--predictions", type=Path, required=True)
     evaluate.add_argument("--output", type=Path)
@@ -300,6 +308,11 @@ def main():
 
         runner = run_visual_cv if args.command == "siglip-cv" else run_visual_dev
         runner(args, dev, "exp006")
+    elif args.command in ("fusion-cv", "fusion-dev"):
+        from .fusion_study import run_fusion_cv, run_fusion_dev
+
+        runner = run_fusion_cv if args.command == "fusion-cv" else run_fusion_dev
+        runner(args, dev)
     elif args.command in ("contrast-cv", "contrast-dev"):
         from .contrast_study import run_contrast_cv, run_contrast_dev
 
