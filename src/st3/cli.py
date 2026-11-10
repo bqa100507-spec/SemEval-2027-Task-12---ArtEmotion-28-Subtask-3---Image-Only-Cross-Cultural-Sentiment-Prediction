@@ -253,6 +253,12 @@ def main():
         visual_command.add_argument("--device", choices=("auto", "cuda", "cpu"), default="auto")
     for visual_command in (visual_cv, visual_dev):
         visual_command.add_argument("--run-dir", type=resolved_path, default=ROOT / "runs" / "exp005_visual_representation")
+    siglip_embed = commands.add_parser("siglip-embed", help="Extract the pinned SigLIP 2 cache in the dedicated runtime")
+    siglip_embed.add_argument("--cache-dir", type=resolved_path, default=ROOT / "cache")
+    siglip_embed.add_argument("--embedding-run", type=resolved_path, default=ROOT / "runs" / "baseline_dev" / "run.json")
+    siglip_embed.add_argument("--exp002-dir", type=resolved_path, default=ROOT / "runs" / "exp002_baseline_ablation")
+    siglip_embed.add_argument("--device", choices=("auto", "cuda", "cpu"), default="auto")
+    siglip_embed.add_argument("--run-dir", type=resolved_path, default=ROOT / "runs" / "exp006_siglip2")
     evaluate = commands.add_parser("evaluate", help="Score development predictions using validation gold")
     evaluate.add_argument("--predictions", type=Path, required=True)
     evaluate.add_argument("--output", type=Path)
@@ -277,6 +283,10 @@ def main():
         from .dino import run_visual_embed
 
         run_visual_embed(args, dev)
+    elif args.command == "siglip-embed":
+        from .siglip2 import run_siglip_embed
+
+        run_siglip_embed(args, dev)
     elif args.command in ("visual-cv", "visual-dev"):
         from .visual_study import run_visual_cv, run_visual_dev
 
