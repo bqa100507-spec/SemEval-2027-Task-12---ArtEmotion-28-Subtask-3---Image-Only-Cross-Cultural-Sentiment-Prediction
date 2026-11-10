@@ -101,6 +101,18 @@ Reuse the existing CLIP and SigLIP 2 feature caches and the EXP-002 and EXP-006 
 
 CV evaluates the three fixed probability blends and one normalized concatenation, then freezes the selection. The development command fits the chosen head or heads on all original training pairs and validates its separate ZIP. Both stages write to `runs/exp007_fusion/`. Use the same new `--run-dir` for a repeat. [Protocol and results](reports/exp007_fusion.md)
 
+## EXP-008 full-image CLIP coverage
+
+Reuse the original CLIP cache and the EXP-002, EXP-006 and EXP-007 artifacts. Run the label-free crop audit, then compare the original, full-image and dual-view E50 variants.
+
+```powershell
+.venv/Scripts/python.exe scripts/run_st3.py coverage-audit
+.venv/Scripts/python.exe scripts/run_st3.py coverage-cv
+.venv/Scripts/python.exe scripts/run_st3.py coverage-dev
+```
+
+CV uses CUDA for the new CLIP cache and CPU for the Logistic Regression fits. The development command verifies the frozen CV decision and scores and packages a candidate only if it qualifies. This run retained E50. Results are in `runs/exp008_full_image/`. Use the same new `--run-dir` across stages for repeats. [Protocol and results](reports/exp008_full_image.md)
+
 ## Independent checks
 
 ```powershell

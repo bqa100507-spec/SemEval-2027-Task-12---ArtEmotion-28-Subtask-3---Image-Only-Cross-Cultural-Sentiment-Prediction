@@ -27,3 +27,5 @@ EXP-006 completed the final predefined single-backbone comparison. Frozen SigLIP
 The project now prioritizes reliable competition Contrast, with concise paper records. [EXP-001–006 synthesis](../reports/research_synthesis_001_006.md)
 
 EXP-007 selected the fixed 50/50 CLIP and SigLIP 2 blend E50. It scored 0.442055 pooled CV Contrast and 0.460026 development Contrast, with development Macro Log Loss 0.744214. Its separate development ZIP is validated at `runs/exp007_fusion/dev/submission.zip` for manual upload. C-CLIP remains available as the lower-cost fallback. [EXP-007 comparison](../reports/exp007_fusion.md)
+
+EXP-008 audited crop coverage without labels and compared two frozen CLIP views while reusing the original E50 SigLIP 2 probabilities. Full-image and Dual pooled CV Contrast were 0.437825 and 0.441386, respectively. Neither cleared the promotion gate, so E50 remains the competition system. The project owner reported hosted Development Contrast 0.4600 for submission `#1045921`. [EXP-008 audit and comparison](../reports/exp008_full_image.md)
