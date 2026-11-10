@@ -1,0 +1,19 @@
+{
+  "hidden_width": 64,
+  "dropout": 0.20,
+  "seeds": [2027, 2028, 2029],
+  "learning_rate": 0.001,
+  "weight_decay": 0.01,
+  "batch_size": 256,
+  "max_epochs": 150,
+  "gradient_clip": 1.0,
+  "early_stop_fraction": 0.10,
+  "early_stop_seed": 13027,
+  "patience": 15,
+  "minimum_pooled_contrast_gain": 0.001,
+  "minimum_fold_wins": 3,
+  "log_loss_guardrail_bits": 0.005,
+  "bootstrap_replicates": 10000,
+  "bootstrap_seed": 132027,
+  "exp010_predictions_sha256": "fbf8789344a9a98e9e46eefd51d8d6bc85a4ad342c18b96673abfdbced56f1df"
+}
