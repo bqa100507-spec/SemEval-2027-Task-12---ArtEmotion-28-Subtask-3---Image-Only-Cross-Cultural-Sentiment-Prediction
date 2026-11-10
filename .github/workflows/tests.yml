@@ -15,4 +15,6 @@ jobs:
           python-version: '3.12'
       - name: Install test dependencies
         run: python -m pip install $(sed -nE '/^(numpy|pandas|Pillow|pytest|scikit-learn|scipy|threadpoolctl|joblib)==/p' requirements.txt)
+      - name: Install pinned CPU Torch for head tests
+        run: python -m pip install --index-url https://download.pytorch.org/whl/cpu torch==2.7.1
       - run: python -m pytest -q
