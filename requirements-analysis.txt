@@ -1,0 +1,2 @@
+# Optional dependency for generating the EXP-002 scientific figures.
+matplotlib==3.10.3

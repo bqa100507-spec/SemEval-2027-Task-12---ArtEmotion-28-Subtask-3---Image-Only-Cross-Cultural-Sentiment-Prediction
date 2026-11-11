@@ -12,4 +12,8 @@ Run `py scripts/setup.py` on Windows, then use the virtual environment for `scri
 
 The experiment uses the pinned public development split and a sparse representation of the official features. See the [data audit](../reports/data_audit.md) for coverage and [baseline report](../reports/baseline_dev.md) for measured scores and reproducibility checks.
 
-Pending work includes reviewing the setup branch and uploading the development archive manually if desired. The first follow-up experiment is the organizers' shared-image-weights ablation. Keep the data, image embeddings, `C` and scoring fixed, and remove only the image-language interaction block. Report paired per-painting Contrast changes and per-language Log Loss alongside the aggregate scores.
+The project owner reported 0.4466 Contrast for Codabench development submission `#1044742`, matching the local Task 001 score at four decimal places.
+
+EXP-002 completed the shared-weights ablation, 20 inference-time image shuffles, a 10,000-draw paired painting bootstrap, and five train-only grouped folds. A and C reproduced Task 001. Shared weights scored 0.370386 Contrast and 0.766309 Macro Log Loss. Interactions gained +0.076178 Contrast with a 95% paired percentile interval of [+0.033904, +0.118978]. The study ran from cached embeddings on CPU. [EXP-002 report and commands](../reports/exp002_ablation.md)
+
+The proposed Task 003 is a controlled low-rank interaction study using the same frozen embeddings and grouped folds, with Macro Log Loss as a guardrail.
