@@ -22,4 +22,6 @@ EXP-004 tested painting-balanced pairwise Huber and smoothed Pearson losses on t
 
 EXP-005 compared CLIP with frozen DINOv2-base CLS features and fold-local PCA to 512 dimensions. CLIP reproduced EXP-002 and beat both DINO conditions on Contrast and Macro Log Loss in every fold. DINO768 scored 0.418597 Contrast and 0.781704 Log Loss, versus CLIP's 0.435705 and 0.738056. The frozen decision retained C-CLIP. [EXP-005 rules, provenance and results](../reports/exp005_visual_representation.md)
 
-The next research question is whether a single predeclared frozen image-text checkpoint can improve over C-CLIP under the same grouped protocol.
+EXP-006 completed the final predefined single-backbone comparison. Frozen SigLIP 2 scored 0.439767 Contrast and 0.735555 Macro Log Loss, winning four of five folds. Its +0.004062 mean Contrast gain fell short of the frozen +0.005 gate. The development fallback retained C-CLIP. [EXP-006 report](../reports/exp006_siglip2.md)
+
+The research synthesis records the findings and the limits of reusing the same folds across studies. The next direction is a preregistered replication of the visual-interaction effect on genuinely untouched paintings. [EXP-001–006 synthesis](../reports/research_synthesis_001_006.md)

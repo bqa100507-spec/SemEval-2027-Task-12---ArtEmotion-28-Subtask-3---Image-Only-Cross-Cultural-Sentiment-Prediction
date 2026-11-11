@@ -77,6 +77,19 @@ Reuse the Task 001 CLIP cache and EXP-002 fold artifact. The first command can b
 
 The default device selection uses CUDA when available. Pass `--device cpu` to run extraction on CPU and use the same device option for both stages. Results are under `runs/exp005_visual_representation/`. A qualifying candidate produces a separate validated ZIP for manual use. Use a new `--run-dir` for a repeat. [Rules, provenance and results](reports/exp005_visual_representation.md)
 
+## EXP-006 frozen SigLIP 2 representation
+
+After EXP-002, use the dedicated extraction environment, then use the unchanged baseline environment for selection and the frozen development stage.
+
+```powershell
+.venv/Scripts/python.exe scripts/setup_siglip2.py
+.venv-siglip2/Scripts/python.exe scripts/run_st3.py siglip-embed
+.venv/Scripts/python.exe scripts/run_st3.py siglip-cv
+.venv/Scripts/python.exe scripts/run_st3.py siglip-dev
+```
+
+All three run commands share `runs/exp006_siglip2/` and its extraction manifest. Choose the same new `--run-dir` across stages for repeats. Pass `--device cpu` to the extraction command to select CPU. [EXP-006 report](reports/exp006_siglip2.md) · [Research synthesis](reports/research_synthesis_001_006.md)
+
 ## Independent checks
 
 ```powershell
