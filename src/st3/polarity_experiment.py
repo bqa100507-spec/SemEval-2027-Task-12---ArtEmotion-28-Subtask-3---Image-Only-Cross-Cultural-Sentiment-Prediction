@@ -23,7 +23,7 @@ from .low_rank_study import score_result
 from .polarity_student import (PolarityStudent, gradient_diagnostic, polarity_epoch, polarity_rows,
                                seed_polarity_model)
 from .polarity_targets import condition_targets
-from .polarity_workflow import (ExecutionBudget, config018, context, fingerprint, fit_partition_geometry, geometry,
+from .polarity_workflow import (ExecutionBudget, StageBlocked, config018, context, fingerprint, fit_partition_geometry, geometry,
                                 load_geometry, load_raw, read_sealed, seal, stage_budget)
 
 CONDITIONS = ("M1", "M2", "M3")
@@ -284,6 +284,12 @@ def choose_candidate(summary, config, complete):
 def verified_decision(args):
     identity = fingerprint(args)
     result = read_sealed(args.run_dir / "decision", identity)
+    attempts = sorted((args.run_dir / "verification_attempts").glob("*.json"))
+    if not attempts:
+        raise StageBlocked("A successful replay attempt is required before confirmation")
+    latest = json.loads(attempts[-1].read_text())
+    if latest["status"] != "PASS" or latest["cv_manifest_sha256"] != file_sha256(args.run_dir / "cv/run.json"):
+        raise StageBlocked("The latest verification attempt is incomplete or failed; rerun Verify")
     cv = read_sealed(args.run_dir / "cv", identity)
     read_sealed(args.run_dir / "pilot", identity)
     if cv["pilot_manifest_sha256"] != file_sha256(args.run_dir / "pilot/run.json"):
@@ -304,7 +310,7 @@ def verified_decision(args):
     return result
 
 
-def run_verify(args):
+def _verify(args):
     start = time.perf_counter()
     ctx = context(args)
     cv = read_sealed(args.run_dir / "cv", ctx.identity)
@@ -427,5 +433,30 @@ def run_verify(args):
         with new_output(args.run_dir / "decision") as stage:
             seal(stage, ctx.identity, {**decision, "cv_manifest_sha256": file_sha256(args.run_dir / "cv/run.json"),
                                        "verification_manifest_sha256": file_sha256(args.run_dir / "verification/run.json")})
-    verified_decision(args)
+    return decision
+
+
+def run_verify(args):
+    directory = args.run_dir / "verification_attempts"
+    directory.mkdir(parents=True, exist_ok=True)
+    attempts = sorted(directory.glob("*.json"))
+    number = int(attempts[-1].stem) + 1 if attempts else 1
+    while True:
+        path = directory / f"{number:08}.json"
+        try:
+            with path.open("x", encoding="utf-8") as handle:
+                json.dump({"status": "STARTED"}, handle)
+            break
+        except FileExistsError:
+            number += 1
+    result = {"status": "STARTED", "deep_verify": args.deep_verify,
+              "cv_manifest_sha256": file_sha256(args.run_dir / "cv/run.json") if (args.run_dir / "cv/run.json").exists() else None}
+    try:
+        decision = _verify(args)
+        result["status"] = "PASS"
+        json_output(result, path)
+        verified_decision(args)
+    except BaseException as error:
+        json_output({**result, "status": "FAILED", "error": type(error).__name__, "reason": str(error)}, path)
+        raise
     print(f"EXP-018 verified CV decision: {decision['status']} {decision['model']}", flush=True)

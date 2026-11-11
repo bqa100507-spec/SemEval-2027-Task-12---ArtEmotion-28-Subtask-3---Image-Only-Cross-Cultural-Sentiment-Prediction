@@ -342,7 +342,7 @@ def main():
             command.add_argument("--full-training", action="store_true")
     for name in ("polarity-preflight", "polarity-audit", "polarity-pilot", "polarity-cv", "polarity-confirm", "polarity-dev", "polarity-verify"):
         command = commands.add_parser(name, help="Run a bounded, resumable EXP-018 stage")
-        command.add_argument("--run-dir", type=resolved_path, default=ROOT / "runs/exp018_polarity_captions")
+        command.add_argument("--run-dir", type=resolved_path, default=ROOT / "runs/exp018_polarity_captions/prepared")
         command.add_argument("--exp017-dir", type=resolved_path, default=ROOT / "runs/exp017_text_supervision")
         command.add_argument("--data-dir", type=resolved_path, default=argparse.SUPPRESS)
         command.add_argument("--cache-dir", type=resolved_path, default=ROOT / "cache")

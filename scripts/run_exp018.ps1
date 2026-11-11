@@ -3,7 +3,7 @@ param(
     [Parameter(Mandatory = $true)]
     [ValidateSet('Preflight', 'Audit', 'Pilot', 'CV', 'Confirm', 'Dev', 'Verify')]
     [string]$Stage,
-    [string]$RunDir = 'runs/exp018_polarity_captions',
+    [string]$RunDir = 'runs/exp018_polarity_captions/prepared',
     [string]$DataDir = 'data/upstream',
     [string]$Exp017Dir = 'runs/exp017_text_supervision',
     [string]$CacheDir = 'cache',

@@ -202,6 +202,18 @@ def test_incomplete_evaluation_is_never_classified_pass_or_no_go():
     assert experiment.choose_candidate(None, CONFIG, False)["status"] == "INCOMPLETE"
 
 
+@pytest.mark.parametrize(("error", "code"), [(BudgetStop("budget"), 75), (StageBlocked("prior stage"), 3),
+                                            (ValueError("invalid input"), 1)])
+def test_stage_exit_codes_are_meaningful(monkeypatch, error, code):
+    from st3 import polarity_cli
+    def fail(args):
+        raise error
+    monkeypatch.setattr(polarity_cli, "run_cv", fail)
+    with pytest.raises(SystemExit) as stopped:
+        polarity_cli.run_polarity(SimpleNamespace(command="polarity-cv"))
+    assert stopped.value.code == code
+
+
 def test_no_go_guards_do_not_open_confirmation_or_development(monkeypatch):
     monkeypatch.setattr(confirmation, "verified_decision", lambda *args: {"status": "NO_GO"})
     monkeypatch.setattr(confirmation, "context", lambda *args: pytest.fail("Opened confirmation/public development after NO-GO"))
@@ -288,3 +300,22 @@ def test_budget_stop_retains_completed_seed_and_restarts_only_unpublished_seed(t
     assert not (directory / "seeds/M2_2027").exists()
     predictions, fits = experiment.fit_conditions(args, ctx, raw, fit, held, baseline, directory, 1, ExecutionBudget(120))
     assert file_sha256(checkpoint) == original and len(fits) == 3 and set(predictions) == {"M0", "M1", "M2", "M3", "B1", "B2", "B3"}
+
+
+def test_failed_later_verification_blocks_previous_success_until_replayed(tiny_workflow, monkeypatch):
+    args, _, _ = tiny_workflow
+    experiment.run_pilot(args)
+    experiment.run_cv(args)
+    experiment.run_verify(args)
+    assert experiment.verified_decision(args)["status"] == "NO_GO"
+    original_budget = experiment.stage_budget
+    def stop(*args):
+        raise BudgetStop("interrupted later replay")
+    monkeypatch.setattr(experiment, "stage_budget", stop)
+    with pytest.raises(BudgetStop):
+        experiment.run_verify(args)
+    with pytest.raises(StageBlocked, match="latest verification"):
+        experiment.verified_decision(args)
+    monkeypatch.setattr(experiment, "stage_budget", original_budget)
+    experiment.run_verify(args)
+    assert experiment.verified_decision(args)["status"] == "NO_GO"
