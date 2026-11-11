@@ -18,4 +18,6 @@ EXP-002 completed the shared-weights ablation, 20 inference-time image shuffles,
 
 EXP-003 completed ranks 2, 4, 8 and 16 under two seeds on the exact five EXP-002 folds, plus matched-rank SVD compression. Every directly trained rank exceeded the 0.748056 Macro Log Loss guardrail, so C remains the baseline and its development results are unchanged. The full interaction effective rank was 20.6235. SVD-16 came closest to C in grouped CV. [EXP-003 study and artifacts](../reports/exp003_low_rank.md)
 
-The proposed Task 004 is a controlled SVD-16 compression test against full C, with prediction quality and inference cost measured on held-out paintings.
+EXP-004 tested painting-balanced pairwise Huber and smoothed Pearson losses on top of full Model C using the exact EXP-002 folds. R-small led at 0.437539 Contrast and 0.737824 Macro Log Loss. Its +0.001834 mean Contrast gain fell below the frozen +0.005 threshold. The study retained C and its established development scores. [EXP-004 study](../reports/exp004_contrast_aware.md)
+
+The proposed Task 005 is a controlled frozen-representation comparison using Model C's original objective and the same painting-grouped validation protocol.

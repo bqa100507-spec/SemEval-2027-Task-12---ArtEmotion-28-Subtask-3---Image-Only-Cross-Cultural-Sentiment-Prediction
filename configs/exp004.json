@@ -1,0 +1,21 @@
+{
+  "variants": {
+    "P-small": {"loss": "pairwise", "lambda": 0.1},
+    "P-large": {"loss": "pairwise", "lambda": 0.5},
+    "R-small": {"loss": "pearson", "lambda": 0.01},
+    "R-large": {"loss": "pearson", "lambda": 0.05}
+  },
+  "huber_delta": 0.2,
+  "pearson_epsilon": 0.01,
+  "optimizer": {"maxiter": 700, "ftol": 1e-11, "gtol": 1e-6},
+  "zero_optimizer": {"maxiter": 700, "ftol": 1.4210854715202004e-14, "gtol": 0.0001},
+  "zero_probability_atol": 1e-10,
+  "blas_threads": 2,
+  "minimum_contrast_gain": 0.005,
+  "minimum_fold_wins": 4,
+  "log_loss_guardrail_bits": 0.01,
+  "contrast_tie_band": 0.002,
+  "preference_order": ["P-small", "P-large", "R-small", "R-large"],
+  "bootstrap_seed": 42028,
+  "bootstrap_replicates": 10000
+}
