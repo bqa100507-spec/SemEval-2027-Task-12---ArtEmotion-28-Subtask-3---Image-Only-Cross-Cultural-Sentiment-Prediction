@@ -1,0 +1,17 @@
+{
+  "canvas_size": 224,
+  "resample": "bicubic",
+  "padding_rgb": [123, 117, 104],
+  "clip_weights_sha256": "a63082132ba4f97a80bea76823f544493bffa8082296d62d71581a4feff1576f",
+  "clip_processor_sha256": "910e70b3956ac9879ebc90b22fb3bc8a75b6a0677814500101a4c072bd7857bd",
+  "clip_blend_weight": 0.5,
+  "substantial_crop_below": 0.8,
+  "coverage_bin_edges": [0.65, 0.8, 0.95],
+  "orientation_near_square_min": 0.9,
+  "minimum_pooled_contrast_gain": 0.001,
+  "minimum_fold_wins": 4,
+  "log_loss_guardrail_bits": 0.01,
+  "minimum_bootstrap_lower_bound": 0.0,
+  "bootstrap_seed": 82028,
+  "bootstrap_replicates": 10000
+}
