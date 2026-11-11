@@ -1,7 +1,6 @@
 """Audited, frozen-stage entry points for EXP-017."""
 
 import json
-from pathlib import Path
 
 import pandas as pd
 
@@ -116,6 +115,15 @@ def run_caption(args):
         run_caption_audit(args)
     elif args.command == "caption-extract":
         run_caption_extract(args)
+    elif args.command == "caption-token-audit":
+        from .caption_text import audit_training_tokens
+
+        config, _, _ = audited_inputs(args)
+        output = args.run_dir / "audit" / f"{args.teacher}_all_training_tokens.csv"
+        if output.exists():
+            raise ValueError(f"Output already exists: {output}")
+        audit_training_tokens(args, training_captions(args.data_dir), config["teachers"][args.teacher], output)
+        print(f"Audited all original training tokens for {args.teacher}", flush=True)
     else:
         from .caption_comparison import run_caption_cv, run_caption_holdout, run_caption_dev
 

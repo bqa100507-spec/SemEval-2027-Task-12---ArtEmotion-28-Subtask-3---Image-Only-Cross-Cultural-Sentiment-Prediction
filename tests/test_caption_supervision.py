@@ -12,7 +12,7 @@ from st3.caption_data import (allowed_captions, audit_captions, lock_protocol, r
                               text_digest, training_captions)
 from st3.caption_student import (CaptionStudent, make_rows, predict_student, seed_model, text_loss, train_epoch)
 from st3.caption_targets import fit_targets, raw_targets
-from st3.caption_text import load_teacher, masked_mean, teacher_texts, text_projection, tokenize_diagnostics
+from st3.caption_text import load_teacher, load_text_model, masked_mean, teacher_texts, text_projection, tokenize_diagnostics
 from st3.fusion import blend
 
 CONFIG = json.loads((Path(__file__).resolve().parents[1] / "configs/exp017.json").read_text())
@@ -104,6 +104,19 @@ def test_tokenizer_original_text_prefix_and_truncation_diagnostics():
     assert diagnostic.unknown_tokens.tolist() == [1, 0]
 
 
+def test_clip_loader_requires_the_trained_text_projection(monkeypatch):
+    import sys
+
+    class Loader:
+        @staticmethod
+        def from_pretrained(path, **kwargs):
+            assert kwargs["use_safetensors"] and kwargs["attn_implementation"] == "eager"
+            return object(), {"missing_keys": ["text_projection.weight"], "mismatched_keys": [], "unexpected_keys": []}
+    monkeypatch.setitem(sys.modules, "transformers", SimpleNamespace(AutoModel=Loader, CLIPTextModelWithProjection=Loader))
+    with pytest.raises(ValueError, match="Incomplete text teacher"):
+        load_text_model("fixture", "clip")
+
+
 def test_text_cache_pins_coverage_and_payload_checksum(tmp_path):
     np.savez(tmp_path / "features.npz", keys=["a"], features=np.array([[1., 0.]], dtype=np.float32))
     from st3.baseline import file_sha256
@@ -190,8 +203,53 @@ def test_gate_requires_incremental_gain_and_completed_conditions():
     assert comparison.select_caption(table, CONFIG, False)["status"] == "NO_GO"
 
 
+def test_modified_decision_cannot_open_confirmation(tmp_path, monkeypatch):
+    from st3 import caption_study
+    from st3.baseline import file_sha256
+
+    directory = tmp_path / "cv"
+    directory.mkdir()
+    table = pd.DataFrame({"pooled_contrast": .44, "fold_wins": 0, "log_loss_mean": .72, "folds": 5},
+                         index=pd.Index(["M0", "B1", "B2", "B3"], name="model"))
+    table.to_csv(directory / "summary.csv")
+    fits = [{"fold": fold, "model": model, "seed": seed} for fold in range(1, 6)
+            for model in ("M1", "M2", "M3") for seed in CONFIG["seeds"]]
+    (directory / "fits.json").write_text(json.dumps(fits))
+    (directory / "run.json").write_text("{}")
+    decision = {**comparison.select_caption(table, CONFIG, True), "config_sha256": "frozen",
+                "sha256": {name: file_sha256(directory / name) for name in ("summary.csv", "fits.json", "run.json")}}
+    decision["model"], decision["status"] = "B2", "PASS"
+    (directory / "selection.json").write_text(json.dumps(decision))
+    monkeypatch.setattr(caption_study, "audited_inputs", lambda *args: (CONFIG, None, {"config_sha256": "frozen"}))
+    with pytest.raises(ValueError, match="frozen CV gate"):
+        caption_study.checked_decision(SimpleNamespace(run_dir=tmp_path), "cv")
+
+
 def test_no_go_keeps_holdout_and_development_closed(monkeypatch):
     monkeypatch.setattr(comparison, "checked_decision", lambda *args: {"status": "NO_GO"})
     monkeypatch.setattr(comparison, "audited_inputs", lambda *args: pytest.fail("Opened data after NO-GO"))
     comparison.run_caption_holdout(None)
     comparison.run_caption_dev(None)
+
+
+def test_confirmed_candidate_compares_both_baseline_and_matched_control(tmp_path, monkeypatch):
+    rows = [{"painting": f"held-{i}", "language": language, "image": f"{i}.png", "role": "holdout",
+             "k": k, "n": 5, "p": k / 5, "split": "train"}
+            for i in range(20) for language, k in (("Tamil", 1), ("Korean", 2), ("Thai", 4))]
+    held = pd.DataFrame(rows)
+    fit = held.iloc[:3].assign(painting="fit", image="fit.png", role="development")
+    train = pd.concat([fit, held], ignore_index=True)
+    baseline = held[data.KEYS].assign(p_positive=np.tile([.35, .65, .55], 20))
+    predictions = {"M0": baseline, "B1": baseline.assign(p_positive=np.tile([.3, .4, .5], 20)),
+                   "B2": held[data.KEYS].assign(p_positive=np.tile([.2, .4, .8], 20))}
+    monkeypatch.setattr(comparison, "checked_decision", lambda *args: {"status": "PASS", "model": "B2"})
+    monkeypatch.setattr(comparison, "audited_inputs", lambda *args: (CONFIG, train, {"config_sha256": "frozen"}))
+    monkeypatch.setattr(comparison, "load_vectors", lambda *args, **kwargs: ({}, {}))
+    monkeypatch.setattr(comparison, "image_banks", lambda *args: [])
+    monkeypatch.setattr(comparison, "training_captions", lambda *args: caption_frame().assign(painting="fit"))
+    monkeypatch.setattr(comparison, "refit_baseline", lambda *args: (baseline, []))
+    monkeypatch.setattr(comparison, "train_conditions", lambda *args: (predictions, []))
+    comparison.run_caption_holdout(SimpleNamespace(run_dir=tmp_path, device="cpu", data_dir=tmp_path))
+    decision = json.loads((tmp_path / "holdout/selection.json").read_text())
+    assert decision["status"] == "PASS" and decision["gain_over_B1"] > 0
+    assert (tmp_path / "holdout/matched_control/metrics.json").is_file()

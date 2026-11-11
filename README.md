@@ -123,6 +123,10 @@ Use `prepare-e50` and `prepare-e50l` once to persist the verified heads. The ind
 
 Reuse the Task 001, EXP-002, EXP-006 and EXP-007 artifacts, then run `clip-large-cv` followed by `clip-large-dev` with `scripts/run_st3.py`. CV builds the pinned CLIP-L cache on CUDA and compares the four fixed systems on CPU. The second command evaluates a new candidate only if it clears the frozen gate. Both commands use `runs/exp010_clip_large/` by default. Use a shared new `--run-dir` for a repeat. [Protocol and results](reports/exp010_clip_large.md)
 
+## EXP-017 human-caption supervision
+
+The caption study compares matched BCE-only, CLIP-text and provisional multilingual-E5 students against refitted E50+L. It locks a new 15% confirmation holdout and uses five new grouped folds on the remaining original training paintings. Run `caption-audit`, the two `caption-extract --teacher clip/e5` commands, `caption-cv` and the guarded `caption-holdout` and `caption-dev` stages with `scripts/run_st3.py`. Use `caption-token-audit --teacher clip/e5` for all-training tokenizer diagnostics. [Frozen protocol and results](reports/exp017_text_supervision.md)
+
 ## Independent checks
 
 ```powershell

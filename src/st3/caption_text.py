@@ -80,6 +80,25 @@ def tokenize_diagnostics(tokenizer, texts, name, limit):
     return pd.DataFrame(records)
 
 
+def audit_training_tokens(args, captions, config, output):
+    """Descriptive token counts for all training annotations, without model fitting."""
+    from transformers import AutoTokenizer
+
+    name = args.teacher
+    snapshot = teacher_assets(args.cache_dir, config)
+    tokenizer = AutoTokenizer.from_pretrained(snapshot, use_fast=True)
+    valid = captions[captions.valid_caption]
+    texts = valid[["caption_id", "caption"]].drop_duplicates().sort_values("caption_id")
+    diagnostic = tokenize_diagnostics(tokenizer, texts.caption.tolist(), name, config["max_length"])
+    joined = valid[["annotation_id", "language", "caption_id"]].merge(diagnostic, on="caption_id", validate="many_to_one")
+    grouped = joined.groupby("language").agg(annotations=("tokens", "size"), tokens_mean=("tokens", "mean"),
+        tokens_median=("tokens", "median"), tokens_max=("tokens", "max"), truncation_rate=("truncated", "mean"),
+        unknown_tokens=("unknown_tokens", "sum"), token_character_ratio=("tokens_per_character", "mean"),
+        token_word_ratio=("tokens_per_whitespace_word", "mean"))
+    grouped.to_csv(output, lineterminator="\n")
+    return grouped
+
+
 def extract_teacher(args, captions, pairs, study_config, audit, output):
     import torch
     from transformers import AutoTokenizer
