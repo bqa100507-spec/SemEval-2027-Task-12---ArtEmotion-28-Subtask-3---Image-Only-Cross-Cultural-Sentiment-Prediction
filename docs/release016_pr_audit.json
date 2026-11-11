@@ -1,0 +1,413 @@
+{
+  "date": "2026-11-11",
+  "archive_branch": "archive/exp001-015-verified",
+  "archive_sha": "cd321f142142120c17c495458390deb6574ad856",
+  "production_main_commit": "7a02e63f7cdfdf1e89e92929e3297b6a61b9b508",
+  "prs": [
+    {
+      "number": 1,
+      "url": "https://github.com/bqa100507-spec/SemEval-2027-Task-12---ArtEmotion-28-Subtask-3---Image-Only-Cross-Cultural-Sentiment-Prediction/pull/1",
+      "original_base": "main",
+      "original_base_sha": "35b7e57331b8377e6810710ae7aaf8ad069fe196",
+      "head_branch": "setup/st3-baseline",
+      "head_sha": "dcab204471fae7768652dd77ad76a73864beeb1e",
+      "original_state": "OPEN",
+      "original_checks": [
+        {
+          "name": "tests",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/bqa100507-spec/SemEval-2027-Task-12---ArtEmotion-28-Subtask-3---Image-Only-Cross-Cultural-Sentiment-Prediction/actions/runs/42636269904/job/129225114235"
+        },
+        {
+          "name": "tests",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/bqa100507-spec/SemEval-2027-Task-12---ArtEmotion-28-Subtask-3---Image-Only-Cross-Cultural-Sentiment-Prediction/actions/runs/42636259100/job/129225078433"
+        }
+      ],
+      "final_state": "MERGED",
+      "merge_commit": "e5b9d19214b2aa760fafe767254657a8861155ce",
+      "merge_base": "main",
+      "tree_matched_original_head": true,
+      "archive_sha": null,
+      "closure_reason": null
+    },
+    {
+      "number": 2,
+      "url": "https://github.com/bqa100507-spec/SemEval-2027-Task-12---ArtEmotion-28-Subtask-3---Image-Only-Cross-Cultural-Sentiment-Prediction/pull/2",
+      "original_base": "setup/st3-baseline",
+      "original_base_sha": "dcab204471fae7768652dd77ad76a73864beeb1e",
+      "head_branch": "exp/002-baseline-ablation",
+      "head_sha": "95db45e0104006ad4a25db0394982954da3b91fe",
+      "original_state": "OPEN",
+      "original_checks": [
+        {
+          "name": "tests",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/bqa100507-spec/SemEval-2027-Task-12---ArtEmotion-28-Subtask-3---Image-Only-Cross-Cultural-Sentiment-Prediction/actions/runs/42678566690/job/129366527877"
+        },
+        {
+          "name": "tests",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/bqa100507-spec/SemEval-2027-Task-12---ArtEmotion-28-Subtask-3---Image-Only-Cross-Cultural-Sentiment-Prediction/actions/runs/42678521815/job/129366366546"
+        }
+      ],
+      "final_state": "MERGED",
+      "merge_commit": "715b294ac96a5cad647f0172430556e585f44d2f",
+      "merge_base": "main",
+      "tree_matched_original_head": true,
+      "archive_sha": null,
+      "closure_reason": null
+    },
+    {
+      "number": 3,
+      "url": "https://github.com/bqa100507-spec/SemEval-2027-Task-12---ArtEmotion-28-Subtask-3---Image-Only-Cross-Cultural-Sentiment-Prediction/pull/3",
+      "original_base": "exp/002-baseline-ablation",
+      "original_base_sha": "95db45e0104006ad4a25db0394982954da3b91fe",
+      "head_branch": "exp/003-low-rank-interactions",
+      "head_sha": "e1b586a61556b2e0e2563c05bd2c8d09ac50c902",
+      "original_state": "OPEN",
+      "original_checks": [
+        {
+          "name": "tests",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/bqa100507-spec/SemEval-2027-Task-12---ArtEmotion-28-Subtask-3---Image-Only-Cross-Cultural-Sentiment-Prediction/actions/runs/42681525797/job/129377039946"
+        },
+        {
+          "name": "tests",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/bqa100507-spec/SemEval-2027-Task-12---ArtEmotion-28-Subtask-3---Image-Only-Cross-Cultural-Sentiment-Prediction/actions/runs/42681476809/job/129376872443"
+        }
+      ],
+      "final_state": "MERGED",
+      "merge_commit": "d40d638ec2fc28f496fc931b5591ca23cf2b0508",
+      "merge_base": "main",
+      "tree_matched_original_head": true,
+      "archive_sha": null,
+      "closure_reason": null
+    },
+    {
+      "number": 4,
+      "url": "https://github.com/bqa100507-spec/SemEval-2027-Task-12---ArtEmotion-28-Subtask-3---Image-Only-Cross-Cultural-Sentiment-Prediction/pull/4",
+      "original_base": "exp/003-low-rank-interactions",
+      "original_base_sha": "e1b586a61556b2e0e2563c05bd2c8d09ac50c902",
+      "head_branch": "exp/004-contrast-aware-learning",
+      "head_sha": "7f45ff5e38ba468c2677821d07fdec5c9725d713",
+      "original_state": "OPEN",
+      "original_checks": [
+        {
+          "name": "tests",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/bqa100507-spec/SemEval-2027-Task-12---ArtEmotion-28-Subtask-3---Image-Only-Cross-Cultural-Sentiment-Prediction/actions/runs/42776318111/job/129695521008"
+        },
+        {
+          "name": "tests",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/bqa100507-spec/SemEval-2027-Task-12---ArtEmotion-28-Subtask-3---Image-Only-Cross-Cultural-Sentiment-Prediction/actions/runs/42776286234/job/129695426936"
+        }
+      ],
+      "final_state": "MERGED",
+      "merge_commit": "b9388abe84d73d32ff03b78095b05c99bc1372f2",
+      "merge_base": "main",
+      "tree_matched_original_head": true,
+      "archive_sha": null,
+      "closure_reason": null
+    },
+    {
+      "number": 5,
+      "url": "https://github.com/bqa100507-spec/SemEval-2027-Task-12---ArtEmotion-28-Subtask-3---Image-Only-Cross-Cultural-Sentiment-Prediction/pull/5",
+      "original_base": "exp/004-contrast-aware-learning",
+      "original_base_sha": "7f45ff5e38ba468c2677821d07fdec5c9725d713",
+      "head_branch": "exp/005-visual-representation",
+      "head_sha": "7dec879f55367430a30471b98c18657f2ced0298",
+      "original_state": "OPEN",
+      "original_checks": [
+        {
+          "name": "tests",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/bqa100507-spec/SemEval-2027-Task-12---ArtEmotion-28-Subtask-3---Image-Only-Cross-Cultural-Sentiment-Prediction/actions/runs/42794901078/job/129757435476"
+        },
+        {
+          "name": "tests",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/bqa100507-spec/SemEval-2027-Task-12---ArtEmotion-28-Subtask-3---Image-Only-Cross-Cultural-Sentiment-Prediction/actions/runs/42794865091/job/129757311077"
+        }
+      ],
+      "final_state": "MERGED",
+      "merge_commit": "7001d5fc757444d920a665ac7912f08bf12c2b2d",
+      "merge_base": "main",
+      "tree_matched_original_head": true,
+      "archive_sha": null,
+      "closure_reason": null
+    },
+    {
+      "number": 6,
+      "url": "https://github.com/bqa100507-spec/SemEval-2027-Task-12---ArtEmotion-28-Subtask-3---Image-Only-Cross-Cultural-Sentiment-Prediction/pull/6",
+      "original_base": "exp/005-visual-representation",
+      "original_base_sha": "7dec879f55367430a30471b98c18657f2ced0298",
+      "head_branch": "exp/006-siglip2-representation",
+      "head_sha": "53be22059c413da2d896971367addc283052b9bf",
+      "original_state": "OPEN",
+      "original_checks": [
+        {
+          "name": "tests",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/bqa100507-spec/SemEval-2027-Task-12---ArtEmotion-28-Subtask-3---Image-Only-Cross-Cultural-Sentiment-Prediction/actions/runs/42797792292/job/129767298507"
+        },
+        {
+          "name": "tests",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/bqa100507-spec/SemEval-2027-Task-12---ArtEmotion-28-Subtask-3---Image-Only-Cross-Cultural-Sentiment-Prediction/actions/runs/42797741251/job/129767124580"
+        }
+      ],
+      "final_state": "MERGED",
+      "merge_commit": "e69a192e2150c8aabb23826a77742c7000e04ee2",
+      "merge_base": "main",
+      "tree_matched_original_head": true,
+      "archive_sha": null,
+      "closure_reason": null
+    },
+    {
+      "number": 7,
+      "url": "https://github.com/bqa100507-spec/SemEval-2027-Task-12---ArtEmotion-28-Subtask-3---Image-Only-Cross-Cultural-Sentiment-Prediction/pull/7",
+      "original_base": "exp/006-siglip2-representation",
+      "original_base_sha": "53be22059c413da2d896971367addc283052b9bf",
+      "head_branch": "exp/007-clip-siglip-fusion",
+      "head_sha": "2ee351b56cfd12ee06524387f342d4ed42eedb6e",
+      "original_state": "OPEN",
+      "original_checks": [
+        {
+          "name": "tests",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/bqa100507-spec/SemEval-2027-Task-12---ArtEmotion-28-Subtask-3---Image-Only-Cross-Cultural-Sentiment-Prediction/actions/runs/42801582563/job/129780173391"
+        },
+        {
+          "name": "tests",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/bqa100507-spec/SemEval-2027-Task-12---ArtEmotion-28-Subtask-3---Image-Only-Cross-Cultural-Sentiment-Prediction/actions/runs/42801545228/job/129780039163"
+        }
+      ],
+      "final_state": "MERGED",
+      "merge_commit": "d72e75be5fe6adabd92c9146dc6748dde003aca7",
+      "merge_base": "main",
+      "tree_matched_original_head": true,
+      "archive_sha": null,
+      "closure_reason": null
+    },
+    {
+      "number": 8,
+      "url": "https://github.com/bqa100507-spec/SemEval-2027-Task-12---ArtEmotion-28-Subtask-3---Image-Only-Cross-Cultural-Sentiment-Prediction/pull/8",
+      "original_base": "exp/007-clip-siglip-fusion",
+      "original_base_sha": "2ee351b56cfd12ee06524387f342d4ed42eedb6e",
+      "head_branch": "exp/008-full-image-coverage",
+      "head_sha": "53bb9ead92dcba19bc571866d8ab2c7b1f1dad69",
+      "original_state": "OPEN",
+      "original_checks": [
+        {
+          "name": "tests",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/bqa100507-spec/SemEval-2027-Task-12---ArtEmotion-28-Subtask-3---Image-Only-Cross-Cultural-Sentiment-Prediction/actions/runs/42807813075/job/129801396164"
+        },
+        {
+          "name": "tests",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/bqa100507-spec/SemEval-2027-Task-12---ArtEmotion-28-Subtask-3---Image-Only-Cross-Cultural-Sentiment-Prediction/actions/runs/42807781551/job/129801289146"
+        }
+      ],
+      "final_state": "MERGED",
+      "merge_commit": "705bde611e1f033810184dd67f2266511914a08f",
+      "merge_base": "main",
+      "tree_matched_original_head": true,
+      "archive_sha": null,
+      "closure_reason": null
+    },
+    {
+      "number": 9,
+      "url": "https://github.com/bqa100507-spec/SemEval-2027-Task-12---ArtEmotion-28-Subtask-3---Image-Only-Cross-Cultural-Sentiment-Prediction/pull/9",
+      "original_base": "exp/008-full-image-coverage",
+      "original_base_sha": "53bb9ead92dcba19bc571866d8ab2c7b1f1dad69",
+      "head_branch": "infra/009-e50-inference",
+      "head_sha": "14277f68959146d55a3e693be43935354ae304ee",
+      "original_state": "OPEN",
+      "original_checks": [
+        {
+          "name": "tests",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/bqa100507-spec/SemEval-2027-Task-12---ArtEmotion-28-Subtask-3---Image-Only-Cross-Cultural-Sentiment-Prediction/actions/runs/42818345362/job/129837124126"
+        },
+        {
+          "name": "tests",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/bqa100507-spec/SemEval-2027-Task-12---ArtEmotion-28-Subtask-3---Image-Only-Cross-Cultural-Sentiment-Prediction/actions/runs/42818315108/job/129837017203"
+        }
+      ],
+      "final_state": "MERGED",
+      "merge_commit": "fb8f4607f292a73e0c2174ebe14818f0a3b5f6f7",
+      "merge_base": "main",
+      "tree_matched_original_head": true,
+      "archive_sha": null,
+      "closure_reason": null
+    },
+    {
+      "number": 10,
+      "url": "https://github.com/bqa100507-spec/SemEval-2027-Task-12---ArtEmotion-28-Subtask-3---Image-Only-Cross-Cultural-Sentiment-Prediction/pull/10",
+      "original_base": "infra/009-e50-inference",
+      "original_base_sha": "14277f68959146d55a3e693be43935354ae304ee",
+      "head_branch": "exp/010-clip-large-ensemble",
+      "head_sha": "dafaf7d0a0a2fe5a6ad0a34369db48330ceccb76",
+      "original_state": "OPEN",
+      "original_checks": [
+        {
+          "name": "tests",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/bqa100507-spec/SemEval-2027-Task-12---ArtEmotion-28-Subtask-3---Image-Only-Cross-Cultural-Sentiment-Prediction/actions/runs/42820747547/job/129845350420"
+        },
+        {
+          "name": "tests",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/bqa100507-spec/SemEval-2027-Task-12---ArtEmotion-28-Subtask-3---Image-Only-Cross-Cultural-Sentiment-Prediction/actions/runs/42820706917/job/129845214591"
+        }
+      ],
+      "final_state": "MERGED",
+      "merge_commit": "8b09d90dc4c20e978146ab1c3604da090f87b9ad",
+      "merge_base": "main",
+      "tree_matched_original_head": true,
+      "archive_sha": null,
+      "closure_reason": null
+    },
+    {
+      "number": 11,
+      "url": "https://github.com/bqa100507-spec/SemEval-2027-Task-12---ArtEmotion-28-Subtask-3---Image-Only-Cross-Cultural-Sentiment-Prediction/pull/11",
+      "original_base": "exp/010-clip-large-ensemble",
+      "original_base_sha": "dafaf7d0a0a2fe5a6ad0a34369db48330ceccb76",
+      "head_branch": "infra/011-e50l-inference",
+      "head_sha": "64c38204c31ae9915a5241f057cd8dd49ef349e1",
+      "original_state": "OPEN",
+      "original_checks": [
+        {
+          "name": "tests",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/bqa100507-spec/SemEval-2027-Task-12---ArtEmotion-28-Subtask-3---Image-Only-Cross-Cultural-Sentiment-Prediction/actions/runs/42832203230/job/129884888700"
+        },
+        {
+          "name": "tests",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/bqa100507-spec/SemEval-2027-Task-12---ArtEmotion-28-Subtask-3---Image-Only-Cross-Cultural-Sentiment-Prediction/actions/runs/42832156774/job/129884730377"
+        }
+      ],
+      "final_state": "MERGED",
+      "merge_commit": "7a02e63f7cdfdf1e89e92929e3297b6a61b9b508",
+      "merge_base": "main",
+      "tree_matched_original_head": true,
+      "archive_sha": null,
+      "closure_reason": null
+    },
+    {
+      "number": 12,
+      "url": "https://github.com/bqa100507-spec/SemEval-2027-Task-12---ArtEmotion-28-Subtask-3---Image-Only-Cross-Cultural-Sentiment-Prediction/pull/12",
+      "original_base": "infra/011-e50l-inference",
+      "original_base_sha": "64c38204c31ae9915a5241f057cd8dd49ef349e1",
+      "head_branch": "exp/012-language-aware-residual",
+      "head_sha": "c9a487747b8b340d5adb3cb17772e890fd400583",
+      "original_state": "OPEN",
+      "original_checks": [
+        {
+          "name": "tests",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/bqa100507-spec/SemEval-2027-Task-12---ArtEmotion-28-Subtask-3---Image-Only-Cross-Cultural-Sentiment-Prediction/actions/runs/42838691063/job/129907709450"
+        },
+        {
+          "name": "tests",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/bqa100507-spec/SemEval-2027-Task-12---ArtEmotion-28-Subtask-3---Image-Only-Cross-Cultural-Sentiment-Prediction/actions/runs/42838645768/job/129907543468"
+        }
+      ],
+      "final_state": "CLOSED",
+      "merge_commit": null,
+      "merge_base": "infra/011-e50l-inference",
+      "tree_matched_original_head": null,
+      "archive_sha": "cd321f142142120c17c495458390deb6574ad856",
+      "closure_reason": "Frozen calibration candidates failed the CV promotion gate."
+    },
+    {
+      "number": 13,
+      "url": "https://github.com/bqa100507-spec/SemEval-2027-Task-12---ArtEmotion-28-Subtask-3---Image-Only-Cross-Cultural-Sentiment-Prediction/pull/13",
+      "original_base": "exp/012-language-aware-residual",
+      "original_base_sha": "c9a487747b8b340d5adb3cb17772e890fd400583",
+      "head_branch": "exp/013-nonlinear-head",
+      "head_sha": "b0dfc75d27285eca12abf061b5bd7b0a5667544c",
+      "original_state": "OPEN",
+      "original_checks": [
+        {
+          "name": "tests",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/bqa100507-spec/SemEval-2027-Task-12---ArtEmotion-28-Subtask-3---Image-Only-Cross-Cultural-Sentiment-Prediction/actions/runs/42842187009/job/129920024846"
+        },
+        {
+          "name": "tests",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/bqa100507-spec/SemEval-2027-Task-12---ArtEmotion-28-Subtask-3---Image-Only-Cross-Cultural-Sentiment-Prediction/actions/runs/42842135896/job/129919852135"
+        }
+      ],
+      "final_state": "CLOSED",
+      "merge_commit": null,
+      "merge_base": "exp/012-language-aware-residual",
+      "tree_matched_original_head": null,
+      "archive_sha": "cd321f142142120c17c495458390deb6574ad856",
+      "closure_reason": "The CV-selected blend lost development Contrast, 0.457524542 versus E50+L 0.464317370."
+    },
+    {
+      "number": 14,
+      "url": "https://github.com/bqa100507-spec/SemEval-2027-Task-12---ArtEmotion-28-Subtask-3---Image-Only-Cross-Cultural-Sentiment-Prediction/pull/14",
+      "original_base": "exp/013-nonlinear-head",
+      "original_base_sha": "b0dfc75d27285eca12abf061b5bd7b0a5667544c",
+      "head_branch": "exp/014-clip-large-lora",
+      "head_sha": "bd060cf6627396f045372d6ef2520b9e1bc16848",
+      "original_state": "OPEN",
+      "original_checks": [
+        {
+          "name": "tests",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/bqa100507-spec/SemEval-2027-Task-12---ArtEmotion-28-Subtask-3---Image-Only-Cross-Cultural-Sentiment-Prediction/actions/runs/42876688746/job/130041743898"
+        },
+        {
+          "name": "tests",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/bqa100507-spec/SemEval-2027-Task-12---ArtEmotion-28-Subtask-3---Image-Only-Cross-Cultural-Sentiment-Prediction/actions/runs/42876643689/job/130041590726"
+        }
+      ],
+      "final_state": "CLOSED",
+      "merge_commit": null,
+      "merge_base": "exp/013-nonlinear-head",
+      "tree_matched_original_head": null,
+      "archive_sha": "cd321f142142120c17c495458390deb6574ad856",
+      "closure_reason": "The +0.000891 pooled CV Contrast gain fell below the frozen +0.003 requirement."
+    },
+    {
+      "number": 15,
+      "url": "https://github.com/bqa100507-spec/SemEval-2027-Task-12---ArtEmotion-28-Subtask-3---Image-Only-Cross-Cultural-Sentiment-Prediction/pull/15",
+      "original_base": "exp/014-clip-large-lora",
+      "original_base_sha": "bd060cf6627396f045372d6ef2520b9e1bc16848",
+      "head_branch": "exp/015-siglip2-large",
+      "head_sha": "cd321f142142120c17c495458390deb6574ad856",
+      "original_state": "OPEN",
+      "original_checks": [
+        {
+          "name": "tests",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/bqa100507-spec/SemEval-2027-Task-12---ArtEmotion-28-Subtask-3---Image-Only-Cross-Cultural-Sentiment-Prediction/actions/runs/42879938813/job/130053183265"
+        },
+        {
+          "name": "tests",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/bqa100507-spec/SemEval-2027-Task-12---ArtEmotion-28-Subtask-3---Image-Only-Cross-Cultural-Sentiment-Prediction/actions/runs/42879897852/job/130053042508"
+        }
+      ],
+      "final_state": "CLOSED",
+      "merge_commit": null,
+      "merge_base": "exp/014-clip-large-lora",
+      "tree_matched_original_head": null,
+      "archive_sha": "cd321f142142120c17c495458390deb6574ad856",
+      "closure_reason": "M2 gained +0.000565 and M3 +0.000473 pooled CV Contrast, below their frozen thresholds."
+    }
+  ]
+}

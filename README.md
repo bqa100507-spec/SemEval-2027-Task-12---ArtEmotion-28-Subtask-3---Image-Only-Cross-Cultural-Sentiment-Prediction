@@ -1,6 +1,8 @@
 # ArtEmotion-28 Subtask 3
 
-Image-only cross-cultural sentiment prediction for SemEval 2027 Task 12. The development workflow predicts the positive annotator share for each supplied artwork and target language using the organizers' frozen CLIP ViT-B/32 and weighted logistic regression. It also evaluates a training-only language prior.
+Image-only cross-cultural sentiment prediction for SemEval 2027 Task 12. The competition release uses **E50+L**, the hosted-verified CLIP-B, SigLIP 2 Base and CLIP-L ensemble. The project owner reported Development Contrast **0.4643** for submission **#1046158**. Use the [competition release manifest and evaluation-day commands](docs/competition_release.md) for frozen inference.
+
+The sections below retain the original baseline setup and EXP-001–011 reproduction commands. The complete EXP-001–015 history is preserved on [archive/exp001-015-verified](https://github.com/bqa100507-spec/SemEval-2027-Task-12---ArtEmotion-28-Subtask-3---Image-Only-Cross-Cultural-Sentiment-Prediction/tree/archive/exp001-015-verified). [PR integration audit](docs/release016_pr_audit.json)
 
 ## 1. Set up the workspace
 
