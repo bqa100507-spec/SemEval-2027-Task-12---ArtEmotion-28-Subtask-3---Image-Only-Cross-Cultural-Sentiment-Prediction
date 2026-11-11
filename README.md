@@ -65,6 +65,18 @@ With the same Task 001 cache and EXP-002 fold artifact, run train-only selection
 
 The first command writes `runs/exp004_contrast_aware/cv/selection.json`. The second verifies that decision and scores a new development candidate only if the train-only criteria are met. Use a new `--run-dir` for repeats. [EXP-004 protocol and results](reports/exp004_contrast_aware.md)
 
+## EXP-005 frozen visual representations
+
+Reuse the Task 001 CLIP cache and EXP-002 fold artifact. The first command can build the pinned DINOv2 cache separately. The second also builds it if needed and writes the frozen CV decision.
+
+```powershell
+.venv/Scripts/python.exe scripts/run_st3.py visual-embed
+.venv/Scripts/python.exe scripts/run_st3.py visual-cv
+.venv/Scripts/python.exe scripts/run_st3.py visual-dev
+```
+
+The default device selection uses CUDA when available. Pass `--device cpu` to run extraction on CPU and use the same device option for both stages. Results are under `runs/exp005_visual_representation/`. A qualifying candidate produces a separate validated ZIP for manual use. Use a new `--run-dir` for a repeat. [Rules, provenance and results](reports/exp005_visual_representation.md)
+
 ## Independent checks
 
 ```powershell

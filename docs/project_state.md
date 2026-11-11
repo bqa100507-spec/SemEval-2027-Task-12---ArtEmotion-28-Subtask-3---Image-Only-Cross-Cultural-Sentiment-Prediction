@@ -20,4 +20,6 @@ EXP-003 completed ranks 2, 4, 8 and 16 under two seeds on the exact five EXP-002
 
 EXP-004 tested painting-balanced pairwise Huber and smoothed Pearson losses on top of full Model C using the exact EXP-002 folds. R-small led at 0.437539 Contrast and 0.737824 Macro Log Loss. Its +0.001834 mean Contrast gain fell below the frozen +0.005 threshold. The study retained C and its established development scores. [EXP-004 study](../reports/exp004_contrast_aware.md)
 
-The proposed Task 005 is a controlled frozen-representation comparison using Model C's original objective and the same painting-grouped validation protocol.
+EXP-005 compared CLIP with frozen DINOv2-base CLS features and fold-local PCA to 512 dimensions. CLIP reproduced EXP-002 and beat both DINO conditions on Contrast and Macro Log Loss in every fold. DINO768 scored 0.418597 Contrast and 0.781704 Log Loss, versus CLIP's 0.435705 and 0.738056. The frozen decision retained C-CLIP. [EXP-005 rules, provenance and results](../reports/exp005_visual_representation.md)
+
+The next research question is whether a single predeclared frozen image-text checkpoint can improve over C-CLIP under the same grouped protocol.
