@@ -99,7 +99,7 @@ def audit_training_tokens(args, captions, config, output):
     return grouped
 
 
-def extract_teacher(args, captions, pairs, study_config, audit, output):
+def extract_teacher(args, captions, pairs, study_config, audit, output, *, feature_directory=None, progress_hook=None):
     import torch
     from transformers import AutoTokenizer
 
@@ -167,11 +167,16 @@ def extract_teacher(args, captions, pairs, study_config, audit, output):
 
         return encode
 
+    def progress(count):
+        if progress_hook is not None:
+            progress_hook(count)
+        if count % 2048 < config["batch_size"] or count == len(mapping):
+            print(f"{name}: cached {count}/{len(mapping)} captions", flush=True)
+
     with new_output(output) as stage:
-        vectors, info = collect_features(mapping, args.cache_dir / "exp017_text", identity,
+        vectors, info = collect_features(mapping, feature_directory or args.cache_dir / "exp017_text", identity,
                                          config["batch_size"], load_encoder,
-                                         progress=lambda count: print(f"{name}: cached {count}/{len(mapping)} captions", flush=True)
-                                         if count % 2048 < config["batch_size"] or count == len(mapping) else None)
+                                         progress=progress)
         keys = list(mapping)
         values = np.stack([vectors[key] for key in keys])
         valid_vectors(values, len(keys), config["width"])
