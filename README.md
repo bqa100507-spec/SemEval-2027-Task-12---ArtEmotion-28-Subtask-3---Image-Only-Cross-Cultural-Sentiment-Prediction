@@ -117,6 +117,10 @@ CV uses CUDA for the new CLIP cache and CPU for the Logistic Regression fits. Th
 
 Use `prepare-e50` once to persist the verified EXP-007 heads. The independent `predict` command takes an explicit ST3 CSV and artwork directory, writes a validated archive, and resumes new-image encoding from its per-image cache. E50 is the default. Select `--mode clip` explicitly for the fallback. [Windows commands and evaluation setup](docs/e50_inference.md)
 
+## EXP-010 frozen CLIP-L ensembles
+
+Reuse the Task 001, EXP-002, EXP-006 and EXP-007 artifacts, then run `clip-large-cv` followed by `clip-large-dev` with `scripts/run_st3.py`. CV builds the pinned CLIP-L cache on CUDA and compares the four fixed systems on CPU. The second command evaluates a new candidate only if it clears the frozen gate. Both commands use `runs/exp010_clip_large/` by default. Use a shared new `--run-dir` for a repeat. [Protocol and results](reports/exp010_clip_large.md)
+
 ## Independent checks
 
 ```powershell

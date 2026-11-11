@@ -72,10 +72,11 @@ def candidate_features(args, dev, train, config, experiment):
     return dino_features(args, dev, train, config)
 
 
-def deltas(rows, index, metric):
-    original = rows[rows.model.eq(REFERENCE)].set_index(index)[metric]
-    merged = rows.join(original.rename(f"{metric}_CLIP"), on=index, validate="many_to_one")
-    return merged.assign(delta_vs_clip=merged[metric] - merged[f"{metric}_CLIP"])
+def deltas(rows, index, metric, reference=REFERENCE, label="CLIP"):
+    original = rows[rows.model.eq(reference)].set_index(index)[metric]
+    reference_column = f"{metric}_{label}"
+    merged = rows.join(original.rename(reference_column), on=index, validate="many_to_one")
+    return merged.assign(**{f"delta_vs_{label.lower()}": merged[metric] - merged[reference_column]})
 
 
 def run_visual_cv(args, dev, experiment="exp005"):

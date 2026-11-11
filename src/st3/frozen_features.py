@@ -47,6 +47,15 @@ def load_frozen_cache(location, names, identity):
     return dict(zip(names, features)), {**manifest, "path": str(location)}
 
 
+def verify_asset_hashes(actual, config):
+    expected = dict(config.get("assets_sha256", {}))
+    if config.get("weights_sha256"):
+        expected["model.safetensors"] = config["weights_sha256"]
+    for name, checksum in expected.items():
+        if actual.get(name) != checksum:
+            raise ValueError(f"Frozen encoder asset differs from the pinned hash: {name}")
+
+
 def extract_frozen(root, names, cache_dir, config, requested_device, *, prefix, load_model, encode):
     os.environ.setdefault("HF_HUB_CACHE", str(cache_dir / "huggingface"))
     os.environ.setdefault("HF_HUB_DOWNLOAD_TIMEOUT", "120")
@@ -67,14 +76,15 @@ def extract_frozen(root, names, cache_dir, config, requested_device, *, prefix, 
                 "attention": "eager", "processor": "slow", "initial_device": initial_device,
                 "device_name": torch.cuda.get_device_name() if initial_device == "cuda" else "CPU",
                 "runtime": {name: importlib.metadata.version(name) for name in ("torch", "transformers", "Pillow", "numpy")}}
+    if "assets_sha256" in config:
+        identity["assets_sha256"] = config["assets_sha256"]
     required_version = config.get("transformers_version")
     if required_version and identity["runtime"]["transformers"] != required_version:
         raise ValueError(f"Extraction requires Transformers {required_version} in the dedicated environment")
     location = cache_location(root, names, cache_dir, identity, prefix)
     if location.is_dir():
         vectors, manifest = load_frozen_cache(location, names, identity)
-        if config.get("weights_sha256") and manifest["assets_sha256"]["model.safetensors"] != config["weights_sha256"]:
-            raise ValueError("Cached features disagree with the pinned weight hash")
+        verify_asset_hashes(manifest["assets_sha256"], config)
         print(f"Reused {len(names)} checksum-validated {prefix} features from {location}", flush=True)
         return vectors, manifest
 
@@ -84,8 +94,7 @@ def extract_frozen(root, names, cache_dir, config, requested_device, *, prefix, 
     assets = {name: Path(hf_hub_download(identity["model"], name, revision=identity["revision"]))
               for name in ("config.json", "preprocessor_config.json", "model.safetensors")}
     asset_hashes = {name: file_sha256(file) for name, file in assets.items()}
-    if config.get("weights_sha256") and asset_hashes["model.safetensors"] != config["weights_sha256"]:
-        raise ValueError("Downloaded checkpoint disagrees with the pinned weight hash")
+    verify_asset_hashes(asset_hashes, config)
     checkpoint = assets["model.safetensors"].parent
     model = load_model(checkpoint).eval().requires_grad_(False)
     processor = AutoImageProcessor.from_pretrained(checkpoint, use_fast=False)

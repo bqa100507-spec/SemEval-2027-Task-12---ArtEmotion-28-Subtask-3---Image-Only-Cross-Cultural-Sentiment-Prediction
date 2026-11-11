@@ -1,0 +1,19 @@
+{
+  "encoder": {
+    "model": "openai/clip-vit-large-patch14",
+    "revision": "32bd64288804d66eefd0ccbe215aa642df71cc41",
+    "width": 768,
+    "batch_size": 16,
+    "feature": "clip-large-vision-projection-l2-fp32-v1",
+    "transformers_version": "4.49.0",
+    "assets_sha256": {
+      "config.json": "8a09b467700c58138c29d53c605b34ebc69beaadd13274a8a2af8ad2c2f4032a",
+      "preprocessor_config.json": "910e70b3956ac9879ebc90b22fb3bc8a75b6a0677814500101a4c072bd7857bd",
+      "model.safetensors": "a2bf730a0c7debf160f7a6b50b3aaf3703e7e88ac73de7a314903141db026dcb"
+    }
+  },
+  "log_loss_guardrail_bits": 0.01,
+  "e50_tie_band": 0.001,
+  "bootstrap_seed": 102027,
+  "bootstrap_replicates": 10000
+}

@@ -35,24 +35,27 @@ def fusion_inputs(args, dev):
     return config, annotations, train, clip, siglip, provenance
 
 
-def write_cv_analysis(stage, train, records, rows, config):
+def write_cv_analysis(stage, train, records, rows, config, reference=REFERENCE, label="CLIP"):
     predictions = pd.concat(records["predictions"], ignore_index=True)
-    paintings = deltas(pd.concat(records["paintings"], ignore_index=True), ["fold", "painting"], "contrast")
-    languages = deltas(pd.concat(records["languages"], ignore_index=True), ["fold", "language"], "log_loss")
+    paintings = deltas(pd.concat(records["paintings"], ignore_index=True), ["fold", "painting"], "contrast",
+                       reference, label)
+    languages = deltas(pd.concat(records["languages"], ignore_index=True), ["fold", "language"], "log_loss",
+                       reference, label)
     pooled = {name: score(train, frame[[*data.KEYS, "p_positive"]])
               for name, frame in predictions.groupby("model", sort=False)}
-    summary = summarize(rows, REFERENCE)
+    summary = summarize(rows, reference)
     summary["pooled_contrast"] = pd.Series({name: result["cultural_contrast"] for name, result in pooled.items()})
     summary["pooled_log_loss"] = pd.Series({name: result["log_loss"] for name, result in pooled.items()})
-    summary["pooled_contrast_delta"] = summary["pooled_contrast"] - summary.loc[REFERENCE, "pooled_contrast"]
-    summary["pooled_log_loss_delta"] = summary["pooled_log_loss"] - summary.loc[REFERENCE, "pooled_log_loss"]
+    summary["pooled_contrast_delta"] = summary["pooled_contrast"] - summary.loc[reference, "pooled_contrast"]
+    summary["pooled_log_loss_delta"] = summary["pooled_log_loss"] - summary.loc[reference, "pooled_log_loss"]
     summary["fit_seconds"] = rows.groupby("model")["fit_seconds"].sum()
     summary["predict_seconds"] = rows.groupby("model")["predict_seconds"].sum()
     scored = paintings[paintings["status"].eq("scored")]
-    summary["painting_wins"] = scored.groupby("model")["delta_vs_clip"].apply(lambda d: int(d.gt(0).sum()))
-    summary["painting_regressions"] = scored.groupby("model")["delta_vs_clip"].apply(lambda d: int(d.lt(0).sum()))
-    wide = scored.pivot(index=["fold", "painting"], columns="model", values="delta_vs_clip").reset_index()
-    compared = [name for name in summary.index if name != REFERENCE]
+    delta = f"delta_vs_{label.lower()}"
+    summary["painting_wins"] = scored.groupby("model")[delta].apply(lambda d: int(d.gt(0).sum()))
+    summary["painting_regressions"] = scored.groupby("model")[delta].apply(lambda d: int(d.lt(0).sum()))
+    wide = scored.pivot(index=["fold", "painting"], columns="model", values=delta).reset_index()
+    compared = [name for name in summary.index if name != reference]
     draws, intervals = paired_bootstrap(wide.assign(status="scored"), config["bootstrap_replicates"],
                                        config["bootstrap_seed"], columns=compared)
     for name, frame in (("fold_metrics", rows), ("predictions", predictions), ("paintings", paintings),
