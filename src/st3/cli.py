@@ -1,4 +1,4 @@
-"""Command-line entry points for development audit, baseline, evaluation and ZIPs."""
+"""Command-line entry points for ST3 experiments, inference and ZIP validation."""
 
 import argparse
 import importlib.metadata
@@ -211,6 +211,11 @@ def main():
     if len(sys.argv) == 3 and sys.argv[1] == "_verify":
         run_verifier(Path(sys.argv[2]))
         return
+    if len(sys.argv) == 5 and sys.argv[1] == "_e50_worker":
+        from .e50_encoders import run_worker
+
+        run_worker(sys.argv[2], Path(sys.argv[3]), Path(sys.argv[4]))
+        return
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--data-dir", type=resolved_path, default=ROOT / "data" / "upstream")
     commands = parser.add_subparsers(dest="command", required=True)
@@ -289,8 +294,42 @@ def main():
     pack.add_argument("--output", type=Path, default=ROOT / "runs" / "baseline_dev" / "submission.zip")
     validate = commands.add_parser("validate", help="Validate a development ZIP")
     validate.add_argument("archive", type=Path)
+    prepare = commands.add_parser("prepare-e50", help="Reconstruct and parity-check the frozen EXP-007 heads")
+    predict = commands.add_parser("predict", help="Predict an explicit ST3 input CSV with frozen E50 or CLIP")
+    models = ROOT / "runs" / "e50_inference_models"
+    for command in (prepare, predict):
+        command.add_argument("--data-dir", type=resolved_path, default=argparse.SUPPRESS)
+        command.add_argument("--model-dir", type=resolved_path, default=models)
+        command.add_argument("--cache-dir", type=resolved_path, default=ROOT / "cache")
+    prepare.add_argument("--embedding-run", type=resolved_path, default=ROOT / "runs" / "baseline_dev" / "run.json")
+    prepare.add_argument("--exp006-dir", type=resolved_path, default=ROOT / "runs" / "exp006_siglip2")
+    prepare.add_argument("--exp007-dir", type=resolved_path, default=ROOT / "runs" / "exp007_fusion")
+    predict.add_argument("--input", type=resolved_path, required=True)
+    predict.add_argument("--output-dir", type=resolved_path, required=True)
+    predict.add_argument("--mode", choices=("e50", "clip"), default="e50")
+    predict.add_argument("--device", choices=("auto", "cuda", "cpu"), default="auto")
+    predict.add_argument("--clip-batch-size", type=int)
+    predict.add_argument("--siglip2-batch-size", type=int)
+    overlay = ROOT / ".venv-siglip2" / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
+    predict.add_argument("--siglip2-python", type=resolved_path, default=overlay)
+    general_validate = commands.add_parser("validate-prediction", help="Validate a ZIP against an explicit ST3 input CSV")
+    general_validate.add_argument("--input", type=resolved_path, required=True)
+    general_validate.add_argument("archive", type=resolved_path)
     args = parser.parse_args()
 
+    if args.command == "prepare-e50":
+        from .e50_heads import prepare_heads
+
+        prepare_heads(args)
+        return
+    if args.command in ("predict", "validate-prediction"):
+        from .e50_inference import run_prediction, validate_input_archive
+
+        if args.command == "predict":
+            run_prediction(args)
+        else:
+            validate_input_archive(args)
+        return
     if args.command == "audit":
         if args.official:
             official_verify(args.data_dir)

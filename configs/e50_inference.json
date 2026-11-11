@@ -1,0 +1,37 @@
+{
+  "bundle_version": 1,
+  "blend_clip_weight": 0.5,
+  "reference_csv_sha256": {
+    "e50": "89591c9ccefe47b570933ab2f7765e3927882d0912ec3288914b6c692e50b0d1",
+    "clip": "e4c0fc06ed640f10b702b4b2a95451b1cad4665c86f2cbf170ef2c7c3cce9e47"
+  },
+  "official_languages": [
+    "Arabic", "Burmese", "Chinese", "Darija", "Emakhuwa", "English", "Hausa", "Hindi", "Igbo",
+    "Indonesian", "IsiNdebele", "IsiXhosa", "IsiZulu", "Kazakh", "Kinyarwanda", "Korean", "Kyrgyz",
+    "Malay", "Setswana", "Swahili", "Tagalog", "Tamil", "Thai", "Turkish", "Urdu", "Uzbek",
+    "Vietnamese", "Yoruba"
+  ],
+  "untrained_official_languages": ["IsiNdebele", "IsiXhosa", "Kazakh"],
+  "encoders": {
+    "clip": {
+      "width": 512,
+      "transformers": "4.49.0",
+      "feature": "normalized-clip-projection-fp32-v1",
+      "assets_sha256": {
+        "config.json": "b575ef3c36f2a057fa19e221650105052d61cc9c1a972ec15019c6261ec98770",
+        "preprocessor_config.json": "910e70b3956ac9879ebc90b22fb3bc8a75b6a0677814500101a4c072bd7857bd",
+        "pytorch_model.bin": "a63082132ba4f97a80bea76823f544493bffa8082296d62d71581a4feff1576f"
+      }
+    },
+    "siglip2": {
+      "width": 768,
+      "transformers": "4.51.3",
+      "feature": "siglip-attention-pool-l2-fp32-v1",
+      "assets_sha256": {
+        "config.json": "fe8b5fe6d5734360678fd71c11c21e1ea3364bd8598d34295d9206335973ffd7",
+        "preprocessor_config.json": "9b36b57ebaf20f09bf4c22100ccc21877ea6bfe5aead0c00c59f8af8ccefacfc",
+        "model.safetensors": "612923381c76ec5a9bed335d1c48827e3f2e506ac31b044b63b2031fadee6a0b"
+      }
+    }
+  }
+}

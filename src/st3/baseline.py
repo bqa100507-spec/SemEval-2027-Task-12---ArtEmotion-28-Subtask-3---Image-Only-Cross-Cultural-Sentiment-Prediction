@@ -39,6 +39,12 @@ def load_feature_cache(cache, names):
     return features
 
 
+def clip_projection(model, inputs):
+    from torch.nn.functional import normalize
+
+    return normalize(model.get_image_features(**inputs), dim=-1)
+
+
 def image_features(root, names, cache_dir, config, requested_device):
     # Set the cache before importing anything that loads Hugging Face Hub.
     os.environ.setdefault("HF_HUB_CACHE", str(cache_dir / "huggingface"))
@@ -83,8 +89,8 @@ def image_features(root, names, cache_dir, config, requested_device):
                 for name in names[start:start + batch_size]:
                     with Image.open(image_path(root, name)) as image:
                         images.append(image.convert("RGB"))
-                output = model.get_image_features(**processor(images=images, return_tensors="pt").to(device))
-                batches.append(torch.nn.functional.normalize(output, dim=-1).cpu().numpy())
+                inputs = processor(images=images, return_tensors="pt").to(device)
+                batches.append(clip_projection(model, inputs).cpu().numpy())
                 done = min(start + batch_size, len(names))
                 if start == 0 or (start // batch_size + 1) % 10 == 0 or done == len(names):
                     print(f"Embedded {done}/{len(names)} images", flush=True)

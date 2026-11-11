@@ -54,8 +54,14 @@ def check_split_integrity(frame):
         raise ValueError("Painting identifiers and image paths must map one-to-one")
 
 
-def read_annotations(root):
+def read_annotations(root, *, training_only=False):
     frame = pd.read_csv(root / ANNOTATIONS, usecols=ANNOTATION_COLUMNS, dtype=str, keep_default_na=False)
+    if training_only:
+        # Verify painting and image isolation before filtering out validation rows.
+        for name in ("painting", "image_name", "split"):
+            frame[name] = frame[name].str.strip()
+        check_split_integrity(frame)
+        frame = frame.loc[frame["split"].eq("train")].copy()
     for name in ANNOTATION_COLUMNS:
         frame[name] = frame[name].str.strip()
         if frame[name].eq("").any():
@@ -65,7 +71,8 @@ def read_annotations(root):
     unknown = set(frame["emotion"]) - POSITIVE - NEGATIVE - AMBIGUOUS
     if unknown:
         raise ValueError(f"Unknown emotions: {sorted(unknown)}")
-    check_split_integrity(frame)
+    if not training_only:
+        check_split_integrity(frame)
     return frame
 
 
