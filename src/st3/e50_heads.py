@@ -13,6 +13,7 @@ from .baseline import C, MAX_ITER, design_matrix, file_sha256, fit_lr
 from .cli import ROOT, git_head, json_output
 from .contrast_study import new_output
 from .fusion import blend, verify_reference
+from .incremental import valid_vectors
 from .siglip2 import load_siglip2_features
 
 ENCODERS = ("clip", "siglip2")
@@ -77,6 +78,40 @@ def load_bundle(directory, config, encoders):
     return models, manifest, read_json(directory / INDEX)
 
 
+def image_content_index(root, features, *other_features):
+    index = {}
+    for name in sorted(features):
+        digest = file_sha256(data.image_path(root, name))
+        previous = index.setdefault(digest, name)
+        if previous != name and any(not np.array_equal(vectors[previous], vectors[name])
+                                    for vectors in (features, *other_features)):
+            raise ValueError("Byte-identical legacy images have different features")
+    return index
+
+
+def load_legacy(name, wanted, index, legacy, cache_dir, width):
+    matches = {digest: index[digest] for digest in wanted if digest in index}
+    if not matches:
+        return {}, {"matched": 0, "status": "no_matching_content"}
+    path = (cache_dir / legacy["file"]).resolve()
+    if not path.is_relative_to(cache_dir.resolve()):
+        raise ValueError("Invalid legacy cache path")
+    if not path.is_file():
+        return {}, {"matched": len(matches), "status": "archive_unavailable", "archive": str(path)}
+    if file_sha256(path) != legacy["sha256"]:
+        raise ValueError(f"Historical {name} feature checksum mismatch: {path}")
+    with np.load(path, allow_pickle=False) as archive:
+        names, features = archive["names"].tolist(), archive["features"]
+    valid_vectors(features, len(names), width)
+    if len(set(names)) != len(names) or not set(matches.values()).issubset(names):
+        raise ValueError(f"Historical {name} cache has invalid image coverage")
+    by_name = dict(zip(names, features))
+    return {digest: by_name[image] for digest, image in matches.items()}, {
+        "matched": len(matches), "status": "verified", "archive": str(path), "sha256": legacy["sha256"],
+        "source": legacy["source"],
+    }
+
+
 def prepare_heads(args):
     if args.model_dir.exists():
         raise ValueError(f"Model bundle already exists: {args.model_dir}")
@@ -111,12 +146,7 @@ def prepare_heads(args):
                        "sha256": provenance["embedding"]["sha256"], "source": provenance["embedding"]},
               "siglip2": {"file": f"{Path(siglip_meta['path']).name}/features.npz",
                           "sha256": siglip_meta["features_sha256"], "source": siglip_meta}}
-    index = {}
-    for name in sorted(clip):
-        digest = file_sha256(data.image_path(root, name))
-        previous = index.setdefault(digest, name)
-        if previous != name and any(not np.array_equal(vectors[previous], vectors[name]) for vectors in (clip, siglip)):
-            raise ValueError("Byte-identical legacy images have different features")
+    index = image_content_index(root, clip, siglip)
 
     languages = sorted(train["language"].unique())
     seed = prior["exp002_config"]["fit_seed"]

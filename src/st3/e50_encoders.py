@@ -13,6 +13,7 @@ from PIL import Image
 from .baseline import clip_projection, file_sha256
 from .cli import json_output
 from .e50_heads import inference_config, read_json
+from .e50l_heads import CLIP_LARGE, clip_large_config
 from .frozen_features import normalize_rows
 from .incremental import collect_features, digest_bytes
 
@@ -45,7 +46,10 @@ def encoder_loader(name, config, cache_dir, device):
     else:
         from transformers import AutoImageProcessor
 
-        from .siglip2 import load_vision
+        if name == CLIP_LARGE:
+            from .clip_large import load_vision, projected_features as project
+        else:
+            from .siglip2 import load_vision, pooled_features as project
 
         model = load_vision(checkpoint)
         processor = AutoImageProcessor.from_pretrained(checkpoint, use_fast=False)
@@ -57,21 +61,19 @@ def encoder_loader(name, config, cache_dir, device):
         with torch.inference_mode():
             if name == "clip":
                 return clip_projection(model, inputs).cpu().numpy()
-            from .siglip2 import pooled_features
-
-            return normalize_rows(pooled_features(model, inputs, config["width"]).cpu().numpy())
+            return normalize_rows(project(model, inputs, config["width"]).cpu().numpy())
 
     return encode
 
 
 def run_worker(name, request_path, output_dir):
+    start = time.perf_counter()
     os.environ.setdefault("CUBLAS_WORKSPACE_CONFIG", ":4096:8")
     os.environ.setdefault("HF_HUB_DOWNLOAD_TIMEOUT", "120")
     import torch
 
-    start = time.perf_counter()
     request = read_json(request_path)
-    config = inference_config()["encoders"][name]
+    config = clip_large_config() if name == CLIP_LARGE else inference_config()["encoders"][name]
     versions = {package: importlib.metadata.version(package)
                 for package in ("torch", "transformers", "Pillow", "numpy")}
     if versions["transformers"] != config["transformers"]:
@@ -89,11 +91,27 @@ def run_worker(name, request_path, output_dir):
     torch.use_deterministic_algorithms(True)
     torch.set_num_threads(min(4, os.cpu_count() or 1))
     cache_dir = Path(request["cache_dir"])
+    feature_cache_dir = Path(request["feature_cache_dir"]) if request.get("feature_cache_dir") else cache_dir / "e50-incremental-v1"
     images = {digest: Path(path) for digest, path in request["images"].items()}
+    model_startup_seconds = None
+
+    def load_encoder():
+        nonlocal model_startup_seconds
+        if device == "cuda":
+            torch.cuda.reset_peak_memory_stats()
+        tick = time.perf_counter()
+        encoder = encoder_loader(name, config, cache_dir, device)
+        model_startup_seconds = time.perf_counter() - tick
+        return encoder
+
     vectors, meta = collect_features(
-        images, cache_dir / "e50-incremental-v1", identity, request["batch_size"],
-        lambda: encoder_loader(name, config, cache_dir, device),
+        images, feature_cache_dir, identity, request["batch_size"], load_encoder,
         progress=lambda count: print(f"{name}: committed {count} new image features", flush=True))
     np.savez(output_dir / "vectors.npz", digests=np.array(list(images)),
              features=np.stack([vectors[digest] for digest in images]))
-    json_output({**meta, "wall_seconds": time.perf_counter() - start}, output_dir / "features.json")
+    memory = None
+    if device == "cuda" and model_startup_seconds is not None:
+        memory = {"peak_allocated_bytes": torch.cuda.max_memory_allocated(),
+                  "peak_reserved_bytes": torch.cuda.max_memory_reserved()}
+    json_output({**meta, "wall_seconds": time.perf_counter() - start, "model_startup_seconds": model_startup_seconds,
+                 "cuda_memory": memory}, output_dir / "features.json")

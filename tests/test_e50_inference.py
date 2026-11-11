@@ -1,17 +1,20 @@
 import hashlib
 import json
 import sqlite3
+from pathlib import Path
 from types import SimpleNamespace
 
 import numpy as np
 import pandas as pd
 import pytest
 
-from st3 import data, submission
+from st3 import data, e50_inference, submission
 from st3.ablation import predict_lr
 from st3.baseline import file_sha256
 from st3.e50_heads import HEADS, INDEX, MANIFEST, fit_frozen_head, head_from_arrays, inference_config, load_bundle
 from st3.e50_inference import read_input, run_prediction, safe_image_path
+from st3.e50l_heads import clip_large_config, compose_e50l, load_clip_large_bundle
+from st3.fusion import blend
 from st3.incremental import collect_features
 
 
@@ -118,7 +121,22 @@ def test_path_cannot_resolve_outside_images(tmp_path):
         safe_image_path(tmp_path, "link.png")
 
 
-def test_label_free_prediction_uses_legacy_by_content_and_preserves_order(tmp_path):
+def test_e50l_keeps_the_intermediate_rounding():
+    keys = pd.DataFrame({"painting": ["p"], "language": ["Tamil"]})
+    clip = keys.assign(p_positive=.1)
+    siglip = keys.assign(p_positive=.100001)
+    large = keys.assign(p_positive=.100001)
+    result = compose_e50l(blend(clip, siglip, .5), large)
+    assert result["p_positive"].tolist() == [.1]
+    assert np.round(.25 * .1 + .25 * .100001 + .5 * .100001, 6) == .100001
+
+
+@pytest.mark.parametrize(("mode", "probability", "active"), [
+    ("clip", .562177, ("clip",)),
+    ("e50", .562177, ("clip", "siglip2")),
+    ("e50l", .592318, ("clip", "siglip2", "clip_large")),
+])
+def test_label_free_prediction_uses_legacy_by_content_and_preserves_order(tmp_path, monkeypatch, mode, probability, active):
     config = inference_config()
     model_dir = tmp_path / "bundle"
     model_dir.mkdir()
@@ -151,20 +169,57 @@ def test_label_free_prediction_uses_legacy_by_content_and_preserves_order(tmp_pa
                 "files_sha256": {name: file_sha256(model_dir / name) for name in (HEADS, INDEX)}}
     (model_dir / MANIFEST).write_text(json.dumps(manifest))
 
+    large_dir = tmp_path / "clip-large-bundle"
+    if mode == "e50l":
+        large_dir.mkdir()
+        encoder = clip_large_config()
+        width = encoder["width"]
+        path = cache_dir / "large.npz"
+        np.savez(path, names=["historical.png"], features=np.eye(1, width, dtype=np.float32))
+        split = {"file": path.name, "sha256": file_sha256(path), "source": {}}
+        np.savez(large_dir / HEADS, coef=np.zeros((1, width + len(languages) * (width + 1))), intercept=np.array([.5]))
+        (large_dir / INDEX).write_text(json.dumps({"train": {}, "dev": {hashlib.sha256(payload).hexdigest():
+                                                                         "historical.png"}}))
+        large_pins = json.loads((Path(__file__).resolve().parents[1] / "configs" / "e50l_inference.json").read_text())
+        large_manifest = {**large_pins, "version": large_pins["bundle_version"], "system": "fixture with CLIP-L",
+                          "encoder": encoder, "legacy": {"train": split, "dev": split}, "languages": languages,
+                          "annotations_sha256": "fixture", "e50_heads_sha256": manifest["files_sha256"][HEADS],
+                          "lr": {}, "files_sha256": {name: file_sha256(large_dir / name) for name in (HEADS, INDEX)}}
+        (large_dir / MANIFEST).write_text(json.dumps(large_manifest))
+
     output = tmp_path / "result"
-    args = SimpleNamespace(mode="e50", input=input_path, output_dir=output, data_dir=dataset, cache_dir=cache_dir,
-                           model_dir=model_dir, clip_batch_size=None, siglip2_batch_size=None, device="auto")
+    args = SimpleNamespace(mode=mode, input=input_path, output_dir=output, data_dir=dataset, cache_dir=cache_dir,
+                           model_dir=model_dir, clip_large_model_dir=large_dir, clip_batch_size=None,
+                           siglip2_batch_size=None, clip_large_batch_size=None, device="auto")
     run_prediction(args)
     inputs = read_input(input_path, config["official_languages"])
     result = submission.validate_archive(output / "submission.zip", inputs)
     assert result["painting"].tolist() == ["z", "a"]
-    assert result["p_positive"].tolist() == [.562177, .562177]
+    assert result["p_positive"].tolist() == [probability, probability]
     report = json.loads((output / "run.json").read_text())
     assert report["unique_image_contents"] == 1
     assert report["untrained_language_rows"] == {"Kazakh": 1}
+    assert tuple(report["features"]) == active
     assert all(info["historical_hits"] == 1 and info["encoded"] == 0 for info in report["features"].values())
     with pytest.raises(ValueError, match="Output already exists"):
         run_prediction(args)
+    if mode == "e50l":
+        def fail_worker(name, *args):
+            assert name == "clip_large"
+            raise RuntimeError("CLIP-L worker failed")
+
+        monkeypatch.setattr(e50_inference, "load_clip_large_legacy",
+                            lambda *args: ({}, {"status": "no_matching_content"}))
+        monkeypatch.setattr(e50_inference, "run_feature_worker", fail_worker)
+        args.output_dir = tmp_path / "failed"
+        with pytest.raises(RuntimeError, match="CLIP-L worker failed"):
+            run_prediction(args)
+        assert not args.output_dir.exists()
+        with pytest.raises(ValueError, match="different E50 heads"):
+            load_clip_large_bundle(large_dir, {**manifest, "files_sha256": {HEADS: "changed"}})
+        (large_dir / INDEX).write_text("{}")
+        with pytest.raises(ValueError, match="CLIP-L bundle failed its checksum"):
+            load_clip_large_bundle(large_dir, manifest)
     (model_dir / INDEX).write_text("{}")
     with pytest.raises(ValueError, match="failed its checksum"):
         load_bundle(model_dir, config, ("clip",))

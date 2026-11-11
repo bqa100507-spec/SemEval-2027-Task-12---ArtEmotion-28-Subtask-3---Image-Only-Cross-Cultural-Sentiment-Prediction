@@ -1,4 +1,4 @@
-"""General image-and-language prediction from the frozen EXP-007 heads."""
+"""General image-and-language prediction from frozen ST3 heads."""
 
 import importlib.metadata
 import re
@@ -15,9 +15,12 @@ from .ablation import predict_lr
 from .baseline import file_sha256
 from .cli import ROOT, git_head, json_output
 from .contrast_study import new_output
-from .e50_heads import ENCODERS, MANIFEST, inference_config, load_bundle, read_json
+from .e50_heads import ENCODERS, MANIFEST, inference_config, load_bundle, load_legacy, read_json
+from .e50l_heads import CLIP_LARGE, compose_e50l, load_clip_large_bundle, load_clip_large_legacy
 from .fusion import blend
 from .incremental import valid_vectors
+
+MODE_ENCODERS = {"clip": ("clip",), "e50": ENCODERS, "e50l": (*ENCODERS, CLIP_LARGE)}
 
 
 def read_input(path, languages):
@@ -48,46 +51,27 @@ def safe_image_path(root, name):
     return path
 
 
-def load_legacy(name, wanted, index, legacy, cache_dir, width):
-    matches = {digest: index[digest] for digest in wanted if digest in index}
-    if not matches:
-        return {}, {"matched": 0, "status": "no_matching_content"}
-    path = (cache_dir / legacy["file"]).resolve()
-    if not path.is_relative_to(cache_dir.resolve()):
-        raise ValueError("Invalid legacy cache path")
-    if not path.is_file():
-        return {}, {"matched": len(matches), "status": "archive_unavailable", "archive": str(path)}
-    if file_sha256(path) != legacy["sha256"]:
-        raise ValueError(f"Historical {name} feature checksum mismatch: {path}")
-    with np.load(path, allow_pickle=False) as archive:
-        names, features = archive["names"].tolist(), archive["features"]
-    valid_vectors(features, len(names), width)
-    if len(set(names)) != len(names) or not set(matches.values()).issubset(names):
-        raise ValueError(f"Historical {name} cache has invalid image coverage")
-    by_name = dict(zip(names, features))
-    return {digest: by_name[image] for digest, image in matches.items()}, {
-        "matched": len(matches), "status": "verified", "archive": str(path), "sha256": legacy["sha256"],
-        "source": legacy["source"],
-    }
-
-
 def run_feature_worker(name, images, args, config, scratch):
     directory = scratch / name
     directory.mkdir()
     request = directory / "request.json"
     batch_size = getattr(args, f"{name}_batch_size") or config["batch_size"]
+    feature_dir = getattr(args, "feature_cache_dir", None)
     json_output({"images": {digest: str(path) for digest, path in images.items()},
-                 "device": args.device, "batch_size": batch_size, "cache_dir": str(args.cache_dir)}, request)
+                 "device": args.device, "batch_size": batch_size, "cache_dir": str(args.cache_dir),
+                 "feature_cache_dir": str(feature_dir) if feature_dir is not None else None}, request)
     python = args.siglip2_python if name == "siglip2" else Path(sys.executable)
     if not python.is_file():
         raise ValueError(f"{name} interpreter missing: {python}. Run scripts/setup_siglip2.py from .venv.")
     command = [str(python), "-u", str(ROOT / "scripts" / "run_st3.py"), "_e50_worker", name,
                str(request), str(directory)]
+    start = time.perf_counter()
     try:
         subprocess.run(command, check=True)
     except subprocess.CalledProcessError as error:
         raise RuntimeError(f"{name} feature worker exited with status {error.returncode}. "
                            "Completed batches are cached. Retry the same command.") from error
+    elapsed = time.perf_counter() - start
     with np.load(directory / "vectors.npz", allow_pickle=False) as archive:
         vectors = archive["features"]
         if archive["digests"].tolist() != list(images):
@@ -96,7 +80,7 @@ def run_feature_worker(name, images, args, config, scratch):
     metadata = read_json(directory / "features.json")
     if set(metadata["images"]) != set(images):
         raise ValueError(f"{name} worker provenance does not cover the requested images")
-    return dict(zip(images, vectors)), metadata
+    return dict(zip(images, vectors)), {**metadata, "process_seconds": elapsed}
 
 
 def run_prediction(args):
@@ -104,7 +88,9 @@ def run_prediction(args):
     if args.output_dir.exists():
         raise ValueError(f"Output already exists: {args.output_dir}. Choose a new output directory.")
     config = inference_config()
-    for size in (args.clip_batch_size, args.siglip2_batch_size):
+    active = MODE_ENCODERS[args.mode]
+    for name in MODE_ENCODERS["e50l"]:
+        size = getattr(args, f"{name}_batch_size", None)
         if size is not None and size < 1:
             raise ValueError("Batch size must be positive")
     input_sha256 = file_sha256(args.input)
@@ -112,9 +98,18 @@ def run_prediction(args):
     paths = {name: safe_image_path(args.data_dir, name) for name in inputs["image"].unique()}
     hashes = {name: file_sha256(path) for name, path in paths.items()}
     images = {hashes[name]: path for name, path in paths.items()}
-    active = ENCODERS if args.mode == "e50" else ("clip",)
-    models, manifest, index = load_bundle(args.model_dir, config, active)
+    models, manifest, index = load_bundle(args.model_dir, config, [name for name in active if name != CLIP_LARGE])
     languages = manifest["languages"]
+    encoders = config["encoders"].copy()
+    large_provenance = {}
+    if CLIP_LARGE in active:
+        large, large_manifest, large_index = load_clip_large_bundle(args.clip_large_model_dir, manifest)
+        models[CLIP_LARGE] = large
+        encoders[CLIP_LARGE] = large_manifest["encoder"]
+        large_provenance = {"clip_large_model_dir": str(args.clip_large_model_dir),
+                            "clip_large_manifest_sha256": file_sha256(args.clip_large_model_dir / MANIFEST),
+                            "clip_large_model_files_sha256": large_manifest["files_sha256"],
+                            "clip_large_lr": large_manifest["lr"], "blend_e50_weight": 0.5}
     untrained = inputs.loc[~inputs["language"].isin(languages), "language"].value_counts().to_dict()
     if untrained:
         print(f"Using shared image terms for official languages absent from training: {untrained}", flush=True)
@@ -123,9 +118,13 @@ def run_prediction(args):
     args.output_dir.parent.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix=".e50-work-", dir=args.output_dir.parent) as temporary:
         for name in active:
-            encoder = config["encoders"][name]
-            cached, historical = load_legacy(name, images, index, manifest["legacy"][name], args.cache_dir,
-                                              encoder["width"])
+            encoder = encoders[name]
+            if name == CLIP_LARGE:
+                cached, historical = load_clip_large_legacy(images, large_index, large_manifest["legacy"],
+                                                            args.cache_dir, encoder["width"])
+            else:
+                cached, historical = load_legacy(name, images, index, manifest["legacy"][name], args.cache_dir,
+                                                  encoder["width"])
             if historical["status"] == "archive_unavailable":
                 print(f"{name}: historical archive unavailable, resolving its matches through the incremental cache",
                       flush=True)
@@ -145,8 +144,10 @@ def run_prediction(args):
             or any(file_sha256(path) != hashes[name] for name, path in paths.items())):
         raise ValueError("Input CSV or image bytes changed during prediction. Retry with stable input files.")
     pred = predictions["clip"]
-    if args.mode == "e50":
+    if "siglip2" in active:
         pred = blend(pred, predictions["siglip2"], config["blend_clip_weight"])
+    if CLIP_LARGE in active:
+        pred = compose_e50l(pred, predictions[CLIP_LARGE])
     submission.validate_predictions(pred, inputs)
     if not pred[data.KEYS].equals(inputs[data.KEYS]):
         raise ValueError("Prediction pair ordering differs from the input")
@@ -159,21 +160,23 @@ def run_prediction(args):
         if not archived.equals(submission.read_predictions(csv_path, inputs)):
             raise ValueError("Archived predictions differ from the output CSV")
         json_output({
-            "mode": args.mode, "system": manifest["system"], "project_revision": git_head(ROOT),
+            "mode": args.mode, "system": large_manifest["system"] if CLIP_LARGE in active else manifest["system"],
+            "project_revision": git_head(ROOT),
             "input": str(args.input), "input_sha256": input_sha256, "data_dir": str(args.data_dir),
             "model_dir": str(args.model_dir), "model_manifest_sha256": file_sha256(args.model_dir / MANIFEST),
             "model_files_sha256": manifest["files_sha256"], "training": {
                 key: manifest[key] for key in ("upstream_revision", "annotations_sha256", "training_pairs",
                                                "training_paintings", "lr", "languages")},
-            "blend_clip_weight": config["blend_clip_weight"] if args.mode == "e50" else 1.0,
+            "blend_clip_weight": config["blend_clip_weight"] if "siglip2" in active else 1.0,
             "probability_decimals": 6, "requested_device": args.device,
-            "encoders": {name: config["encoders"][name] for name in active},
+            "encoders": {name: encoders[name] for name in active},
             "pairs": len(inputs), "paintings": inputs["painting"].nunique(), "unique_image_paths": len(paths),
             "unique_image_contents": len(images), "image_sha256": hashes, "untrained_language_rows": untrained,
             "features": features, "packages": {name: importlib.metadata.version(name)
                                                for name in ("scikit-learn", "numpy", "scipy", "pandas")},
             "output_sha256": {path.name: file_sha256(path) for path in (csv_path, zip_path)},
             "wall_seconds": time.perf_counter() - start,
+            **large_provenance,
         }, stage / "run.json")
     print(f"Validated {len(inputs)} {args.mode} predictions in {args.output_dir / 'submission.zip'}", flush=True)
 
