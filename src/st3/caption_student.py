@@ -125,7 +125,8 @@ def validation_bce(model, rows, batch_size):
     return float(total / rows["votes"].sum())
 
 
-def fit_student(partition, inner_fit, stopping, features, prepared, seed, config, device):
+def fit_student(partition, inner_fit, stopping, features, prepared, seed, config, device, *,
+                model_factory=seed_model, epoch_function=train_epoch, training_rows=make_rows, progress=None):
     require_isolation(inner_fit, stopping)
     data.require_same_pairs(partition, pd.concat([inner_fit, stopping]))
     if not partition.split.eq("train").all():
@@ -134,13 +135,15 @@ def fit_student(partition, inner_fit, stopping, features, prepared, seed, config
     weight = config["text_weight"] if prepared else 0.
     inner_targets, inner_weights = prepared["inner"][:2] if prepared else (None, None)
     languages = sorted(inner_fit.language.unique())
-    training = make_rows(inner_fit, features, languages, device, inner_targets, inner_weights)
+    training = training_rows(inner_fit, features, languages, device, inner_targets, inner_weights)
     validation = make_rows(stopping, features, languages, device)
-    model, rng, optimizer = seed_model(languages, seed, config, device)
+    model, rng, optimizer = model_factory(languages, seed, config, device)
     best, selected = math.inf, 0
     curves = []
     for epoch in range(1, config["max_epochs"] + 1):
-        nll, auxiliary = train_epoch(model, training, rng, optimizer, config, weight)
+        if progress is not None:
+            progress("selection", epoch)
+        nll, auxiliary = epoch_function(model, training, rng, optimizer, config, weight)
         value = validation_bce(model, validation, config["batch_size"])
         if not np.isfinite([nll, auxiliary, value]).all():
             raise ValueError("Nonfinite student training or validation loss")
@@ -154,10 +157,12 @@ def fit_student(partition, inner_fit, stopping, features, prepared, seed, config
     del model, optimizer, training, validation
     languages = sorted(partition.language.unique())
     full_targets, full_weights = prepared["full"][:2] if prepared else (None, None)
-    training = make_rows(partition, features, languages, device, full_targets, full_weights)
-    model, rng, optimizer = seed_model(languages, seed, config, device)
+    training = training_rows(partition, features, languages, device, full_targets, full_weights)
+    model, rng, optimizer = model_factory(languages, seed, config, device)
     for epoch in range(1, selected + 1):
-        nll, auxiliary = train_epoch(model, training, rng, optimizer, config, weight)
+        if progress is not None:
+            progress("refit", epoch)
+        nll, auxiliary = epoch_function(model, training, rng, optimizer, config, weight)
         if not np.isfinite([nll, auxiliary]).all():
             raise ValueError("Nonfinite student refit loss")
         curves.append({"phase": "refit", "epoch": epoch, "train_bce": nll, "train_auxiliary": auxiliary,

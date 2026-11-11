@@ -127,6 +127,10 @@ Reuse the Task 001, EXP-002, EXP-006 and EXP-007 artifacts, then run `clip-large
 
 The caption study compares matched BCE-only, CLIP-text and provisional multilingual-E5 students against refitted E50+L. It locks a new 15% confirmation holdout and uses five new grouped folds on the remaining original training paintings. Run `caption-audit`, the two `caption-extract --teacher clip/e5` commands, `caption-cv` and the guarded `caption-holdout` and `caption-dev` stages with `scripts/run_st3.py`. Use `caption-token-audit --teacher clip/e5` for all-training tokenizer diagnostics. [Frozen protocol and results](reports/exp017_text_supervision.md)
 
+## EXP-018 polarity-aware captions
+
+Use `scripts/run_exp018.ps1` with `-Stage Preflight`, `Audit`, `Pilot`, `CV`, `Verify`, `Confirm` or `Dev`. The active run under `runs/exp018_polarity_captions/prepared/` is **READY_FOR_LOCAL_RUN**. Its measured complete-workflow estimate is 21.0 minutes, so full CV is an owner command. Completed seeds and verified folds are resumable, and promotion requires the separate replay stage. [Budget, pilot diagnostics and exact commands](reports/exp018_polarity_captions.md)
+
 ## Independent checks
 
 ```powershell

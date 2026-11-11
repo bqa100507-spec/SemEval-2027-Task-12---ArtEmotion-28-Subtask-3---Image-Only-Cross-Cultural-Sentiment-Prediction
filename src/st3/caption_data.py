@@ -15,13 +15,16 @@ def text_digest(text):
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
 
-def training_captions(root):
+def training_captions(root, *, allowed_paintings=None):
     """Never retain a caption from an official validation row."""
     annotations = data.read_annotations(root, training_only=True)
+    if allowed_paintings is not None:
+        allowed_paintings = set(allowed_paintings)
+        annotations = annotations[annotations.painting.isin(allowed_paintings)]
     rows = []
     with (root / data.ANNOTATIONS).open(encoding="utf-8", newline="") as handle:
         for index, row in enumerate(csv.DictReader(handle)):
-            if row["split"].strip() == "train":
+            if row["split"].strip() == "train" and (allowed_paintings is None or row["painting"].strip() in allowed_paintings):
                 rows.append({"annotation_id": index, **{key: row[key] for key in data.ANNOTATION_COLUMNS},
                              "caption": row["caption"]})
     result = pd.DataFrame(rows)
