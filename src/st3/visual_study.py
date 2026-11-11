@@ -49,13 +49,14 @@ def fit_head(fit, held, embeddings, seed):
     fit_seconds = time.perf_counter() - fit_start
     del matrix
     convergence_warnings = [str(item.message) for item in caught if issubclass(item.category, ConvergenceWarning)]
+    predict_start = time.perf_counter()
     predictions = predict_lr(model, held, embeddings, languages)
     iterations = int(model.n_iter_[0])
     converged = iterations < MAX_ITER and not convergence_warnings and np.isfinite(model.coef_).all() \
         and np.isfinite(model.intercept_).all()
     info = {"converged": bool(converged), "warnings": convergence_warnings, "iterations": iterations,
             "parameters": model.coef_.size + model.intercept_.size, "fit_seconds": fit_seconds,
-            "seconds": time.perf_counter() - start}
+            "predict_seconds": time.perf_counter() - predict_start, "seconds": time.perf_counter() - start}
     return predictions, info
 
 
