@@ -331,7 +331,22 @@ def main():
     general_validate = commands.add_parser("validate-prediction", help="Validate a ZIP against an explicit ST3 input CSV")
     general_validate.add_argument("--input", type=resolved_path, required=True)
     general_validate.add_argument("archive", type=resolved_path)
+    for name in ("caption-audit", "caption-token-audit", "caption-extract", "caption-cv", "caption-holdout", "caption-dev"):
+        command = commands.add_parser(name, help="Run the frozen EXP-017 caption supervision stage")
+        command.add_argument("--run-dir", type=resolved_path, default=ROOT / "runs/exp017_text_supervision")
+        command.add_argument("--cache-dir", type=resolved_path, default=ROOT / "cache")
+        command.add_argument("--device", choices=("auto", "cuda", "cpu"), default="auto")
+        if name in ("caption-extract", "caption-token-audit"):
+            command.add_argument("--teacher", choices=("clip", "e5"), required=True)
+        if name == "caption-extract":
+            command.add_argument("--full-training", action="store_true")
     args = parser.parse_args()
+
+    if args.command.startswith("caption-"):
+        from .caption_study import run_caption
+
+        run_caption(args)
+        return
 
     if args.command == "prepare-e50":
         from .e50_heads import prepare_heads
