@@ -1,0 +1,9 @@
+{
+  "upstream_url": "https://github.com/artemotion-28/artemotion-28.git",
+  "upstream_revision": "cf7cc444cf56617f3b8417497c6930ad172c5c99",
+  "clip_model": "openai/clip-vit-base-patch32",
+  "clip_revision": "3d74acf9a28c67741b2f4f2ea7635f0aaf6f0268",
+  "batch_size": 32,
+  "seed": 2027,
+  "torch_version": "2.7.1"
+}

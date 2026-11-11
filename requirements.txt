@@ -1,0 +1,13 @@
+# Install torch separately from the official CPU or CUDA index via scripts/setup.py.
+accelerate==1.6.0
+huggingface-hub==0.31.4
+joblib==1.4.2
+numpy==2.2.6
+pandas==2.2.3
+Pillow==11.2.1
+pytest==8.3.5
+scikit-learn==1.6.1
+scipy==1.15.3
+threadpoolctl==3.6.0
+tokenizers==0.21.1
+transformers==4.49.0
