@@ -11,6 +11,19 @@ from matplotlib import pyplot as plt
 COLORS = {"A": "#657483", "B": "#bf6b15", "C": "#007d77"}
 
 
+def render_spectrum(folder, spectrum):
+    rank = spectrum["rank"]
+    fig, (values, energy) = plt.subplots(1, 2, figsize=(9, 3.5), layout="constrained")
+    values.plot(rank, spectrum["singular_value"], "o-", markersize=3, color=COLORS["C"])
+    values.set(xlabel="Component", ylabel="Singular value", title="Model C interaction spectrum")
+    energy.plot(rank, spectrum["cumulative_energy"], color=COLORS["C"], label="Cumulative squared energy")
+    energy.plot(rank, spectrum["relative_error"], color=COLORS["B"], label="Relative Frobenius error")
+    energy.set(xlabel="Retained rank", ylabel="Fraction", ylim=(0, 1.03), title="Post-hoc rank truncation")
+    energy.legend(loc="center right", fontsize=8)
+    fig.savefig(folder / "singular_spectrum.png", dpi=180)
+    plt.close(fig)
+
+
 def render_study(folder, pairs, paintings, language, intervals):
     scored = paintings[paintings["status"] == "scored"]
     fig, (distribution, ci) = plt.subplots(1, 2, figsize=(10, 3.8), layout="constrained")

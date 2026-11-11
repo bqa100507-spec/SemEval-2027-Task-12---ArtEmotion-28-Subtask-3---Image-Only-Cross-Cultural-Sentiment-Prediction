@@ -43,6 +43,17 @@ After the baseline run, reuse its cached CLIP features on CPU. The following com
 
 The core ablation, shuffling diagnostic, and paired bootstrap also run with both flags omitted. If the baseline used custom paths, pass its `run.json` via `--embedding-run` and its cache directory via `--cache-dir`. Outputs go to `runs/exp002_baseline_ablation/`. Choose a new `--run-dir` for repeats. Inference-time shuffled predictions are diagnostic artifacts. [Study protocol and results](reports/exp002_ablation.md)
 
+## EXP-003 low-rank visual interactions
+
+After EXP-002, run train-only selection and then evaluate the frozen candidate. Install `requirements-analysis.txt` for the spectrum plot.
+
+```powershell
+.venv/Scripts/python.exe scripts/run_st3.py low-rank-cv
+.venv/Scripts/python.exe scripts/run_st3.py low-rank-dev --plots
+```
+
+The commands reuse the Task 001 cache and verify the exact EXP-002 fold membership. Use `--exp002-dir`, `--embedding-run` and `--cache-dir` for custom input locations. The first command saves the decision in `runs/exp003_low_rank/cv/selection.json`. The second verifies that decision and writes the full-training Model C spectrum and, when a low-rank candidate qualifies, its development predictions and analysis. Choose a new `--run-dir` for any repeat. [EXP-003 report](reports/exp003_low_rank.md)
+
 ## Independent checks
 
 ```powershell

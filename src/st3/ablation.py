@@ -106,17 +106,17 @@ def paired_analysis(gold, predictions, metrics):
     return pairs, painting, language.reset_index()
 
 
-def paired_bootstrap(painting, replicates, seed):
+def paired_bootstrap(painting, replicates, seed, columns=CONTRAST_DELTAS):
     """Resample each scored painting's vector of paired deltas as one unit."""
     scored = painting.loc[painting["status"] == "scored"].sort_values("painting")
-    values = scored[CONTRAST_DELTAS].to_numpy()
+    values = scored[list(columns)].to_numpy()
     if len(values) == 0 or not np.isfinite(values).all() or replicates < 1:
         raise ValueError("Bootstrap requires scored paintings, finite paired deltas, and positive replicates")
     draws = np.random.default_rng(seed).integers(len(values), size=(replicates, len(values)))
-    samples = pd.DataFrame(values[draws].mean(axis=1), columns=CONTRAST_DELTAS)
+    samples = pd.DataFrame(values[draws].mean(axis=1), columns=columns)
     samples.insert(0, "replicate", np.arange(replicates))
     summary = {}
-    for index, column in enumerate(CONTRAST_DELTAS):
+    for index, column in enumerate(columns):
         low, high = samples[column].quantile([.025, .975])
         summary[column] = {"difference": float(values[:, index].mean()), "ci95": [float(low), float(high)]}
     return samples, summary

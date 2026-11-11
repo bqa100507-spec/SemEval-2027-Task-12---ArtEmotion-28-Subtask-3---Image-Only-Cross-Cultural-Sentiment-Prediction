@@ -228,6 +228,14 @@ def main():
     ablation.add_argument("--embedding-run", type=resolved_path, default=ROOT / "runs" / "baseline_dev" / "run.json")
     ablation.add_argument("--cv", action="store_true", help="Also run train-only painting-grouped cross-validation")
     ablation.add_argument("--plots", action="store_true", help="Write figures using requirements-analysis.txt")
+    rank_cv = commands.add_parser("low-rank-cv", help="Freeze EXP-003 selection using train-only folds")
+    rank_dev = commands.add_parser("low-rank-dev", help="Evaluate the frozen EXP-003 candidate and analyze Model C")
+    for rank_command in (rank_cv, rank_dev):
+        rank_command.add_argument("--run-dir", type=resolved_path, default=ROOT / "runs" / "exp003_low_rank")
+        rank_command.add_argument("--cache-dir", type=resolved_path, default=ROOT / "cache")
+        rank_command.add_argument("--embedding-run", type=resolved_path, default=ROOT / "runs" / "baseline_dev" / "run.json")
+        rank_command.add_argument("--exp002-dir", type=resolved_path, default=ROOT / "runs" / "exp002_baseline_ablation")
+    rank_dev.add_argument("--plots", action="store_true", help="Write the Model C singular-value spectrum figure")
     evaluate = commands.add_parser("evaluate", help="Score development predictions using validation gold")
     evaluate.add_argument("--predictions", type=Path, required=True)
     evaluate.add_argument("--output", type=Path)
@@ -248,6 +256,11 @@ def main():
         run_baseline(args, dev)
     elif args.command == "ablation":
         run_ablation(args, dev)
+    elif args.command in ("low-rank-cv", "low-rank-dev"):
+        from .low_rank_study import run_rank_cv, run_rank_dev
+
+        runner = run_rank_cv if args.command == "low-rank-cv" else run_rank_dev
+        runner(args, dev)
     elif args.command == "evaluate":
         annotations = data.read_annotations(args.data_dir)
         data.check_dev_isolation(annotations, dev)
