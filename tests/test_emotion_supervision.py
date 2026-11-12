@@ -122,6 +122,28 @@ def test_frozen_gate_and_selection_tie_rule():
     assert experiment.choose(table,CONFIG,True)["status"]=="COMPETITION_NO_GO"
 
 
+def test_parent_inference_manifest_is_pinned_without_experiment_seal_schema(tmp_path,monkeypatch):
+    identity={"runtime_and_source":{"source_sha256":{}}}
+    root=tmp_path/"old19";(root/"decision").mkdir(parents=True)
+    (root/"decision/run.json").write_text(json.dumps({"identity":identity}))
+    for name,payload in (("production",{"output_sha256":{}}),("sealed",{"identity":identity})):
+        (root/name).mkdir();(root/name/"run.json").write_text(json.dumps(payload))
+    config={"emotions":list(EMOTIONS),"polarity_indices":POLARITY.tolist(),"text_weight":.1,
+        "exp019_config_sha256":file_sha256(Path("configs/exp019.json")),
+        "exp019_manifests":{name+"/run.json":file_sha256(root/name/"run.json") for name in ("production","sealed")}}
+    monkeypatch.setattr(workflow,"config020",lambda:config)
+    monkeypatch.setattr(workflow,"validate_parent",lambda *a:({},None,None,None,0))
+    monkeypatch.setattr(workflow,"identity019",lambda *a:identity)
+    calls=[]
+    class ReachedCV(Exception):pass
+    def read(path,*args):
+        if path.name=="cv":raise ReachedCV()
+        calls.append(path.name)
+    monkeypatch.setattr(workflow,"read_sealed",read)
+    with pytest.raises(ReachedCV):workflow.validate_inputs(SimpleNamespace(exp019_dir=root))
+    assert calls==["sealed"]
+
+
 @pytest.fixture
 def emotion_workflow(tiny_workflow,monkeypatch):
     a18,c18,raw=tiny_workflow
