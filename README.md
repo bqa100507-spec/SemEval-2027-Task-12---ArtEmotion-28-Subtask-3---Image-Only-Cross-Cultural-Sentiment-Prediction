@@ -137,16 +137,18 @@ EXP-019 completed locally with COMPETITION_NO_GO after all fifteen new checkpoin
 
 ## EXP-020: eight-emotion caption targets
 
-Preflight, the training-only audit and matched pilot passed: **READY_FOR_LOCAL_RUN**. All targets reuse EXP-018 PCA and cached CLIP text embeddings. Only thirty new A8/E8 models require CV fitting; historical references are reused unchanged. Conservative forecast: 114.61 minutes including preparation and verification allowance. Run remaining stages separately:
+EXP-020 completed locally with COMPETITION_NO_GO after independent thirty-checkpoint/ten-target replay. E8 pooled Contrast was 0.439654679 versus A8 0.440223388; both ensembles fell below promotion. [EXP-021](reports/exp021_vote_distribution.md) records the verified local completion. The [EXP-020 report](reports/exp020_emotion_specific_captions.md) remains the historical preparation record.
+
+## EXP-021: annotation-only vote distribution
+
+Reliability audit and matched D0/D8 correctness pilot passed: **READY_FOR_LOCAL_RUN**. Eight empirical emotion counts reconstruct the binary votes exactly. No caption/text features or new checkpoint is used. Conservative preparation + eight-fit screening/replay estimate: 25.15 minutes, so Screening is an owner command:
 
 ```powershell
-.\scripts\run_exp020.ps1 -Stage CV
-.\scripts\run_exp020.ps1 -Stage Verify
-.\scripts\run_exp020.ps1 -Stage Confirm
-.\scripts\run_exp020.ps1 -Stage Dev
+.\scripts\run_exp021.ps1 -Stage Screen
+.\scripts\run_exp021.ps1 -Stage ScreenVerify
 ```
 
-Use `Preflight`, `Audit` and `Pilot` to prepare a fresh compatible run; use `-RunDir` for changed source/configuration/runtime. Completed seeds resume safely. Confirm and Dev enforce the frozen gates. Dev reuses the confirmed student and frozen release R0; locked captions/labels never enter fitting. No new embeddings or LoRA training. [Coverage, eight-by-eight matrices, collapse diagnostics, runtime and exact commands](reports/exp020_emotion_specific_captions.md). Production E50+L remains unchanged.
+For a fresh run, use `Preflight`, `Audit`, then `Pilot`. Only verified PILOT_PROMISING permits a separate `-Stage CV`, followed by `-Stage Verify`; the eight screening checkpoints are reused and only 22 missing fits are added. INCONCLUSIVE/UNPROMISING stops full CV. No confirmation, Development or LoRA stage exists. Paths, device and budgets are explicit options. [Audit assumptions, gradient/CE diagnostics, frozen gates and commands](reports/exp021_vote_distribution.md). Production E50+L remains unchanged.
 
 ## Independent checks
 
