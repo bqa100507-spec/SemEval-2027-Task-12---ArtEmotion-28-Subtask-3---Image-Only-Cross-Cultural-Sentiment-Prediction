@@ -55,7 +55,10 @@ def validate_inputs(args):
         path = args.exp019_dir/name
         if file_sha256(path) != digest:
             raise ValueError(f"Pinned EXP-019 evidence changed: {name}")
-        read_sealed(path.parent, identity)
+        # Production regression runs have the inference manifest schema, not
+        # an experiment stage seal. Their pinned bytes remain authoritative.
+        if "identity" in json.loads(path.read_text()):
+            read_sealed(path.parent, identity)
     cv = read_sealed(args.exp019_dir/"cv", identity)
     verification = read_sealed(args.exp019_dir/"verification", identity)
     decision = read_sealed(args.exp019_dir/"decision", identity)
