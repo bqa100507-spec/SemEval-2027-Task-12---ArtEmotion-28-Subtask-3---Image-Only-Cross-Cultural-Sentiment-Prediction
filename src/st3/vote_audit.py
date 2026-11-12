@@ -29,7 +29,9 @@ def ordering_audit(train,config):
             for right in range(left+1,len(group)):
                 probability=float((posterior[:,left]>posterior[:,right]).mean())
                 confidence=max(probability,1-probability)
-                difference=float(rates[left]-rates[right])
+                # Exact integer cross-products avoid 0.8-0.6 crossing the
+                # descriptive <=0.2 boundary through floating-point rounding.
+                difference=float((k[left]*n[right]-k[right]*n[left])/(n[left]*n[right]))
                 rows.append({"painting":painting,"language_a":languages[left],"language_b":languages[right],
                     "n_a":int(n[left]),"n_b":int(n[right]),"min_votes":int(min(n[left],n[right])),
                     "total_votes":int(n[left]+n[right]),"difference":difference,"abs_difference":abs(difference),
