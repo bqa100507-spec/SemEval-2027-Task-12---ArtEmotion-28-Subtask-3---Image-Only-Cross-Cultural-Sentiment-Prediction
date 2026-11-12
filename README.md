@@ -129,7 +129,20 @@ The caption study compares matched BCE-only, CLIP-text and provisional multiling
 
 ## EXP-018 polarity-aware captions
 
-Use `scripts/run_exp018.ps1` with `-Stage Preflight`, `Audit`, `Pilot`, `CV`, `Verify`, `Confirm` or `Dev`. The active run under `runs/exp018_polarity_captions/prepared/` is **READY_FOR_LOCAL_RUN**. Its measured complete-workflow estimate is 21.0 minutes, so full CV is an owner command. Completed seeds and verified folds are resumable, and promotion requires the separate replay stage. [Budget, pilot diagnostics and exact commands](reports/exp018_polarity_captions.md)
+Use `scripts/run_exp018.ps1` with `-Stage Preflight`, `Audit`, `Pilot`, `CV`, `Verify`, `Confirm` or `Dev`. The owner completed the active run under `runs/exp018_polarity_captions/prepared/`: all 45 checkpoints passed deep replay, and the frozen decision is NO_GO. Its preparation report remains the historical handoff record; [EXP-019](reports/exp019_gradient_scaling.md) records the verified local completion and reused scores.
+
+## EXP-019: text scaling and gradient transfer
+
+`scripts/run_exp019.ps1` supports `Preflight`, `GradientPilot`, `CV`, `Verify`, `Confirm` and `Dev`. Preflight and the training-only pilot are complete: **READY_FOR_LOCAL_RUN**, with a conservative 22.67-minute estimate. Only the lambda=1.0 C2 condition needs new CV training; EXP-018 controls, checkpoints, PCA and caches are reused unchanged. Run the remaining stages separately:
+
+```powershell
+.\scripts\run_exp019.ps1 -Stage CV
+.\scripts\run_exp019.ps1 -Stage Verify
+.\scripts\run_exp019.ps1 -Stage Confirm
+.\scripts\run_exp019.ps1 -Stage Dev
+```
+
+The latter stages enforce the frozen competition and confirmation gates. Dev additionally requires an already existing full-training CLIP text cache: this task never extracts new embeddings. See [measured gradients, runtime, cache prerequisites and exit codes](reports/exp019_gradient_scaling.md). Production E50+L remains unchanged.
 
 ## Independent checks
 
