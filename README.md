@@ -133,16 +133,20 @@ Use `scripts/run_exp018.ps1` with `-Stage Preflight`, `Audit`, `Pilot`, `CV`, `V
 
 ## EXP-019: text scaling and gradient transfer
 
-`scripts/run_exp019.ps1` supports `Preflight`, `GradientPilot`, `CV`, `Verify`, `Confirm` and `Dev`. Preflight and the training-only pilot are complete: **READY_FOR_LOCAL_RUN**, with a conservative 22.67-minute estimate. Only the lambda=1.0 C2 condition needs new CV training; EXP-018 controls, checkpoints, PCA and caches are reused unchanged. Run the remaining stages separately:
+EXP-019 completed locally with COMPETITION_NO_GO after all fifteen new checkpoints passed replay. Lambda=1.0 student pooled Contrast was 0.417569215; its ensemble scored 0.446633867. [EXP-020](reports/exp020_emotion_specific_captions.md) records the verified local evidence; the [EXP-019 report](reports/exp019_gradient_scaling.md) remains the original preparation record.
+
+## EXP-020: eight-emotion caption targets
+
+Preflight, the training-only audit and matched pilot passed: **READY_FOR_LOCAL_RUN**. All targets reuse EXP-018 PCA and cached CLIP text embeddings. Only thirty new A8/E8 models require CV fitting; historical references are reused unchanged. Conservative forecast: 114.61 minutes including preparation and verification allowance. Run remaining stages separately:
 
 ```powershell
-.\scripts\run_exp019.ps1 -Stage CV
-.\scripts\run_exp019.ps1 -Stage Verify
-.\scripts\run_exp019.ps1 -Stage Confirm
-.\scripts\run_exp019.ps1 -Stage Dev
+.\scripts\run_exp020.ps1 -Stage CV
+.\scripts\run_exp020.ps1 -Stage Verify
+.\scripts\run_exp020.ps1 -Stage Confirm
+.\scripts\run_exp020.ps1 -Stage Dev
 ```
 
-The latter stages enforce the frozen competition and confirmation gates. Dev additionally requires an already existing full-training CLIP text cache: this task never extracts new embeddings. See [measured gradients, runtime, cache prerequisites and exit codes](reports/exp019_gradient_scaling.md). Production E50+L remains unchanged.
+Use `Preflight`, `Audit` and `Pilot` to prepare a fresh compatible run; use `-RunDir` for changed source/configuration/runtime. Completed seeds resume safely. Confirm and Dev enforce the frozen gates. Dev reuses the confirmed student and frozen release R0; locked captions/labels never enter fitting. No new embeddings or LoRA training. [Coverage, eight-by-eight matrices, collapse diagnostics, runtime and exact commands](reports/exp020_emotion_specific_captions.md). Production E50+L remains unchanged.
 
 ## Independent checks
 
