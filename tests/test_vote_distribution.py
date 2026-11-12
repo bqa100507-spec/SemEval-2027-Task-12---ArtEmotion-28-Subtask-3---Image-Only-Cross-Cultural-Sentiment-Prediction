@@ -133,6 +133,15 @@ def test_inference_needs_only_image_language_and_returns_binary_sigmoid(model_ro
     assert np.isfinite(experiment.predict_binary(model,unknown,ctx)).all()
 
 
+def test_rare_stopping_languages_are_retained_without_training_vocabulary_leakage(model_rows):
+    frame,visual,cfg,rows=model_rows
+    rare=frame.assign(language='OnlyInStopping')
+    with pytest.raises(ValueError,match='fitting language'):
+        vote_rows(rare,visual,['Thai'],torch.device('cpu'))
+    validation=vote_rows(rare,visual,['Thai'],torch.device('cpu'),require_known=False)
+    assert len(validation['counts'])==len(rare) and bool(validation['language'].eq(-1).all())
+
+
 def test_frozen_screen_and_competition_gates():
     table=pd.DataFrame({'pooled_contrast':[.44,.441],'pooled_log_loss':[.71,.71]},index=['D0','D8'])
     folds=pd.DataFrame({'fold':[1,1,3,3],'model':['D0','D8']*2,'contrast':[.44,.442,.44,.44]})

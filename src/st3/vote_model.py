@@ -49,11 +49,11 @@ def seed_model(languages,seed,config,device):
     return model,rng,optimizer
 
 
-def vote_rows(frame,features,languages,device,*,training=True):
+def vote_rows(frame,features,languages,device,*,training=True,require_known=True):
     rows=make_rows(frame,features,languages,device,training=training)
     if training:
         empirical_distributions(frame)
-        if bool(rows["language"].lt(0).any()):raise ValueError("A training language ID was silently dropped")
+        if require_known and bool(rows["language"].lt(0).any()):raise ValueError("A fitting language ID was silently dropped")
         rows["counts"]=torch.as_tensor(frame[COUNT_COLUMNS].to_numpy(dtype=np.float32),device=device)
     return rows
 

@@ -63,7 +63,9 @@ def fit_model(fit,inner,stopping,ctx,fold,seed,condition,budget):
     data.require_same_pairs(fit,pd.concat([inner,stopping]))
     start=time.perf_counter();cfg=ctx.training;weight=0. if condition=="D0" else .1
     languages=sorted(inner.language.unique())
-    rows=vote_rows(inner,ctx.visual,languages,ctx.device);validation=vote_rows(stopping,ctx.visual,languages,ctx.device)
+    rows=vote_rows(inner,ctx.visual,languages,ctx.device)
+    validation=vote_rows(stopping,ctx.visual,languages,ctx.device,require_known=False)
+    unseen_validation=int((~stopping.language.isin(languages)).sum())
     model,rng,optimizer=seed_model(languages,seed,cfg,ctx.device);initial={"selection":state_hash(model)}
     gradients=[diagnostics(model,rows,ctx,fold,condition,"initialization")]
     if not gradients[0]["all_logits_valid_gradients"] or gradients[0]["groups"]["shared_representation"]["text_norm"]<=0:
@@ -97,6 +99,7 @@ def fit_model(fit,inner,stopping,ctx,fold,seed,condition,budget):
     return model,curves,gradients,prior_diagnostic(fit,probabilities,fit),{
         "selected_epoch":selected,"selection_epochs":selection_epochs,"fit_seconds":time.perf_counter()-start,
         "best_validation_bce":best,"selected_training_ce":selected_metrics["train_eval_ce"],
+        "unseen_inner_validation_language_pairs":unseen_validation,
         "selected_validation_ce":selected_metrics["validation_ce"],"full_refit_evaluation":training_eval,
         "initialization_sha256":initial,"parameters":sum(p.numel() for p in model.parameters())}
 
@@ -171,7 +174,7 @@ def run_pilot(args):
     fit=ctx.train[ctx.train.fold.ne(1)];inner,stopping=inner_partition(fit,ctx.training,1)
     target_tick=time.perf_counter()
     languages=sorted(inner.language.unique());rows=vote_rows(inner,ctx.visual,languages,ctx.device)
-    validation=vote_rows(stopping,ctx.visual,languages,ctx.device)
+    validation=vote_rows(stopping,ctx.visual,languages,ctx.device,require_known=False)
     target_preparation_seconds=time.perf_counter()-target_tick
     a,ra,oa=seed_model(languages,2027,ctx.training,ctx.device);b,rb,ob=seed_model(languages,2027,ctx.training,ctx.device)
     if state_hash(a)!=state_hash(b) or not torch.equal(ra.get_state(),rb.get_state()):raise ValueError("Unmatched initialization/RNG")
