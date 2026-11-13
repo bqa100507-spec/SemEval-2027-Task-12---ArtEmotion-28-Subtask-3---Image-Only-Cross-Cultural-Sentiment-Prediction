@@ -1,0 +1,106 @@
+[CmdletBinding()]
+param(
+    [Parameter(Mandatory = $true)]
+    [ValidateSet('Preflight', 'Pilot', 'MiniScreen', 'MiniScreenVerify', 'Screen', 'ScreenVerify', 'CV', 'Verify')]
+    [string]$Stage,
+    [string]$RunDir = 'runs/exp022_visual_lora',
+    [string]$DataDir = 'data/upstream',
+    [string]$Exp021Dir = 'runs/exp021_vote_distribution',
+    [string]$PortableDir = '',
+    [string]$InputManifestSha256 = '',
+    [switch]$AllowFullCV,
+    [string]$Exp018Dir = 'runs/exp018_polarity_captions/prepared',
+    [string]$Exp020Dir = 'runs/exp020_emotion_targets',
+    [string]$Exp019Dir = 'runs/exp019_gradient_scaling',
+    [string]$Exp017Dir = 'runs/exp017_text_supervision',
+    [string]$CacheDir = 'cache',
+    [ValidateSet('auto', 'cuda', 'cpu')]
+    [string]$Device = 'auto',
+    [ValidateRange(0, 86400)]
+    [double]$MaxSeconds = 0
+)
+
+$ErrorActionPreference = 'Stop'
+$PSNativeCommandUseErrorActionPreference = $false
+$projectRoot = Split-Path -Parent $PSScriptRoot
+
+
+function Resolve-ProjectPath([string]$Value) {
+    if ([System.IO.Path]::IsPathRooted($Value)) {
+        return [System.IO.Path]::GetFullPath($Value)
+    }
+    return [System.IO.Path]::GetFullPath((Join-Path $projectRoot $Value))
+}
+
+$python = Join-Path $projectRoot '.venv/Scripts/python.exe'
+if (-not (Test-Path -LiteralPath $python -PathType Leaf)) {
+    $python = Join-Path $projectRoot '.venv/bin/python'
+}
+if (-not (Test-Path -LiteralPath $python -PathType Leaf)) {
+    Write-Error 'The pinned .venv is missing. Prepare the project environment first.' -ErrorAction Continue
+    exit 2
+}
+
+$runPath = Resolve-ProjectPath $RunDir
+foreach ($protectedValue in @($Exp021Dir, $Exp020Dir, $Exp019Dir, $Exp018Dir, $Exp017Dir, $DataDir, $CacheDir, 'runs/e50_inference_models', 'runs/e50l_inference_models')) {
+    $protectedPath = Resolve-ProjectPath $protectedValue
+    $protectedPrefix = $protectedPath.TrimEnd([System.IO.Path]::DirectorySeparatorChar) + [System.IO.Path]::DirectorySeparatorChar
+    if ($runPath.Equals($protectedPath, [System.StringComparison]::OrdinalIgnoreCase) -or $runPath.StartsWith($protectedPrefix, [System.StringComparison]::OrdinalIgnoreCase)) {
+        Write-Error 'RunDir must be separate from historical data, caches and model directories.' -ErrorAction Continue
+        exit 2
+    }
+}
+$logDirectory = Join-Path $runPath 'logs'
+New-Item -ItemType Directory -Path $logDirectory -Force | Out-Null
+$logId = (Get-Date).ToUniversalTime().ToString('yyyyMMddTHHmmssfffZ') + '-' + [guid]::NewGuid().ToString('N').Substring(0, 8)
+$logPath = Join-Path $logDirectory ($Stage.ToLowerInvariant() + '-' + $logId + '.log')
+$arguments = @(
+    (Join-Path $projectRoot 'scripts/run_exp022.py'),
+    $Stage,
+    '--run-dir', $runPath,
+    '--data-dir', (Resolve-ProjectPath $DataDir),
+    '--exp021-dir', (Resolve-ProjectPath $Exp021Dir),
+    '--exp018-dir', (Resolve-ProjectPath $Exp018Dir),
+    '--exp020-dir', (Resolve-ProjectPath $Exp020Dir),
+    '--exp019-dir', (Resolve-ProjectPath $Exp019Dir),
+    '--exp017-dir', (Resolve-ProjectPath $Exp017Dir),
+    '--cache-dir', (Resolve-ProjectPath $CacheDir),
+    '--device', $Device,
+    '--max-seconds', $MaxSeconds.ToString([System.Globalization.CultureInfo]::InvariantCulture)
+)
+
+if ($PortableDir) { $arguments += @('--portable-dir', (Resolve-ProjectPath $PortableDir), '--input-manifest-sha256', $InputManifestSha256) }
+if ($AllowFullCV) { $arguments += '--allow-full-cv' }
+
+$availableMemoryBefore = $null
+if ([System.Environment]::OSVersion.Platform -eq [System.PlatformID]::Win32NT) {
+    $systemMemory = Get-CimInstance Win32_OperatingSystem
+    $availableMemoryBefore = [long]$systemMemory.FreePhysicalMemory * 1024
+}
+$timer = [System.Diagnostics.Stopwatch]::StartNew()
+Push-Location -LiteralPath $projectRoot
+try {
+    Write-Host "Running EXP-022 $Stage. Log $logPath"
+    & $python @arguments 2>&1 | Tee-Object -FilePath $logPath
+    $resultCode = $LASTEXITCODE
+} finally {
+    Pop-Location
+}
+$timer.Stop()
+$record = [ordered]@{
+    stage = $Stage
+    exit_code = $resultCode
+    process_seconds = $timer.Elapsed.TotalSeconds
+    log = $logPath
+    run_directory = $runPath
+    available_ram_bytes_before = $availableMemoryBefore
+    available_ram_bytes_after = if ($availableMemoryBefore) { [long](Get-CimInstance Win32_OperatingSystem).FreePhysicalMemory * 1024 } else { $null }
+}
+$record | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $logDirectory ($Stage.ToLowerInvariant() + '-' + $logId + '.json')) -Encoding utf8
+switch ($resultCode) {
+    0 { Write-Host "Stage finished in $($timer.Elapsed.TotalSeconds.ToString('F2')) seconds." }
+    3 { Write-Warning 'A required prior stage is missing or unpublished. Inspect the log before continuing.' }
+    75 { Write-Warning 'Time budget reached. Repeat the same stage to reuse completed sealed seeds or replayed folds.' }
+    default { Write-Warning 'Stage failed validation or execution. Prior successful artifacts were retained.' }
+}
+exit $resultCode

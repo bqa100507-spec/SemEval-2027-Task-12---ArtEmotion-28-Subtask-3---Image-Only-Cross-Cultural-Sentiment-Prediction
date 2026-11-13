@@ -159,3 +159,15 @@ For a fresh run, use `Preflight`, `Audit`, then `Pilot`. Only verified PILOT_PRO
 ```
 
 The local scorer implements the published specification. It also reports the starter kit's all-pairs Log Loss as a separate number. See [competition and provenance](docs/competition.md), [data audit](reports/data_audit.md), [baseline results](reports/baseline_dev.md), and [project state](docs/project_state.md).
+
+
+## EXP-022: controlled visual LoRA and vote supervision
+
+EXP-021 completed local five-fold CV and independent thirty-checkpoint replay with COMPETITION_NO_GO; [EXP-022](reports/exp022_visual_lora_vote_distribution.md) records the verified evidence without rewriting historical reports. The new F0/F8/L0/L8 factorial design matches painting-grouped batches, original student, vote objectives and seeds. Only the pinned CLIP-B visual q/v adapters can update; SigLIP2/CLIP-L remain cached and frozen. Production E50+L is unchanged.
+
+```powershell
+.\scripts\run_exp022.ps1 -Stage Preflight -Device cuda -MaxSeconds 600
+.\scripts\run_exp022.ps1 -Stage Pilot -Device cuda -MaxSeconds 900
+```
+
+Read the measured pilot forecast before starting MiniScreen. Training stops at completed-model boundaries; long stages require an explicit time budget. MiniScreenVerify is mandatory before Screen; ScreenVerify is mandatory before any separately owner-invoked CV. No five-fold run, locked scoring, Development scoring or upload is automatic. See the report for all stages, resource gates and [portable Colab commands](docs/exp022_colab.md).
