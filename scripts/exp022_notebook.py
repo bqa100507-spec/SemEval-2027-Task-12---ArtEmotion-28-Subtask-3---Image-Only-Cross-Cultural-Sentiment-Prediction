@@ -275,6 +275,7 @@ class NotebookRun:
         self.repo = self.local/'source'; self.python = self.local/'venv/bin/python'
         self.logs = self.persistent/'setup_logs'; self.run_dir = None; self.identity = None; self.profile = None
         self.benchmark_ok = False; self.reused_benchmark = False; self.last_export = None
+        self.stage_status = {}
         self.env = {**os.environ, 'CUDA_VISIBLE_DEVICES':'0', 'PYTHONUNBUFFERED':'1', 'CUBLAS_WORKSPACE_CONFIG':':4096:8',
             'HF_HUB_OFFLINE':'1', 'TRANSFORMERS_OFFLINE':'1', 'PIP_DISABLE_PIP_VERSION_CHECK':'1',
             'PYTHONDONTWRITEBYTECODE':'1',
@@ -385,10 +386,17 @@ print('EXP022_JSON:'+json.dumps(inputs(SimpleNamespace(**a)).identity))'''
             for name in required:
                 if not (self.run_dir/name/'run.json').exists():raise WorkflowError(f'Missing {name}; select the prerequisite stage first.')
                 verify_sealed(self.run_dir/name, self.identity)
+        self.stage_status[stage] = 'RUNNING'
         try:
-            return run_logged(stage_command(self.python,self.repo,self.portable,self.run_dir,stage,seconds),self.logs,stage,
+            log = run_logged(stage_command(self.python,self.repo,self.portable,self.run_dir,stage,seconds),self.logs,stage,
                 cwd=self.repo,env=self.env,timeout=seconds+180,progress=True)
+            self.stage_status[stage] = 'PASS'
+            return log
+        except BaseException:
+            self.stage_status[stage] = 'FAIL'
+            raise
         finally:
+            write_json(self.run_dir/'notebook_stage_status.json',self.stage_status)
             if self.platform == 'Kaggle':
                 active_error = sys.exc_info()[0] is not None
                 try:self.export()
@@ -411,9 +419,12 @@ print('EXP022_JSON:'+json.dumps(inputs(SimpleNamespace(**a)).identity))'''
         pre = read_json(self.run_dir/'preflight/run.json')['metadata'] if (self.run_dir/'preflight/run.json').exists() else {}
         pilot = read_json(self.run_dir/'pilot/run.json')['metadata'] if (self.run_dir/'pilot/run.json').exists() else {}
         parity = read_json(self.run_dir/'preflight/preprocessing.json') if (self.run_dir/'preflight/preprocessing.json').exists() else {}
+        if not parity and (self.run_dir/'failed_preprocessing_parity.json').exists():
+            parity = read_json(self.run_dir/'failed_preprocessing_parity.json')
         conditions = read_json(self.run_dir/'pilot/conditions.json') if (self.run_dir/'pilot/conditions.json').exists() else {}
-        return {'platform':self.platform,'environment':self.environment,'preflight':pre.get('status','NOT_COMPLETE'),
-            'pilot':pilot.get('status','NOT_COMPLETE'),'reused_saved_benchmark':self.reused_benchmark,
+        return {'platform':self.platform,'environment':self.environment,
+            'preflight':'FAIL' if self.stage_status.get('Preflight')=='FAIL' else pre.get('status','NOT_RUN'),
+            'pilot':'FAIL' if self.stage_status.get('Pilot')=='FAIL' else pilot.get('status','NOT_RUN'),'reused_saved_benchmark':self.reused_benchmark,
             'parity':{k:parity[k] for k in ('frozen_vs_cache','zero_lora_vs_frozen') if k in parity},
             'conditions':{k:{'epoch_seconds':v['epoch']['seconds'],'paintings_per_second':v['images_per_second'],
                 'allocated_bytes':v['memory']['peak_cuda_allocated_bytes'],'reserved_bytes':v['memory']['peak_cuda_reserved_bytes'],
