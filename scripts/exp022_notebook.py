@@ -42,8 +42,12 @@ class WorkflowError(RuntimeError):
 
 
 def sha256(path):
+    # Notebook hosts can be older than the isolated training interpreter.
+    # hashlib.file_digest is Python 3.11+, so use the same SHA-256 in chunks.
+    digest = hashlib.sha256()
     with Path(path).open('rb') as handle:
-        return hashlib.file_digest(handle, 'sha256').hexdigest()
+        for chunk in iter(lambda:handle.read(1024*1024),b''):digest.update(chunk)
+    return digest.hexdigest()
 
 
 def write_json(path, value):
