@@ -9,7 +9,7 @@ from pathlib import Path
 
 ROOT=Path(__file__).resolve().parents[1]
 SOURCE_REV='41ca0d4061f129c1821009e6d00614dede08708f'
-HELPER_REV='070314dfc9b7b957999a0131c60beee29caff0f5'
+HELPER_REV='b18991733a6ec60493e35985fcaff945a164d9f4'
 REPO='bqa100507-spec/SemEval-2027-Task-12---ArtEmotion-28-Subtask-3---Image-Only-Cross-Cultural-Sentiment-Prediction'
 
 BOOTSTRAP=r'''
@@ -54,9 +54,11 @@ if MOUNT_OK:
         if offline:
             OFFLINE_KIT = choose_artifact(OFFLINE_KIT_PATH, candidates, "offline runtime ZIP")
             OFFLINE_SHA = published_sha(OFFLINE_KIT, OFFLINE_KIT_SHA256)
+            digest = hashlib.sha256()
             with OFFLINE_KIT.open("rb") as handle:
-                if hashlib.file_digest(handle, "sha256").hexdigest() != OFFLINE_SHA:
-                    raise RuntimeError("Offline kit SHA mismatch. Reattach the original kit and checksum; do not replace the expected hash.")
+                for chunk in iter(lambda: handle.read(1024 * 1024), b""): digest.update(chunk)
+            if digest.hexdigest() != OFFLINE_SHA:
+                raise RuntimeError("Offline kit SHA mismatch. Reattach the original kit and checksum; do not replace the expected hash.")
             with zipfile.ZipFile(OFFLINE_KIT) as archive:
                 if archive.namelist().count("exp022_notebook.py") != 1:
                     raise RuntimeError("Offline kit needs exactly one pinned exp022_notebook.py.")

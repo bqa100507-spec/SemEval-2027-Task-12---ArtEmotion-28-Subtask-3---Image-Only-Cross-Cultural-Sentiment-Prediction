@@ -40,6 +40,14 @@ def tree_zip(tmp_path,entries):
     return archive
 
 
+def test_bootstrap_hashing_does_not_require_python311_api(tmp_path,monkeypatch):
+    value=tmp_path/'artifact';value.write_bytes(b'old notebook host; scientific Python stays 3.12.10')
+    expected=hashlib.sha256(value.read_bytes()).hexdigest()
+    monkeypatch.delattr(hashlib,'file_digest',raising=False)
+    assert workflow.sha256(value)==expected
+    ast.parse((ROOT/'scripts/exp022_notebook.py').read_text(encoding='utf-8'),feature_version=(3,10))
+
+
 def test_zip_checksum_paths_and_atomic_extraction(tmp_path):
     content=b'exact';manifest={'files_sha256':{'file.txt':hashlib.sha256(content).hexdigest()}}
     archive=tree_zip(tmp_path,{'file.txt':content,'runtime_bundle.json':json.dumps(manifest)})
@@ -204,6 +212,7 @@ def test_notebook_structure_pins_and_clean_outputs(name):
         if cell['cell_type']=='code':
             assert cell['outputs']==[] and cell['execution_count'] is None
             ast.parse(''.join(cell['source']))
+            ast.parse(''.join(cell['source']),feature_version=(3,10))
     combined='\n'.join(''.join(c['source']) for c in notebook['cells'] if c['cell_type']=='code')
     if name=='Kaggle':assert 'google.colab' not in combined
 
@@ -255,6 +264,7 @@ def test_offline_notebook_bootstrap_does_not_request_network(tmp_path,monkeypatc
     kit.with_suffix('.sha256').write_text(workflow.sha256(kit)+'  '+kit.name)
     namespace.update(NETWORK_MODE='offline',OFFLINE_KIT_PATH=str(kit),LOCAL_ROOT=str(tmp_path/'local'),PERSISTENT_ROOT=str(tmp_path/'persistent'))
     monkeypatch.setattr(urllib.request,'urlopen',lambda *a,**k:pytest.fail('Offline bootstrap requested network'))
+    monkeypatch.delattr(hashlib,'file_digest',raising=False)
     exec(cells[1],namespace);assert namespace['BOOTSTRAP_OK'] and namespace['OFFLINE_KIT']==kit
 
 
