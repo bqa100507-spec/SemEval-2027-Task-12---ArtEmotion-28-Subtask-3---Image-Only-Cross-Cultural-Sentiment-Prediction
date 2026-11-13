@@ -1,44 +1,50 @@
-# EXP-022 bounded Colab handoff
+# EXP-022 on Google Colab
 
-Choose a CUDA runtime with enough budget for the measured pilot forecast. FP32 CLIP-B is intentional for historical cache parity; do not switch encoder precision, rank, learning rate, preprocessing or folds to improve scores. Local Screen blocks when its forecast exceeds four GPU-hours. A new runtime must pass its own parity, memory and full-epoch pilot checks before allocating more training.
+[Open EXP022_Colab.ipynb in Colab](https://colab.research.google.com/github/bqa100507-spec/SemEval-2027-Task-12---ArtEmotion-28-Subtask-3---Image-Only-Cross-Cultural-Sentiment-Prediction/blob/90627b202b4b93163461f12d898df0f413742854/notebooks/EXP022_Colab.ipynb)
 
-On the original Windows machine:
+1. Upload the existing **exp022_colab_inputs.zip** to the root of **MyDrive**.
+2. Open the notebook and choose **Runtime → Change runtime type → GPU**.
+3. Choose **Runtime → Run all** and authorize the automatic Drive mount.
+4. Read the benchmark summary. No MiniScreen, Screen or full CV starts automatically.
 
-```powershell
-.venv\Scripts\python.exe scripts/package_exp022.py
-Get-Content runs/exp022_visual_lora/portable_handoff.json
-```
+No shell commands are required. The default input is `/content/drive/MyDrive/exp022_colab_inputs.zip`; change only `INPUT_ZIP_PATH` in the configuration cell if necessary. First setup downloads Python and pinned packages and may take several minutes/several GB. The host notebook interpreter is kept separate; no kernel restart is required.
 
-The package is approximately the existing CLIP-B checkpoint plus 1,335 training images. It stays local/ignored. Transfer it to your private Colab storage; do not commit it or make it public. Keep the printed ZIP SHA-256 and input-manifest SHA-256 separately. Packaging is idempotent and checksums every file. Only development-training targets are exported, from the already-verified EXP-021 proof.
+The notebook checks the original ZIP and both published bundle/input manifests before extracting data into local `/content/exp022/inputs`. Training images and pretrained assets are read from local storage, not Drive. It installs managed Python **3.12.10**, Torch **2.7.1+cu126**, Transformers **4.49.0** and the original requirements in an isolated environment, checks exact versions/CUDA, then invokes the existing **Preflight → Pilot** runner. Only GPU 0 is visible. There is no alternative checkpoint download, tolerance relaxation or scientific configuration change.
 
-Use Python 3.12 and the pinned dependencies. If the Colab interpreter differs, create a Python 3.12 environment first; do not silently substitute a new Torch/Transformers version. In a Colab shell after privately attaching the ZIP:
+The summary shows GPU and total/free VRAM, environment checks, stage PASS/FAIL, frozen/cache and zero-LoRA parity, BCE/CE adapter gradients and updates, allocated/reserved GPU peaks, measured paintings/s and epoch seconds, MiniScreen/Screen forecasts, the four-hour resource gate and persistent output location. Pilot diagnostics do not establish held-out quality. A failed stage is displayed as FAIL even if an earlier saved stage had passed; full tracebacks stay in logs.
 
-```bash
-git clone --branch exp/022-visual-lora-vote-distribution https://github.com/bqa100507-spec/SemEval-2027-Task-12---ArtEmotion-28-Subtask-3---Image-Only-Cross-Cultural-Sentiment-Prediction.git st3
-cd st3
-python3.12 -m venv .venv
-.venv/bin/python -m pip install torch==2.7.1 --index-url https://download.pytorch.org/whl/cu126
-.venv/bin/python -m pip install -r requirements.txt
-sha256sum /content/exp022_colab_inputs.zip  # Must equal portable_handoff.json
-mkdir -p /content/exp022-inputs
-.venv/bin/python -m zipfile -e /content/exp022_colab_inputs.zip /content/exp022-inputs
-```
+## After reviewing the benchmark
 
-Set the **actual published** input SHA, never a replacement derived from untrusted uploaded bytes:
+The stage selector offers **Setup / Benchmark**, **MiniScreen**, **MiniScreenVerify**, **Screen**, **ScreenVerify**. Select a stage, review its forecast/budget and measured VRAM, check authorization, then click **Run selected stage**. Authorization resets after each use. Full CV/final verification are deliberately absent from these controls and remain a separately authorized advanced workflow.
 
-```bash
-INPUT_SHA=fa2f7c4528b49925c400216037a64381bc6a0b35a1b3b11458a6bcbfda924337
-BASE="--portable-dir /content/exp022-inputs --input-manifest-sha256 $INPUT_SHA --run-dir /content/drive/MyDrive/exp022_colab --device cuda"
-.venv/bin/python scripts/run_exp022.py Preflight $BASE --max-seconds 600
-.venv/bin/python scripts/run_exp022.py Pilot $BASE --max-seconds 900
-cat /content/drive/MyDrive/exp022_colab/pilot/runtime_projection.json
-# Only after inspecting the forecast and allocating the time:
-.venv/bin/python scripts/run_exp022.py MiniScreen $BASE --max-seconds 14400
-.venv/bin/python scripts/run_exp022.py MiniScreenVerify $BASE --max-seconds 900
-.venv/bin/python scripts/run_exp022.py Screen $BASE --max-seconds 14400
-.venv/bin/python scripts/run_exp022.py ScreenVerify $BASE --max-seconds 1800
-```
+`RUN_LONG_TRAINING=False` is the default. Run all registers buttons but never clicks one. Source prerequisites and latest replay status are checked by the original runner. MiniScreen/Screen are blocked when this runtime's full Screen forecast exceeds four GPU-hours. The widgets require a notebook frontend with ipywidgets support; if absent, optional controls fail closed with a clear message, rather than starting a background job.
 
-Mount private Drive first or replace RunDir with other persistent storage. Stage calls are separate and do not automatically proceed. Repeating a completed stage checks seals; repeating interrupted training reuses complete models and restarts only the interrupted model. A failed replay invalidates promotion until a later complete replay passes. Preserve all logs and directories when transferring results back. Run verification on the same hardware/software profile used for training; do not mix local and Colab checkpoints under one identity.
+## Persistence and resume
 
-There is no EXP-022 confirmation/Development/upload command. Full CV remains separately gated and requires explicit owner invocation with `--allow-full-cv`; this handoff does not authorize it. Portable mode trusts the locally verified, checksum-pinned parent proof; it does not claim to replay the entire historical project on Colab. E50+L production remains unchanged.
+Artifacts/logs are written directly to `MyDrive/exp022_runs/<runtime-identity>/`; setup logs are under `MyDrive/exp022_runs/setup_logs/`. Complete model directories and stage manifests survive a normal notebook disconnect once Drive has committed those files. Drive/VM failures can still interrupt a write. **Only completed model boundaries resume**; a partial current model restarts.
+
+Repeat Run all to reopen the same compatible directory. Reused benchmark timings are explicitly labeled as saved measurements, not fresh throughput. A different source/configuration, package lock, GPU, driver or runtime identity receives a separate directory. Do not move checkpoints into another identity directory manually.
+
+Use **Export completed artifacts** to create a versioned private checkpoint ZIP plus `.sha256` receipt in MyDrive. To restore an exported run, place its ZIP/receipt in MyDrive, set `RESTORE_CHECKPOINTS=True`, and optionally its explicit path. All file checksums, original seals and runtime identities must match before any files are copied. Conflicting valid files are never overwritten. Failed verification-attempt records travel with the bundle so restore cannot silently reactivate an invalid decision.
+
+## Moving to Kaggle / offline preparation
+
+After a successful online Linux benchmark, the optional **Build offline Kaggle kit** button prepares `MyDrive/exp022_runtime.zip` and its published `.sha256` receipt. Explicit authorization is required: this may download several GB of dependency wheels but launches no ML training. It packages the pinned Git source, relocatable managed Python, exact dependency wheels/lock and pinned orchestration helper. Keep both runtime/data bundles private.
+
+Kaggle with Internet enabled needs only the original data ZIP. Internet-disabled Kaggle additionally needs this complete runtime ZIP and its receipt. **The original 705 MB data ZIP is not a complete offline environment.** See the [Kaggle runbook](exp022_kaggle.md) for attaching data, restoring compatible checkpoints and preserving outputs.
+
+## Immutable provenance
+
+- Training checkout: `41ca0d4061f129c1821009e6d00614dede08708f`; its scientific source is unchanged from executed `f0d2ac65d875a0875e8b280bc6065545611198e3`.
+- Notebook helper: `070314dfc9b7b957999a0131c60beee29caff0f5`; SHA-256 `c0db34106604a18186e4d31b1e8aa0af6cf7e48a989b00930253391886c223ef`.
+- Notebook snapshot: `90627b202b4b93163461f12d898df0f413742854`.
+- Data ZIP: `bbedbe2ad7e426040aebb63366ea5978e03d6483503b8ac9c88af14238a3d156`.
+- Input manifest: `fa2f7c4528b49925c400216037a64381bc6a0b35a1b3b11458a6bcbfda924337`.
+
+The helper is loaded separately outside the frozen training checkout. It is not added to `src/st3` or either original runner; the existing source/configuration fingerprints are not bypassed or rewritten. Its own commit/hash is pinned in both notebooks. The full resolved dependency lock and extra GPU/driver profile add an orchestration compatibility check; they do not relax the original identity. Future helper changes require explicit regeneration of notebook pins with `scripts/build_exp022_notebooks.py`.
+
+No locked confirmation data, public Development gold, new model experiment or leaderboard submission is introduced. E50+L stays production. Resource-eligibility caveats remain in force. See the [original experiment record](../reports/exp022_visual_lora_vote_distribution.md) and [notebook validation record](../reports/exp022_notebooks.md).
+
+**Validation boundary:** notebook schema, code, mocked Run all, paths, offline/restore logic and the actual published ZIP were tested locally. A Colab GPU runtime has **not** been tested by this change. Run all performs that actual compatibility check; strict numerical parity may reject a particular GPU/runtime. Do not substitute versions or relax tolerances to get PASS.
+
+Runtime/storage behavior follows [Colab guidance](https://research.google.com/colaboratory/faq.html); Python installation uses the documented [uv managed-Python mechanism](https://docs.astral.sh/uv/guides/install-python/), with uv 0.9.8 pinned.

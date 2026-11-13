@@ -173,3 +173,12 @@ EXP-021 completed local five-fold CV and independent thirty-checkpoint replay wi
 Read the measured pilot forecast before starting MiniScreen. Training stops at completed-model boundaries; long stages require an explicit time budget. MiniScreenVerify is mandatory before Screen; ScreenVerify is mandatory before any separately owner-invoked CV. No five-fold run, locked scoring, Development scoring or upload is automatic. See the report for all stages, resource gates and [portable Colab commands](docs/exp022_colab.md).
 
 Measured EXP-022 outcome: preflight/pilot passed; MiniScreen 81.06-minute and Screen 5.40-GPU-hour forecasts triggered a resource handoff. No real screening or new held-out score exists. The validated private Colab bundle is prepared; see the report for exact hashes and the next command. Local tests: 197 passed / 1 skipped.
+
+
+## EXP-022 notebooks: Colab and Kaggle
+
+[Open in Colab](https://colab.research.google.com/github/bqa100507-spec/SemEval-2027-Task-12---ArtEmotion-28-Subtask-3---Image-Only-Cross-Cultural-Sentiment-Prediction/blob/90627b202b4b93163461f12d898df0f413742854/notebooks/EXP022_Colab.ipynb): upload `exp022_colab_inputs.zip` to MyDrive, select a GPU, then **Runtime → Run all** and authorize Drive.
+
+[Kaggle notebook](notebooks/EXP022_Kaggle.ipynb): import it into a private Kaggle Notebook, attach a private Dataset containing the same ZIP, enable one GPU and Internet, then **Run all**. Offline setup requires the separate checksum-pinned runtime kit prepared by the Colab helper. Kaggle never needs Drive.
+
+Both interfaces use frozen source `41ca0d4` and run **Preflight/Pilot only** by default. Review the benchmark before explicitly selecting and authorizing later stages. Checkpoint transfer requires matching runtime identities; partial models do not resume. See the [Colab](docs/exp022_colab.md) and [Kaggle](docs/exp022_kaggle.md) runbooks for logs, exports/restores, offline dependencies and exact pins. These notebooks have local structural/synthetic validation; **neither cloud GPU platform has been runtime-tested by this change**.
