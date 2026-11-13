@@ -1,11 +1,15 @@
 """Offline synthetic workflow checks; never launch cloud or ML training."""
 
 import copy
+import ast
 import hashlib
 import importlib.util
 import json
+import io
 import subprocess
 import sys
+import types
+import urllib.request
 import zipfile
 from pathlib import Path
 
@@ -184,3 +188,108 @@ def test_offline_setup_uses_attached_source_python_and_wheels_only(tmp_path,monk
     assert not any('https://' in token for args in commands for token in args)
     assert not any('uv' in str(args) for args in commands)
     assert run.env['CUDA_VISIBLE_DEVICES']=='0' and run.identity=={'fixture':'identity'}
+
+
+@pytest.mark.parametrize('name',['Colab','Kaggle'])
+def test_notebook_structure_pins_and_clean_outputs(name):
+    notebook=json.loads((ROOT/'notebooks'/f'EXP022_{name}.ipynb').read_text(encoding='utf-8'))
+    assert notebook['nbformat']==4 and notebook['nbformat_minor']==5
+    assert len({c['id'] for c in notebook['cells']})==len(notebook['cells'])
+    metadata=notebook['metadata']['exp022'];assert metadata['training_revision']==workflow.SOURCE_REV
+    helper=subprocess.check_output(['git','show',metadata['helper_revision']+':scripts/exp022_notebook.py'],cwd=ROOT)
+    assert hashlib.sha256(helper).hexdigest()==metadata['helper_sha256']
+    assert metadata['default_stages']==['Preflight','Pilot']
+    for cell in notebook['cells']:
+        assert isinstance(cell['source'],list)
+        if cell['cell_type']=='code':
+            assert cell['outputs']==[] and cell['execution_count'] is None
+            ast.parse(''.join(cell['source']))
+    combined='\n'.join(''.join(c['source']) for c in notebook['cells'] if c['cell_type']=='code')
+    if name=='Kaggle':assert 'google.colab' not in combined
+
+
+@pytest.mark.parametrize('name',['Colab','Kaggle'])
+def test_run_all_bootstrap_imports_paths_and_benchmark_are_safe(name,tmp_path,monkeypatch):
+    notebook=json.loads((ROOT/'notebooks'/f'EXP022_{name}.ipynb').read_text(encoding='utf-8'))
+    cells=[''.join(c['source']) for c in notebook['cells'] if c['cell_type']=='code']
+    namespace={};exec(compile(cells[0],name,'exec'),namespace)
+    archive=tmp_path/'exp022_colab_inputs.zip';archive.write_bytes(b'fixture; mocked setup never trains')
+    namespace.update(INPUT_ZIP_PATH=str(archive),LOCAL_ROOT=str(tmp_path/'local'),PERSISTENT_ROOT=str(tmp_path/'output'))
+    helper=subprocess.check_output(['git','show',notebook['metadata']['exp022']['helper_revision']+':scripts/exp022_notebook.py'],cwd=ROOT)
+    urls=[]
+    def urlopen(url,**kwargs):urls.append(url);return io.BytesIO(helper)
+    monkeypatch.setattr(urllib.request,'urlopen',urlopen)
+    displays=types.ModuleType('IPython.display');displays.display=lambda *a:None;displays.Markdown=lambda s:s;displays.FileLink=lambda s:s
+    monkeypatch.setitem(sys.modules,'IPython.display',displays)
+    google=types.ModuleType('google');colab=types.ModuleType('google.colab');mounts=[]
+    colab.drive=types.SimpleNamespace(mount=lambda p:mounts.append(p))
+    monkeypatch.setitem(sys.modules,'google',google);monkeypatch.setitem(sys.modules,'google.colab',colab)
+    calls=[]
+    class FakeRun:
+        def __init__(self,platform,paths,**kwargs):calls.append(('platform',platform));self.last_export=None
+        def setup(self,**kwargs):calls.append(('setup',kwargs))
+        def benchmark(self):calls.append(('benchmark',None))
+        def summary(self):return {'platform':name,'output':str(tmp_path),'preflight':'SYNTHETIC','pilot':'SYNTHETIC'}
+        def failure(self,error):pytest.fail('Unexpected workflow failure: '+str(error))
+        def stage(self,*a,**k):pytest.fail('Run all must never invoke an explicit long stage')
+    for index,code in enumerate(cells[1:],1):
+        if 'SESSION = None' in code:
+            assert namespace['BOOTSTRAP_OK']
+            namespace['RUNTIME'].NotebookRun=FakeRun
+            namespace['RUNTIME'].show_controls=lambda session,ns:calls.append(('controls',ns['RUN_LONG_TRAINING']))
+        exec(compile(code,f'{name}-{index}','exec'),namespace)
+    assert namespace['BENCHMARK_OK'] and namespace['RUN_LONG_TRAINING'] is False
+    assert [v[0] for v in calls]==['platform','setup','benchmark','controls']
+    assert mounts==(['/content/drive'] if name=='Colab' else [])
+    assert len(urls)==1 and notebook['metadata']['exp022']['helper_revision'] in urls[0]
+    assert '/main/' not in urls[0] and '/exp/022' not in urls[0]
+
+
+def test_offline_notebook_bootstrap_does_not_request_network(tmp_path,monkeypatch):
+    notebook=json.loads((ROOT/'notebooks/EXP022_Kaggle.ipynb').read_text(encoding='utf-8'))
+    cells=[''.join(c['source']) for c in notebook['cells'] if c['cell_type']=='code']
+    namespace={};exec(cells[0],namespace)
+    helper=subprocess.check_output(['git','show',notebook['metadata']['exp022']['helper_revision']+':scripts/exp022_notebook.py'],cwd=ROOT)
+    kit=tmp_path/'exp022_runtime.zip'
+    with zipfile.ZipFile(kit,'w') as z:z.writestr('exp022_notebook.py',helper)
+    kit.with_suffix('.sha256').write_text(workflow.sha256(kit)+'  '+kit.name)
+    namespace.update(NETWORK_MODE='offline',OFFLINE_KIT_PATH=str(kit),LOCAL_ROOT=str(tmp_path/'local'),PERSISTENT_ROOT=str(tmp_path/'persistent'))
+    monkeypatch.setattr(urllib.request,'urlopen',lambda *a,**k:pytest.fail('Offline bootstrap requested network'))
+    exec(cells[1],namespace);assert namespace['BOOTSTRAP_OK'] and namespace['OFFLINE_KIT']==kit
+
+
+def test_real_runner_rejects_wrong_manifest_before_loading_model(tmp_path):
+    portable=tmp_path/'portable';(portable/'inputs').mkdir(parents=True)
+    (portable/'inputs/run.json').write_text('{}')
+    result=subprocess.run(workflow.stage_command(sys.executable,ROOT,portable,tmp_path/'run','Preflight',60),text=True,capture_output=True)
+    assert result.returncode==1
+    assert 'Portable input manifest hash mismatch' in result.stderr
+    assert not (tmp_path/'run').exists()
+
+
+def test_widget_registration_never_launches_training_and_click_requires_opt_in(tmp_path,monkeypatch):
+    objects=[]
+    class Widget:
+        def __init__(self,*args,**kwargs):
+            self.description=kwargs.get('description','');self.value=kwargs.get('value',kwargs.get('options',[''])[0])
+            self.disabled=False;self.callbacks=[];objects.append(self)
+        def on_click(self,callback):self.callbacks.append(callback)
+        def observe(self,*args,**kwargs):pass
+        def __enter__(self):return self
+        def __exit__(self,*args):return False
+    widgets=types.ModuleType('ipywidgets')
+    for name in ('Dropdown','BoundedIntText','Checkbox','Button','Output','VBox'):setattr(widgets,name,Widget)
+    displays=types.ModuleType('IPython.display');displays.display=lambda *a:None;displays.Markdown=lambda s:s
+    monkeypatch.setitem(sys.modules,'ipywidgets',widgets);monkeypatch.setitem(sys.modules,'IPython.display',displays)
+    run=session(tmp_path);calls=[]
+    monkeypatch.setattr(run,'stage',lambda *a,**k:calls.append((a,k)))
+    monkeypatch.setattr(run,'summary',lambda:{'platform':'SYNTHETIC','output':'fixture'})
+    namespace={'RUN_LONG_TRAINING':False};workflow.show_controls(run,namespace)
+    assert calls==[] and namespace['RUN_LONG_TRAINING'] is False
+    selector=next(w for w in objects if w.description=='Stage:');selector.value='MiniScreen'
+    button=next(w for w in objects if w.description=='Run selected stage')
+    approve=next(w for w in objects if w.description.startswith('I reviewed'))
+    button.callbacks[0](button);assert calls==[]
+    approve.value=True;button.callbacks[0](button)
+    assert calls==[(('MiniScreen',14400),{'allow_long':True})]
+    assert approve.value is False and namespace['RUN_LONG_TRAINING'] is False
