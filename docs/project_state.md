@@ -56,3 +56,6 @@ EXP-022 execution: RTX 4060 preflight and one complete grouped pilot epoch for e
 
 
 EXP-022-N adds thin Colab and Kaggle notebooks over frozen source 41ca0d4, with separately checksum-pinned orchestration, benchmark-only Run all, explicit long-stage controls, strict runtime identity transfer, private checkpoint exports and an optional offline Kaggle kit. No scientific implementation or historical artifact changed and no cloud GPU experiment ran. Native validation: 217 passed / 1 skipped; both notebook schemas and mocked Run all flows passed, and the original data ZIP was independently extracted/verified. Cloud runtime compatibility and real offline installation remain owner checks. See the [workflow validation record](../reports/exp022_notebooks.md), [Colab](exp022_colab.md) and [Kaggle](exp022_kaggle.md) runbooks.
+
+
+EXP-022-N corrected GitHub CI passed notebook schemas and 216 tests / 2 skips after fetching the pinned helper history; no scientific pin check was weakened. Final read-only checks matched all 2,483 historical artifact/cache hashes and the exact E50+L CSV. No Colab/Kaggle GPU compatibility result or new held-out model score exists.
