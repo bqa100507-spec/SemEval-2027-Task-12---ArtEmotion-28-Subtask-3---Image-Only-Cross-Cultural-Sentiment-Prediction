@@ -1,6 +1,6 @@
 # EXP-022 on Kaggle
 
-[Download EXP022_Kaggle.ipynb](https://raw.githubusercontent.com/bqa100507-spec/SemEval-2027-Task-12---ArtEmotion-28-Subtask-3---Image-Only-Cross-Cultural-Sentiment-Prediction/90627b202b4b93163461f12d898df0f413742854/notebooks/EXP022_Kaggle.ipynb) and import it into a **private** Kaggle Notebook.
+[Download EXP022_Kaggle.ipynb](https://raw.githubusercontent.com/bqa100507-spec/SemEval-2027-Task-12---ArtEmotion-28-Subtask-3---Image-Only-Cross-Cultural-Sentiment-Prediction/6da257fc508a4039f8881b7ddb1e7f5068ecca2b/notebooks/EXP022_Kaggle.ipynb) and import it into a **private** Kaggle Notebook.
 
 1. Create a **private Kaggle Dataset** with `exp022_colab_inputs.zip`.
 2. Add that Dataset under the notebook's **Inputs**.

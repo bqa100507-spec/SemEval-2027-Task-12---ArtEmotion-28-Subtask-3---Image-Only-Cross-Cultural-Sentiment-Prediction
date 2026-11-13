@@ -177,7 +177,7 @@ Measured EXP-022 outcome: preflight/pilot passed; MiniScreen 81.06-minute and Sc
 
 ## EXP-022 notebooks: Colab and Kaggle
 
-[Open in Colab](https://colab.research.google.com/github/bqa100507-spec/SemEval-2027-Task-12---ArtEmotion-28-Subtask-3---Image-Only-Cross-Cultural-Sentiment-Prediction/blob/90627b202b4b93163461f12d898df0f413742854/notebooks/EXP022_Colab.ipynb): upload `exp022_colab_inputs.zip` to MyDrive, select a GPU, then **Runtime → Run all** and authorize Drive.
+[Open in Colab](https://colab.research.google.com/github/bqa100507-spec/SemEval-2027-Task-12---ArtEmotion-28-Subtask-3---Image-Only-Cross-Cultural-Sentiment-Prediction/blob/6da257fc508a4039f8881b7ddb1e7f5068ecca2b/notebooks/EXP022_Colab.ipynb): upload `exp022_colab_inputs.zip` to MyDrive, select a GPU, then **Runtime → Run all** and authorize Drive.
 
 [Kaggle notebook](notebooks/EXP022_Kaggle.ipynb): import it into a private Kaggle Notebook, attach a private Dataset containing the same ZIP, enable one GPU and Internet, then **Run all**. Offline setup requires the separate checksum-pinned runtime kit prepared by the Colab helper. Kaggle never needs Drive.
 

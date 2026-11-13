@@ -59,3 +59,6 @@ EXP-022-N adds thin Colab and Kaggle notebooks over frozen source 41ca0d4, with 
 
 
 EXP-022-N corrected GitHub CI passed notebook schemas and 216 tests / 2 skips after fetching the pinned helper history; no scientific pin check was weakened. Final read-only checks matched all 2,483 historical artifact/cache hashes and the exact E50+L CSV. No Colab/Kaggle GPU compatibility result or new held-out model score exists.
+
+
+EXP-022-N final notebook snapshot 6da257fc508a4039f8881b7ddb1e7f5068ecca2b pins helper b18991733a6ec60493e35985fcaff945a164d9f4, including a simulated older-host hashing API regression while retaining training Python 3.12.10. Final validation: 218 passed / 1 skipped locally; notebook schemas and 217 passed / 2 skipped in GitHub CI. Colab launch links and Kaggle downloads point to this immutable notebook snapshot. Cloud GPU compatibility and a real Linux offline-kit installation remain explicitly untested.
