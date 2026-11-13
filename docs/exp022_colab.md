@@ -27,7 +27,7 @@ mkdir -p /content/exp022-inputs
 Set the **actual published** input SHA, never a replacement derived from untrusted uploaded bytes:
 
 ```bash
-INPUT_SHA=REPLACE_WITH_portable_handoff_json_input_manifest_sha256
+INPUT_SHA=fa2f7c4528b49925c400216037a64381bc6a0b35a1b3b11458a6bcbfda924337
 BASE="--portable-dir /content/exp022-inputs --input-manifest-sha256 $INPUT_SHA --run-dir /content/drive/MyDrive/exp022_colab --device cuda"
 .venv/bin/python scripts/run_exp022.py Preflight $BASE --max-seconds 600
 .venv/bin/python scripts/run_exp022.py Pilot $BASE --max-seconds 900

@@ -171,3 +171,5 @@ EXP-021 completed local five-fold CV and independent thirty-checkpoint replay wi
 ```
 
 Read the measured pilot forecast before starting MiniScreen. Training stops at completed-model boundaries; long stages require an explicit time budget. MiniScreenVerify is mandatory before Screen; ScreenVerify is mandatory before any separately owner-invoked CV. No five-fold run, locked scoring, Development scoring or upload is automatic. See the report for all stages, resource gates and [portable Colab commands](docs/exp022_colab.md).
+
+Measured EXP-022 outcome: preflight/pilot passed; MiniScreen 81.06-minute and Screen 5.40-GPU-hour forecasts triggered a resource handoff. No real screening or new held-out score exists. The validated private Colab bundle is prepared; see the report for exact hashes and the next command. Local tests: 197 passed / 1 skipped.
