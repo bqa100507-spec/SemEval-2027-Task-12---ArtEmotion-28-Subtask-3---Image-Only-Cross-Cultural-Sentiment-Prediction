@@ -471,6 +471,7 @@ def report_markdown(summary):
     lines=[f"### {summary['platform']} — EXP-022 benchmark",f"GPU: **{env.get('gpu','unavailable')}** · Python {env.get('python','?')} · Torch {env.get('versions',{}).get('torch','?')} · CUDA {env.get('cuda','?')}",
         f"Preflight: **{summary.get('preflight','NOT_COMPLETE')}** · Pilot: **{summary.get('pilot','NOT_COMPLETE')}**",
         f"Persistent output: `{summary['output']}`"]
+    lines=[part for value in lines for part in (value,'')]
     if env.get('total_vram_bytes'):
         lines.append(f"VRAM total/free before model load: **{env['total_vram_bytes']/1024**3:.2f}/{env['free_vram_bytes']/1024**3:.2f} GiB**. Pinned dependency validation passed; one GPU is visible.")
     if summary.get('reused_saved_benchmark'):lines.append('**Reused saved benchmark:** throughput below is from the sealed original pilot, not a new timing measurement.')
@@ -487,7 +488,7 @@ def report_markdown(summary):
         lines += ['', f"MiniScreen forecast: **{forecast['miniscreen_seconds']/60:.1f} min**. Full limited Screen: **{forecast['screen_gpu_hours']:.2f} GPU-hours**.",
             f"Four-hour resource gate: **{'permits explicit opt-in' if forecast['local_screen_within_gpu_budget'] else 'BLOCKED — choose a faster runtime'}**. Forecasts are not guarantees."]
     lines += ['', 'Run all has not launched screening. Pilot losses/gradients are engineering diagnostics, not held-out model quality.']
-    return '\n\n'.join(lines)
+    return '\n'.join(lines)
 
 
 def show_controls(session, namespace=None):
