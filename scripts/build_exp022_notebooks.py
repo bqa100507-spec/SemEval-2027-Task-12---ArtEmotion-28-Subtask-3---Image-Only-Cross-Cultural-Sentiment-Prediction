@@ -40,7 +40,15 @@ def choose_artifact(explicit, candidates, description):
     if len(values) != 1: raise RuntimeError(f"Found {len(values)} {description} files. Attach exactly one or set its explicit path in configuration.")
     return values[0]
 
-if MOUNT_OK:
+required_config = ("PLATFORM", "PERSISTENT_ROOT", "LOCAL_ROOT", "NETWORK_MODE",
+                   "OFFLINE_KIT_PATH", "OFFLINE_KIT_SHA256", "REPOSITORY",
+                   "HELPER_REVISION", "HELPER_SHA256", "TRAINING_REVISION",
+                   "RESTORE_CHECKPOINTS", "RESTORE_BUNDLE_PATH", "RESTORE_BUNDLE_SHA256",
+                   "RUN_LONG_TRAINING", "INPUT_ZIP_PATH")
+missing_config = [name for name in required_config if name not in globals()]
+if missing_config:
+    print("STOP — run the Configuration cell first (or Run all). Missing settings:", ", ".join(missing_config))
+elif globals().get("MOUNT_OK", PLATFORM == "Kaggle" or Path("/content/drive/MyDrive").is_dir()):
     try:
         log_root = Path(PERSISTENT_ROOT) / "setup_logs"
         log_root.mkdir(parents=True, exist_ok=True)

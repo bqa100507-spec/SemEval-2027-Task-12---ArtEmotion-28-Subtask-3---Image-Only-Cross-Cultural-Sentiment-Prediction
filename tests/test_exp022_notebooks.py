@@ -277,6 +277,24 @@ def test_real_runner_rejects_wrong_manifest_before_loading_model(tmp_path):
     assert not (tmp_path/'run').exists()
 
 
+@pytest.mark.parametrize('platform_name',[None,'Colab','Kaggle'])
+def test_bootstrap_missing_mount_flag_is_actionable_not_nameerror(platform_name,tmp_path,monkeypatch,capsys):
+    notebook=json.loads((ROOT/'notebooks/EXP022_Kaggle.ipynb').read_text(encoding='utf-8'))
+    cells=[''.join(c['source']) for c in notebook['cells'] if c['cell_type']=='code']
+    namespace={}
+    if platform_name:
+        exec(cells[0],namespace);namespace.pop('MOUNT_OK')
+        namespace.update(PLATFORM=platform_name,LOCAL_ROOT=str(tmp_path/'local'),PERSISTENT_ROOT=str(tmp_path/'output'))
+    monkeypatch.setattr(urllib.request,'urlopen',lambda *a,**k:(_ for _ in ()).throw(OSError('synthetic network unavailable')))
+    if platform_name=='Colab':monkeypatch.setattr(Path,'is_dir',lambda p:False)
+    exec(cells[1],namespace)
+    output=capsys.readouterr().out
+    assert namespace['BOOTSTRAP_OK'] is False and 'NameError' not in output
+    if platform_name is None:assert 'Configuration cell first' in output
+    elif platform_name=='Colab':assert 'Drive is not mounted' in output
+    else:assert 'Internet/helper download unavailable' in output
+
+
 def test_widget_registration_never_launches_training_and_click_requires_opt_in(tmp_path,monkeypatch):
     objects=[]
     class Widget:
