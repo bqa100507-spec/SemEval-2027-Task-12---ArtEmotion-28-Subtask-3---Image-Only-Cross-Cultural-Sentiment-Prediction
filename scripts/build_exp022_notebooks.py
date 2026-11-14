@@ -8,8 +8,8 @@ import textwrap
 from pathlib import Path
 
 ROOT=Path(__file__).resolve().parents[1]
-SOURCE_REV='41ca0d4061f129c1821009e6d00614dede08708f'
-HELPER_REV='b18991733a6ec60493e35985fcaff945a164d9f4'
+SOURCE_REV='eb4a7fac4ebe79971305b0b3de2c0e5102ea5f91'
+HELPER_REV='ecfca7b7dad011a8fc1edc6ecea4cad2dde95788'
 REPO='bqa100507-spec/SemEval-2027-Task-12---ArtEmotion-28-Subtask-3---Image-Only-Cross-Cultural-Sentiment-Prediction'
 
 BOOTSTRAP=r'''
@@ -44,7 +44,7 @@ required_config = ("PLATFORM", "PERSISTENT_ROOT", "LOCAL_ROOT", "NETWORK_MODE",
                    "OFFLINE_KIT_PATH", "OFFLINE_KIT_SHA256", "REPOSITORY",
                    "HELPER_REVISION", "HELPER_SHA256", "TRAINING_REVISION",
                    "RESTORE_CHECKPOINTS", "RESTORE_BUNDLE_PATH", "RESTORE_BUNDLE_SHA256",
-                   "RUN_LONG_TRAINING", "INPUT_ZIP_PATH")
+                   "RUN_LONG_TRAINING", "INPUT_ZIP_PATH", "PIXEL_CACHE")
 missing_config = [name for name in required_config if name not in globals()]
 if missing_config:
     print("STOP — run the Configuration cell first (or Run all). Missing settings:", ", ".join(missing_config))
@@ -114,9 +114,9 @@ if BOOTSTRAP_OK:
     try:
         paths = RUNTIME.paths_for(PLATFORM, input_path=INPUT_ZIP_PATH,
                                   local_root=LOCAL_ROOT, persistent_root=PERSISTENT_ROOT)
-        SESSION = RUNTIME.NotebookRun(PLATFORM, paths, offline_kit=OFFLINE_KIT)
+        SESSION = RUNTIME.NotebookRun(PLATFORM, paths, offline_kit=OFFLINE_KIT, pixel_cache=PIXEL_CACHE)
         SESSION.setup(offline_sha=OFFLINE_SHA, restore_path=RESTORE_PATH, restore_sha=RESTORE_SHA)
-        # The ONLY automatic experiment stages are Preflight (600s) and Pilot (900s).
+        # Preflight (600s), optional paired PixelBenchmark (900s), Pilot (900s); no screening.
         SESSION.benchmark()
         BENCHMARK_OK = True
         display(Markdown(RUNTIME.report_markdown(SESSION.summary())))
@@ -169,7 +169,7 @@ The ZIP is detected automatically. Missing/duplicate ZIPs stop with an actionabl
 
 {steps}
 
-This is an execution interface for the existing four-condition experiment, not a new model experiment. Frozen source: `{SOURCE_REV}` (same training implementation as `f0d2ac6`). All architecture, losses, folds, seeds and scientific gates stay unchanged. **Cloud GPU compatibility is established only when this runtime's actual Preflight/Pilot pass.**''')
+This is an execution interface for the existing four-condition experiment, not a new model experiment. Frozen source: `{SOURCE_REV}` (new pixel execution identity; original scientific design unchanged). All architecture, losses, folds, seeds and scientific gates stay unchanged. RAM mode first checks exact pixels and gradients, then benchmarks counterbalanced full epochs. CPU FP32 cache is approximately 0.75 GiB with a 1 GiB free-memory reserve; failures do not silently fall back. Select off to disable it. Old source/run artifacts are preserved and incompatible with this new execution identity. **Cloud GPU compatibility is established only when this runtime's actual Preflight/Pilot pass.**''')
     add('markdown','''## Configuration
 
 Defaults are ready for an online benchmark. Advanced fields are optional: offline kit, explicit checkpoint restore, and output directory. Expected data/helper hashes are fixed below; never replace them to bypass a failure. `auto` uses an attached offline kit when present; otherwise it requires Internet.''')
@@ -187,6 +187,7 @@ PERSISTENT_ROOT = {persistent!r}  # @param {{type:"string"}}
 
 # Safety default: only the explicit post-benchmark button can opt into long work.
 RUN_LONG_TRAINING = False
+PIXEL_CACHE = "ram"  # @param ["ram", "off"]
 TRAINING_REVISION = {SOURCE_REV!r}
 REPOSITORY = {REPO!r}
 HELPER_REVISION = {helper_revision!r}
@@ -214,7 +215,7 @@ Online mode loads one checksum-pinned helper from its immutable Git commit. Offl
 
 The helper validates the original ZIP, bundle and input-manifest hashes, every extracted asset, the source checkout and exact Python 3.12.10 / Torch 2.7.1+cu126 / Transformers 4.49.0 environment. It refuses missing CUDA or incompatible dependencies. The host notebook's Python/Torch do not replace the isolated environment.
 
-It runs **Preflight → Pilot** only. Full diagnostic logs are saved separately; the first actionable failure is shown here. A parity failure must be investigated without relaxing its tolerance or changing scientific settings.''')
+It runs **Preflight → PixelBenchmark (RAM mode) → Pilot** only. Full diagnostic logs are saved separately; the first actionable failure is shown here. A parity failure must be investigated without relaxing its tolerance or changing scientific settings.''')
     add('code',BENCHMARK)
     add('markdown','''## Optional stages — explicit owner action only
 
@@ -237,7 +238,7 @@ Kaggle **Save & Run All** re-executes the safe benchmark; it does not reproduce 
 
 No locked confirmation data, public Development gold, alternative pretrained checkpoint, Codabench upload or production E50+L modification is permitted. [Experiment report](https://github.com/{REPO}/blob/{SOURCE_REV}/reports/exp022_visual_lora_vote_distribution.md) · [Colab runtime/storage guidance](https://research.google.com/colaboratory/faq.html) · [Kaggle outputs guidance](https://www.kaggle.com/docs/notebooks) · [Pinned Python installation method](https://docs.astral.sh/uv/guides/install-python/)''')
     metadata={'kernelspec':{'display_name':'Python 3','language':'python','name':'python3'},'language_info':{'name':'python'},
-              'exp022':{'training_revision':SOURCE_REV,'helper_revision':helper_revision,'helper_sha256':helper_sha,'default_stages':['Preflight','Pilot']}}
+              'exp022':{'training_revision':SOURCE_REV,'helper_revision':helper_revision,'helper_sha256':helper_sha,'default_stages':['Preflight','PixelBenchmark','Pilot']}}
     if platform=='Colab':metadata.update(colab={'name':'EXP022_Colab.ipynb','provenance':[],'toc_visible':True},accelerator='GPU')
     else:metadata['kaggle']={'isInternetEnabled':True,'isGpuEnabled':True,'isTpuEnabled':False,'language':'python','sourceType':'notebook'}
     return {'cells':cells,'metadata':metadata,'nbformat':4,'nbformat_minor':5}

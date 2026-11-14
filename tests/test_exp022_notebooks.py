@@ -114,6 +114,17 @@ def test_failed_preflight_never_runs_pilot(tmp_path,monkeypatch):
     assert calls==['Preflight'] and not run.benchmark_ok
 
 
+def test_ram_workflow_checks_preflight_and_pixel_parity_before_pilot(tmp_path,monkeypatch):
+    run=session(tmp_path);run.pixel_cache='ram';calls=[]
+    def stage(name,seconds):
+        calls.append(name)
+        if name=='PixelBenchmark':raise workflow.WorkflowError('pixel gradient parity failed')
+        sealed(run.run_dir/'preflight',run.identity,{'status':'PASS'})
+    monkeypatch.setattr(run,'stage',stage)
+    with pytest.raises(workflow.WorkflowError,match='gradient parity'):run.benchmark()
+    assert calls==['Preflight','PixelBenchmark'] and not run.benchmark_ok
+
+
 def test_stage_parameters_are_equivalent_across_platforms(tmp_path,monkeypatch):
     commands=[]
     monkeypatch.setattr(workflow,'run_logged',lambda command,*a,**kw:commands.append(command))
@@ -206,7 +217,7 @@ def test_notebook_structure_pins_and_clean_outputs(name):
     metadata=notebook['metadata']['exp022'];assert metadata['training_revision']==workflow.SOURCE_REV
     helper=subprocess.check_output(['git','show',metadata['helper_revision']+':scripts/exp022_notebook.py'],cwd=ROOT)
     assert hashlib.sha256(helper).hexdigest()==metadata['helper_sha256']
-    assert metadata['default_stages']==['Preflight','Pilot']
+    assert metadata['default_stages']==['Preflight','PixelBenchmark','Pilot']
     for cell in notebook['cells']:
         assert isinstance(cell['source'],list)
         if cell['cell_type']=='code':
