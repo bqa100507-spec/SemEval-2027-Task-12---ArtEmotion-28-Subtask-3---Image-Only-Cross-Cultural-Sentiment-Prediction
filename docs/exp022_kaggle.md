@@ -1,6 +1,6 @@
 # EXP-022 on Kaggle
 
-[Download EXP022_Kaggle.ipynb](https://raw.githubusercontent.com/bqa100507-spec/SemEval-2027-Task-12---ArtEmotion-28-Subtask-3---Image-Only-Cross-Cultural-Sentiment-Prediction/e78231c109e8c743735b5ba7222221a0bca98c05/notebooks/EXP022_Kaggle.ipynb) and import it into a **private** Kaggle Notebook.
+[Download EXP022_Kaggle.ipynb](https://raw.githubusercontent.com/bqa100507-spec/SemEval-2027-Task-12---ArtEmotion-28-Subtask-3---Image-Only-Cross-Cultural-Sentiment-Prediction/0b4f0b89bc8835a11239664537a761c001238094/notebooks/EXP022_Kaggle.ipynb) and import it into a **private** Kaggle Notebook.
 
 1. Create a **private Kaggle Dataset** with `exp022_colab_inputs.zip`.
 2. Add that Dataset under the notebook's **Inputs**.
@@ -47,3 +47,12 @@ The [Colab provenance section](exp022_colab.md#immutable-provenance) records sha
 The summary includes stage PASS/FAIL, GPU/env compatibility, cache/zero-adapter parity, actual BCE/CE LoRA gradients/updates, allocated/reserved peaks, epoch time and paintings/s, MiniScreen/Screen estimates, the next-stage resource gate and exact output location. Complete diagnostics stay in saved logs. No held-out scientific decision is inferred from a successful benchmark.
 
 **Validation boundary:** structural/compiled notebooks, mocked platform execution, original ZIP checks, failed environments, stage arguments, offline source/wheel orchestration and checkpoint restore/export were tested locally. This is **not** a Kaggle or Colab GPU runtime certification. The owner still needs to attach artifacts, select a GPU and Run all. Internet/account availability, frontend widgets, driver compatibility, strict numerical parity and offline wheel installation require that real runtime check.
+
+
+## Exact pixel-cache execution update
+
+Current notebooks use execution source `eb4a7fac4ebe79971305b0b3de2c0e5102ea5f91` and helper `c3322759c1a216c69079cbdad1999f4bdaeff7ca` (SHA `c93e4df9997a68700773bca3dca4799e2f48c60e3e86e78180f6ad90c67ceb1e`). Earlier source pins above describe the preserved original workflow. Scientific configuration and acceptance gates are unchanged; the source identity intentionally changes for optional deterministic CPU FP32 pixel caching. New local checkouts use an `exp022-pixels-eb4a7fa` suffix, and runtime/source/cache-mode identities create separate persistent run directories. Do not restore or mix old completed fits into the new identity. Old execution sources and artifacts remain available. The original data ZIP and published input hashes are unchanged; old offline runtime kits need rebuilding for the new source/helper pins.
+
+`PIXEL_CACHE="ram"` runs **Preflight → PixelBenchmark → Pilot** during Run all. PixelBenchmark checks every cached image bitwise, BCE/CE gradients, optimizer updates and RNG, then counterbalances two complete inner-training epochs per reader/condition. It displays measured original/cached timings and revised forecasts on the actual runtime. It does not evaluate outer-fold scores or launch MiniScreen/Screen. Set `PIXEL_CACHE="off"` to retain uncached reads and skip the paired cache benchmark. RAM cache size is 803,819,520 bytes for 1,335 images; the default cap is 2 GiB, with 1 GiB free reserve plus 64 MiB scratch. Insufficient RAM stops explicitly; there is no silent fallback or lossy dtype change. Cache construction is per process and amortized across fits within a stage.
+
+Local RTX 4060 measurements showed 1.66×/1.60× full-epoch L0/L8 speedups and a 4.10→2.64 GPU-hour Screen forecast. **These are not L4 measurements.** The owner must Run all on L4 to measure whether that runtime now fits the unchanged four-hour gate. See the [pixel-cache report](../reports/exp022_pixel_cache.md) for exact profiles, parity and resource caveats.
