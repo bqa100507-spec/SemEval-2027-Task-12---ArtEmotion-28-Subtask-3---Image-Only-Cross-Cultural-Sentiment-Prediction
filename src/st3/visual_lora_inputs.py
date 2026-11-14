@@ -118,6 +118,7 @@ def inputs(args):
     if device=='cuda' and not torch.cuda.is_available():raise StageBlocked('CUDA unavailable: use CPU feasibility or Colab')
     source=sorted((ROOT/'src/st3').glob('*.py'))+[ROOT/'scripts/run_exp022.py',ROOT/'scripts/run_exp022.ps1']
     identity={'config_sha256':file_sha256(ROOT/'configs/exp022.json'),'input_manifest_sha256':file_sha256(directory/'run.json'),
+        'execution':{'pixel_cache':getattr(args,'pixel_cache','off'),'max_gib':getattr(args,'pixel_cache_max_gib',2.),'margin_gib':getattr(args,'pixel_cache_margin_gib',1.)},
         'source_sha256':{str(p.relative_to(ROOT)):file_sha256(p) for p in source},'device':device,'python':platform.python_version(),
         'versions':{n:importlib.metadata.version(n) for n in ('torch','transformers','numpy','pandas','scikit-learn','Pillow')},
         'gpu':torch.cuda.get_device_name() if device=='cuda' else None,'cuda':torch.version.cuda,

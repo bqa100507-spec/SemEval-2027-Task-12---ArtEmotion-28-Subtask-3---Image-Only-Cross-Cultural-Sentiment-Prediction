@@ -37,12 +37,30 @@ class PaintingGroups:
 
 
 class PixelReader:
-    def __init__(self,root,processor):self.root=root;self.processor=processor
-    def __call__(self,names,device):
+    def __init__(self,root,processor):
+        self.root=root;self.processor=processor;self.profile=False;self.reset_stats()
+    def reset_stats(self):
+        self.stats={k:0. for k in ('decode_seconds','preprocess_seconds','lookup_seconds','transfer_seconds')}
+    def cpu(self,names):
+        tick=time.perf_counter()
         images=[]
         for name in names:
             with Image.open(image_path(self.root,name)) as image:images.append(image.convert('RGB'))
-        return self.processor(images=images,return_tensors='pt')['pixel_values'].to(device)
+        if self.profile:self.stats['decode_seconds']+=time.perf_counter()-tick
+        tick=time.perf_counter()
+        try:value=self.processor(images=images,return_tensors='pt')['pixel_values']
+        finally:
+            for image in images:image.close()
+        if self.profile:self.stats['preprocess_seconds']+=time.perf_counter()-tick
+        return value
+    def transfer(self,value,device):
+        if self.profile and torch.device(device).type=='cuda':torch.cuda.synchronize()
+        tick=time.perf_counter();result=value.to(device)
+        if self.profile:
+            if torch.device(device).type=='cuda':torch.cuda.synchronize()
+            self.stats['transfer_seconds']+=time.perf_counter()-tick
+        return result
+    def __call__(self,names,device):return self.transfer(self.cpu(names),device)
 
 
 def fusion(clip,siglip,large):

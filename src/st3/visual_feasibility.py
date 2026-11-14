@@ -30,6 +30,9 @@ def load_context(args):
         if file_sha256(image_path(ctx.data_root,image))!=digest:raise ValueError('Training image bytes changed: '+image)
     model,processor,ctx.encoder_info=load_visual(cache,ctx.config,ctx.device)
     ctx.pixels=PixelReader(ctx.data_root,processor)
+    if getattr(args,'pixel_cache','off')=='ram':
+        from .pixel_cache import RamPixels
+        ctx.pixels=RamPixels(ctx.pixels,ctx.train.image.unique(),max_bytes=int(args.pixel_cache_max_gib*1024**3),margin_bytes=int(args.pixel_cache_margin_gib*1024**3))
     return ctx,model
 
 
