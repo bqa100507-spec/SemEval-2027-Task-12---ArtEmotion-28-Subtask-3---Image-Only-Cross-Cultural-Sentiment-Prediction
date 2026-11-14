@@ -40,3 +40,8 @@ Offline Kaggle requires a **separate** private runtime kit and published checksu
 **Neither Colab nor Kaggle was GPU runtime-tested by this task.** No cloud compatibility PASS, throughput, memory or scientific score is fabricated. Internet/account permissions, actual GPU/driver compatibility, strict cache parity, host widget support and real offline installation still require the owner's Run all check. In particular, availability of a CUDA GPU does not guarantee it passes the original numerical parity gate. If it fails, preserve the evidence and do not change versions/tolerances/science merely to obtain PASS.
 
 The original E50+L competition model and all EXP-001–022 scientific records remain unchanged. Final read-only verification matched all **2,483 historical artifact/cache files** and production CSV SHA `162875b641407efea3bf28d1d147c2d9a3dd3dc2faed8863f9438bee517199a3`. [Unmerged PR #21](https://github.com/bqa100507-spec/SemEval-2027-Task-12---ArtEmotion-28-Subtask-3---Image-Only-Cross-Cultural-Sentiment-Prediction/pull/21).
+
+
+## Missing mount-state hotfix
+
+Notebook snapshot `e78231c109e8c743735b5ba7222221a0bca98c05` removes the bootstrap assumption that `MOUNT_OK` exists. Missing configuration stops with an instruction to run the Configuration cell; a missing mount flag requires no Drive on Kaggle and checks the actual Drive directory on Colab. Explicit mount failures remain blocking. Training/helper pins and scientific source are unchanged. Twenty-four workflow tests passed, including missing configuration and missing mount-state regressions for both platforms; both notebook schemas and code compilation passed. This is not a new cloud GPU validation result.

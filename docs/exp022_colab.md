@@ -1,6 +1,6 @@
 # EXP-022 on Google Colab
 
-[Open EXP022_Colab.ipynb in Colab](https://colab.research.google.com/github/bqa100507-spec/SemEval-2027-Task-12---ArtEmotion-28-Subtask-3---Image-Only-Cross-Cultural-Sentiment-Prediction/blob/6da257fc508a4039f8881b7ddb1e7f5068ecca2b/notebooks/EXP022_Colab.ipynb)
+[Open EXP022_Colab.ipynb in Colab](https://colab.research.google.com/github/bqa100507-spec/SemEval-2027-Task-12---ArtEmotion-28-Subtask-3---Image-Only-Cross-Cultural-Sentiment-Prediction/blob/e78231c109e8c743735b5ba7222221a0bca98c05/notebooks/EXP022_Colab.ipynb)
 
 1. Upload the existing **exp022_colab_inputs.zip** to the root of **MyDrive**.
 2. Open the notebook and choose **Runtime → Change runtime type → GPU**.
@@ -37,7 +37,7 @@ Kaggle with Internet enabled needs only the original data ZIP. Internet-disabled
 
 - Training checkout: `41ca0d4061f129c1821009e6d00614dede08708f`; its scientific source is unchanged from executed `f0d2ac65d875a0875e8b280bc6065545611198e3`.
 - Notebook helper: `b18991733a6ec60493e35985fcaff945a164d9f4`; SHA-256 `e585beed804a5d9069a596e75968bd7ebabdf73851190ea7285dc6fd82c9e5c7`.
-- Notebook snapshot: `6da257fc508a4039f8881b7ddb1e7f5068ecca2b`.
+- Notebook snapshot: `e78231c109e8c743735b5ba7222221a0bca98c05`.
 - Data ZIP: `bbedbe2ad7e426040aebb63366ea5978e03d6483503b8ac9c88af14238a3d156`.
 - Input manifest: `fa2f7c4528b49925c400216037a64381bc6a0b35a1b3b11458a6bcbfda924337`.
 
