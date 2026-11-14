@@ -9,7 +9,7 @@ from pathlib import Path
 
 ROOT=Path(__file__).resolve().parents[1]
 SOURCE_REV='eb4a7fac4ebe79971305b0b3de2c0e5102ea5f91'
-HELPER_REV='ecfca7b7dad011a8fc1edc6ecea4cad2dde95788'
+HELPER_REV='c3322759c1a216c69079cbdad1999f4bdaeff7ca'
 REPO='bqa100507-spec/SemEval-2027-Task-12---ArtEmotion-28-Subtask-3---Image-Only-Cross-Cultural-Sentiment-Prediction'
 
 BOOTSTRAP=r'''
@@ -156,7 +156,7 @@ def notebook(platform, helper_revision, helper_sha):
 4. Read the benchmark summary. Default Run all does **not** launch screening.
 
 Only change **INPUT_ZIP_PATH** below if your ZIP is elsewhere. First setup downloads the exact Python and pinned dependencies; no notebook-kernel restart is needed.'''
-        input_path='/content/drive/MyDrive/exp022_colab_inputs.zip';local='/content/exp022';persistent='/content/drive/MyDrive/exp022_runs'
+        input_path='/content/drive/MyDrive/exp022_colab_inputs.zip';local='/content/exp022-pixels-eb4a7fa';persistent='/content/drive/MyDrive/exp022_runs'
     else:
         steps='''1. Create a **private Kaggle Dataset** containing **exp022_colab_inputs.zip**.
 2. Import this notebook into a **private** Kaggle Notebook and **Add Input** with that Dataset.
@@ -164,7 +164,7 @@ Only change **INPUT_ZIP_PATH** below if your ZIP is elsewhere. First setup downl
 4. Read the benchmark summary. The helper uses **one GPU**, including on dual-T4 runtimes.
 
 The ZIP is detected automatically. Missing/duplicate ZIPs stop with an actionable message. For Internet-disabled sessions, also attach the separately prepared **exp022_runtime.zip** and its **.sha256** receipt; the data ZIP alone is insufficient. See the offline instructions below.'''
-        input_path='';local='/kaggle/temp/exp022';persistent='/kaggle/working/exp022_runs'
+        input_path='';local='/kaggle/temp/exp022-pixels-eb4a7fa';persistent='/kaggle/working/exp022_runs'
     add('markdown',f'''# EXP-022 — {platform}
 
 {steps}
