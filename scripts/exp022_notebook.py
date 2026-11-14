@@ -24,7 +24,7 @@ import zipfile
 from pathlib import Path, PurePosixPath
 
 REPOSITORY = 'https://github.com/bqa100507-spec/SemEval-2027-Task-12---ArtEmotion-28-Subtask-3---Image-Only-Cross-Cultural-Sentiment-Prediction.git'
-SOURCE_REV = '41ca0d4061f129c1821009e6d00614dede08708f'
+SOURCE_REV = 'eb4a7fac4ebe79971305b0b3de2c0e5102ea5f91'
 INPUT_SHA = 'fa2f7c4528b49925c400216037a64381bc6a0b35a1b3b11458a6bcbfda924337'
 ZIP_SHA = 'bbedbe2ad7e426040aebb63366ea5978e03d6483503b8ac9c88af14238a3d156'
 BUNDLE_SHA = 'e75a180270518f4a315b88b925e801dcbc61240639e003a54473516a80bed1af'
@@ -33,7 +33,7 @@ TORCH_VERSION = '2.7.1+cu126'
 UV_VERSION = '0.9.8'
 TORCH_INDEX = 'https://download.pytorch.org/whl/cu126'
 LONG_STAGES = ('MiniScreen', 'MiniScreenVerify', 'Screen', 'ScreenVerify')
-SEALED_STAGES = ('preflight', 'pilot', 'mini', 'mini_verification', 'mini_decision',
+SEALED_STAGES = ('pixel_benchmark', 'preflight', 'pilot', 'mini', 'mini_verification', 'mini_decision',
                  'screen', 'screen_verification', 'screen_decision')
 
 
@@ -202,11 +202,11 @@ def validate_environment(actual, pins):
     if actual.get('cuda') != '12.6':raise WorkflowError(f'Torch CUDA runtime {actual.get("cuda")} differs from pinned 12.6.')
 
 
-def stage_command(python, repo, portable, run_dir, stage, seconds):
-    if stage not in ('Preflight', 'Pilot', *LONG_STAGES):raise WorkflowError('Stage is not available in notebooks; full CV needs separate owner authorization.')
+def stage_command(python, repo, portable, run_dir, stage, seconds, pixel_cache='off'):
+    if stage not in ('PixelBenchmark','Preflight', 'Pilot', *LONG_STAGES):raise WorkflowError('Stage is not available in notebooks; full CV needs separate owner authorization.')
     return [str(python), str(Path(repo)/'scripts/run_exp022.py'), stage, '--portable-dir', str(portable),
         '--input-manifest-sha256', INPUT_SHA, '--run-dir', str(run_dir), '--device', 'cuda',
-        '--data-dir', str(Path(portable)/'data'), '--cache-dir', str(Path(portable)/'cache'), '--max-seconds', str(seconds)]
+        '--data-dir', str(Path(portable)/'data'), '--cache-dir', str(Path(portable)/'cache'), '--max-seconds', str(seconds), '--pixel-cache',pixel_cache]
 
 
 def verify_sealed(directory, identity):
@@ -273,7 +273,9 @@ def restore_checkpoints(archive_path, expected_sha, run_dir, identity, execution
 
 
 class NotebookRun:
-    def __init__(self, platform_name, paths, *, offline_kit=None):
+    def __init__(self, platform_name, paths, *, offline_kit=None, pixel_cache='off'):
+        if pixel_cache not in ('off','ram'):raise WorkflowError('Pixel cache must be off or ram.')
+        self.pixel_cache=pixel_cache
         self.platform = platform_name; self.paths = paths; self.offline = Path(offline_kit) if offline_kit else None
         self.local = paths['local']; self.persistent = paths['persistent']; self.portable = self.local/'inputs'
         self.repo = self.local/'source'; self.python = self.local/'venv/bin/python'
@@ -348,6 +350,7 @@ print('EXP022_JSON:'+json.dumps(value))'''
         self.environment = self.python_json(code, 'environment'); validate_environment(self.environment, package_pins(self.repo))
         if self.environment['visible_devices'] != 1:raise WorkflowError('Expected exactly one visible CUDA GPU; refusing multi-GPU execution.')
         args = {'run_dir':str(self.persistent), 'portable_dir':str(self.portable), 'input_manifest_sha256':INPUT_SHA,
+                'pixel_cache':self.pixel_cache,'pixel_cache_max_gib':2.,'pixel_cache_margin_gib':1.,
                 'device':'cuda', 'data_dir':str(self.portable/'data')}
         code = f'''import sys,json,torch
 from pathlib import Path
@@ -392,7 +395,7 @@ print('EXP022_JSON:'+json.dumps(inputs(SimpleNamespace(**a)).identity))'''
                 verify_sealed(self.run_dir/name, self.identity)
         self.stage_status[stage] = 'RUNNING'
         try:
-            log = run_logged(stage_command(self.python,self.repo,self.portable,self.run_dir,stage,seconds),self.logs,stage,
+            log = run_logged(stage_command(self.python,self.repo,self.portable,self.run_dir,stage,seconds,self.pixel_cache),self.logs,stage,
                 cwd=self.repo,env=self.env,timeout=seconds+180,progress=True)
             self.stage_status[stage] = 'PASS'
             return log
@@ -410,6 +413,7 @@ print('EXP022_JSON:'+json.dumps(inputs(SimpleNamespace(**a)).identity))'''
 
     def benchmark(self):
         self.reused_benchmark = (self.run_dir/'pilot/run.json').exists()
+        if self.pixel_cache=='ram':self.stage('PixelBenchmark',900)
         self.stage('Preflight',600); self.stage('Pilot',900)
         pre = verify_sealed(self.run_dir/'preflight',self.identity)
         pilot = verify_sealed(self.run_dir/'pilot',self.identity)
@@ -427,6 +431,7 @@ print('EXP022_JSON:'+json.dumps(inputs(SimpleNamespace(**a)).identity))'''
             parity = read_json(self.run_dir/'failed_preprocessing_parity.json')
         conditions = read_json(self.run_dir/'pilot/conditions.json') if (self.run_dir/'pilot/conditions.json').exists() else {}
         return {'platform':self.platform,'environment':self.environment,
+            'pixel_cache':self.pixel_cache,'pixel_benchmark':read_json(self.run_dir/'pixel_benchmark/run.json')['metadata'] if (self.run_dir/'pixel_benchmark/run.json').exists() else None,
             'preflight':'FAIL' if self.stage_status.get('Preflight')=='FAIL' else pre.get('status','NOT_RUN'),
             'pilot':'FAIL' if self.stage_status.get('Pilot')=='FAIL' else pilot.get('status','NOT_RUN'),'reused_saved_benchmark':self.reused_benchmark,
             'parity':{k:parity[k] for k in ('frozen_vs_cache','zero_lora_vs_frozen') if k in parity},
@@ -490,6 +495,9 @@ def report_markdown(summary):
     if env.get('total_vram_bytes'):
         lines.append(f"VRAM total/free before model load: **{env['total_vram_bytes']/1024**3:.2f}/{env['free_vram_bytes']/1024**3:.2f} GiB**. Pinned dependency validation passed; one GPU is visible.")
     if summary.get('reused_saved_benchmark'):lines.append('**Reused saved benchmark:** throughput below is from the sealed original pilot, not a new timing measurement.')
+    pixel=summary.get('pixel_benchmark')
+    if pixel:
+        lines.append('Pixel cache: all pixels, BCE/CE gradients, full-epoch parameters/optimizer/RNG bitwise equal. Measured paired epoch speedups: '+str(pixel['speedup']))
     for name,value in summary.get('parity',{}).items():lines.append(f"- {name}: max absolute error **{value['max_abs_error']:.3g}**, minimum cosine **{value['cosine_min']:.9f}**")
     lines += ['', '| Condition | Epoch s | Paintings/s | Peak allocated/reserved GiB | BCE / CE LoRA gradient norms | Adapter update |',
         '| --- | ---: | ---: | ---: | ---: | ---: |']
