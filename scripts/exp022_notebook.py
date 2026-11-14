@@ -413,8 +413,9 @@ print('EXP022_JSON:'+json.dumps(inputs(SimpleNamespace(**a)).identity))'''
 
     def benchmark(self):
         self.reused_benchmark = (self.run_dir/'pilot/run.json').exists()
+        self.stage('Preflight',600)
         if self.pixel_cache=='ram':self.stage('PixelBenchmark',900)
-        self.stage('Preflight',600); self.stage('Pilot',900)
+        self.stage('Pilot',900)
         pre = verify_sealed(self.run_dir/'preflight',self.identity)
         pilot = verify_sealed(self.run_dir/'pilot',self.identity)
         if pre['status'] != 'PASS' or pilot['status'] != 'PILOT_PASS':raise WorkflowError('Preflight or Pilot did not pass; long-stage controls remain disabled.')
