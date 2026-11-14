@@ -433,6 +433,7 @@ print('EXP022_JSON:'+json.dumps(inputs(SimpleNamespace(**a)).identity))'''
         conditions = read_json(self.run_dir/'pilot/conditions.json') if (self.run_dir/'pilot/conditions.json').exists() else {}
         return {'platform':self.platform,'environment':self.environment,
             'pixel_cache':self.pixel_cache,'pixel_benchmark':read_json(self.run_dir/'pixel_benchmark/run.json')['metadata'] if (self.run_dir/'pixel_benchmark/run.json').exists() else None,
+            'pixel_projections':read_json(self.run_dir/'pixel_benchmark/runtime_projection.json') if (self.run_dir/'pixel_benchmark/runtime_projection.json').exists() else None,
             'preflight':'FAIL' if self.stage_status.get('Preflight')=='FAIL' else pre.get('status','NOT_RUN'),
             'pilot':'FAIL' if self.stage_status.get('Pilot')=='FAIL' else pilot.get('status','NOT_RUN'),'reused_saved_benchmark':self.reused_benchmark,
             'parity':{k:parity[k] for k in ('frozen_vs_cache','zero_lora_vs_frozen') if k in parity},
@@ -499,6 +500,8 @@ def report_markdown(summary):
     pixel=summary.get('pixel_benchmark')
     if pixel:
         lines.append('Pixel cache: all pixels, BCE/CE gradients, full-epoch parameters/optimizer/RNG bitwise equal. Measured paired epoch speedups: '+str(pixel['speedup']))
+        paired=summary.get('pixel_projections')
+        if paired:lines.append('Paired full-epoch forecasts: original/cached MiniScreen '+f"{paired['off']['miniscreen_seconds']/60:.1f}/{paired['ram']['miniscreen_seconds']/60:.1f} min; Screen {paired['off']['screen_gpu_hours']:.2f}/{paired['ram']['screen_gpu_hours']:.2f} GPU-hours. Cache build time: {pixel['cache_build_seconds']:.1f}s; CPU cache: {pixel['cache_bytes']/1024**3:.3f} GiB.")
     for name,value in summary.get('parity',{}).items():lines.append(f"- {name}: max absolute error **{value['max_abs_error']:.3g}**, minimum cosine **{value['cosine_min']:.9f}**")
     lines += ['', '| Condition | Epoch s | Paintings/s | Peak allocated/reserved GiB | BCE / CE LoRA gradient norms | Adapter update |',
         '| --- | ---: | ---: | ---: | ---: | ---: |']
