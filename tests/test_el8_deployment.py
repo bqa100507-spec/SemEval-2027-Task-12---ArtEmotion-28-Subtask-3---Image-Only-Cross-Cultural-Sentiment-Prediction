@@ -134,7 +134,8 @@ def test_unsafe_paths_rejected(name):
 def test_final_refit_requires_explicit_policy_and_budget():
     from st3.cli import ROOT
     from st3.polarity_workflow import StageBlocked
-    args=SimpleNamespace(authorize_final_refit=False,policy_sha256=file_sha256(ROOT/'configs/el8_final_refit.json'),max_gpu_hours=1.)
+    policy_sha=hashlib.sha256((ROOT/'configs/el8_final_refit.json').read_bytes().replace(b'\r\n',b'\n')).hexdigest()
+    args=SimpleNamespace(authorize_final_refit=False,policy_sha256=policy_sha,max_gpu_hours=1.)
     with pytest.raises(StageBlocked,match='No final training'):require_authorization(args)
     args.authorize_final_refit=True;args.max_gpu_hours=0
     with pytest.raises(StageBlocked):require_authorization(args)

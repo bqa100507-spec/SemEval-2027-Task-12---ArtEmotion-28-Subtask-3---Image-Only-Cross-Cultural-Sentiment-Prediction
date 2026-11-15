@@ -22,7 +22,7 @@ These numbers are read from the recovered, checksum-validated artifacts, not new
 
 ## Strict parity
 
-Independent reconstruction from all 60 saved seed predictions passed: all five folds, 40 model/ensemble checks, maximum error **0**. Actual image-backed replay loaded all 15 L8 CV checkpoints and used only the corresponding held-out fold for every painting. Runtime: RTX 4060 Laptop, Python3.12.10, Torch2.7.1+cu126, Transformers4.49.0; original microbatch4 and processing retained. It took **115.2870 s**, with **407,016,448 bytes** peak allocated VRAM.
+Independent reconstruction from all 60 saved seed predictions passed: all five folds, 40 model/ensemble checks, maximum error **0**. Actual image-backed replay loaded all 15 L8 CV checkpoints and used only the corresponding held-out fold for every painting. Runtime: RTX 4060 Laptop, Python3.12.10, Torch2.7.1+cu126, Transformers4.49.0; original microbatch4 and processing retained. The final pinned-source replay took **127.8271 s** (earlier diagnostic: 115.2870 s), with **407,016,448 bytes** peak allocated VRAM.
 
 | Fold | EL8 failing rows / total | EL8 maximum absolute error | L8 seed-mean maximum error |
 | --- | ---: | ---: | ---: |
@@ -38,7 +38,7 @@ All 15 raw seed comparisons failed exact equality; largest raw error **0.0000106
 
 The new explicit `predict --mode el8` uses a strictly verified final bundle and retains the original seed-probability mean, six-decimal rounding and E50+L 50/50 blend. It rejects CV models as final models. Existing inference math/files/bundles remain unchanged; the shared CLI only adds explicit EL8 dispatch.
 
-Image-only CV diagnostic (not a final model or competition submission): two unseen synthetic image contents, three paintings including a repeated-content alias, six image-language pairs, all three L8 seeds. Warm/cold predictions matched exactly and warm extraction encoded zero images. Total smoke **59.0779 s**, peak allocated **404,272,640 bytes**. Adapted extraction per seed: cold 0.5104/0.0610/0.0447 s; warm 0.0131/0.0120/0.0129 s. These tiny-fixture timings are not production throughput estimates. Its diagnostic ZIP passed coverage/structure validation.
+Image-only CV diagnostic (not a final model or competition submission): two unseen synthetic image contents, three paintings including a repeated-content alias, six image-language pairs, all three L8 seeds. Warm/cold predictions matched exactly and warm extraction encoded zero images. Total smoke **59.0779 s**, main-process peak allocated **404,272,640 bytes**. Separate SigLIP2 and CLIP-L worker peaks were **429,472,768** and **1,285,044,736 bytes**; worker wall times were 24.1247 and 21.2027 s including model startup. Adapted extraction per seed: cold 0.5104/0.0610/0.0447 s; warm 0.0131/0.0120/0.0129 s. These tiny-fixture timings are not production throughput estimates. Its diagnostic ZIP passed coverage/structure validation.
 
 All 849 public **input-only** release predictions replayed on CPU, with coverage-validated ZIPs and historical CSV SHA-256 parity:
 
@@ -64,3 +64,9 @@ No Development gold was read or scored. All 34 historical frozen-cache hashes in
 Proposed new policy: fold=0 hashed inner stopping partition, original max100/patience10/BCE, fresh full-1335-painting refit for selected epochs, seeds2027/2028/2029; all scientific hyperparameters unchanged. Requires owner approval. Historical L4 fit-based forecast: **0.5132 GPU-hours** at mean, **0.7703 hours** p90 plus margin, excluding setup/replay/export and unknown final stopping behavior. No final fit, MiniScreen, Screen, CV rerun, locked confirmation access or Codabench upload was launched.
 
 The minimum next action is to approve this policy and budget once, then use the new one-ZIP L4 notebook workflow. It automatically attempts strict parity first, stops if parity fails, and otherwise prepares data, trains only missing final seeds, verifies them and exports complete artifacts plus receipts. New cloud execution remains untested; notebook syntax and mocked orchestration tests do not prove GPU compatibility.
+
+## Private handoff and delivery
+
+The checked one-ZIP handoff is `runs/task023_delivery/el8_refit_handoff.zip`, **595,249,375 bytes**, SHA-256 `7cc9a836e4d5eb3db90252d4c2e3bf9652667d5e46c8c47b65398c09d1f7386b`. Actual extraction and all 406 file checks passed, including all 60 CV weights. `git bundle verify` confirmed complete history and implementation revision `a6fd6559e0b08bde78f12100183dab9ff8ce2fe4`. Both new notebooks pin this implementation and archive hash. Subsequent delivery changes add notebooks, regression tests and explicit CLI error handling; inference/training math is unchanged.
+
+Review PR: [#22](https://github.com/bqa100507-spec/SemEval-2027-Task-12---ArtEmotion-28-Subtask-3---Image-Only-Cross-Cultural-Sentiment-Prediction/pull/22), draft and unmerged, stacked on open/unmerged PR #21. Both Python environments passed `pip check`. The 31 targeted deployment/cloud tests pass, including both notebook Run all paths with mocked GPU setup and no automatic training, strict checkpoint failure, archive corruption, exact seed rounding, failed-replay invalidation, completed-seed resume and automatic failure export.
