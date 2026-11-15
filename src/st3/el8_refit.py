@@ -72,7 +72,9 @@ def scientific_sources_unchanged(identity):
 
 
 def full_refit(args):
+    notify = getattr(args, '_progress', lambda *a, **kw: None)
     policy, policy_digest = require_authorization(args)
+    notify(stage='ARTIFACT_VALIDATION')
     if args.run_dir.exists() and (args.run_dir / 'cv').exists():
         raise ValueError('Final RunDir must be separate from historical CV artifacts')
     root = args.cv_run.resolve()
@@ -83,13 +85,12 @@ def full_refit(args):
         if dest == protected or dest in protected.parents or protected in dest.parents:
             raise ValueError('Final RunDir overlaps protected inputs or models')
     evidence = cv_inventory(root); scientific_sources_unchanged(evidence['identity'])
-    load_bundle(args.model_dir, inference_config(), ENCODERS)
     _, e50, _ = load_bundle(args.model_dir, inference_config(), ENCODERS)
     load_clip_large_bundle(args.clip_large_model_dir, e50)
     device = deterministic_runtime(args.device)
     if device.type != 'cuda':
         raise StageBlocked('Final training requires an authorized CUDA budget; CPU is supported for inference only')
-    budget = ExecutionBudget(args.max_gpu_hours * 3600)
+    budget = getattr(args, '_budget', None) or ExecutionBudget(args.max_gpu_hours * 3600)
     args.run_dir.mkdir(parents=True, exist_ok=True)
     attempt = args.run_dir / ('attempt-' + uuid.uuid4().hex + '.json')
     status = {'status': 'STARTED', 'policy_sha256': policy_digest, 'owner_authorized_gpu_hours': args.max_gpu_hours,
@@ -102,6 +103,7 @@ def full_refit(args):
         if old_manifest['status'] not in ('VERIFIED', 'INVALIDATED_BY_FAILED_REPLAY'):
             raise ValueError('Invalid prior final bundle; inspect preserved failure before retry')
     try:
+        notify(stage='PARITY')
         cv_replay = args.run_dir / 'deployment_cv_replay.json'
         if cv_replay.exists():
             previous = read_json(cv_replay)
@@ -116,10 +118,12 @@ def full_refit(args):
             if read_json(cv_replay)['status'] != 'PASS':
                 raise StageBlocked('Strict image-backed CV parity failed; final training not started')
         budget.check('Final preflight', -1)
+        notify(stage='PREFLIGHT')
         stage_args = copy.copy(args)
         stage_args.max_seconds = max(1, budget.seconds - (time.perf_counter() - budget.start))
         run_preflight(stage_args)
         budget.check('Final timing pilot', -1)
+        notify(stage='BENCHMARK')
         stage_args.max_seconds = max(1, budget.seconds - (time.perf_counter() - budget.start))
         run_pilot(stage_args)
         # Record the exact installed environment alongside all completed seeds.
@@ -143,6 +147,7 @@ def full_refit(args):
             path = args.run_dir / 'final' / f'L8_{seed}'
             budget.check('Final L8 seed ' + str(seed), -1)
             if not path.exists():
+                notify(stage='TRAINING', seed=seed)
                 with new_output(path) as stage:
                     head, curves, gradients, info = fit_model(ctx, vision, ctx.train, held, 0, seed, 'L8', 4, budget)
                     predicted, _ = predict(ctx, vision, head, smoke, 'L8', 4)
@@ -153,6 +158,7 @@ def full_refit(args):
                     json_output(gradients, stage / 'gradients.json')
                     seal(stage, ctx.identity, {**info, 'kind': 'final_refit', 'condition': 'L8', 'seed': seed,
                                               'policy_sha256': policy_digest, 'microbatch': 4})
+            notify(stage='FINAL_VERIFICATION', seed=seed)
             info = sealed(path, ctx.identity)
             if (info['kind'] != 'final_refit' or info['seed'] != seed or info['policy_sha256'] != policy_digest or
                     info['held_paintings'] or info['fit_paintings'] != sorted(ctx.train.painting.unique())):
@@ -173,9 +179,12 @@ def full_refit(args):
                         'locked_data_accessed': False, 'development_scored': False}
         json_output(verification, args.run_dir / 'final_verification.json')
         bundle = args.run_dir / 'bundle'
+        notify(stage='BUNDLE')
         if not bundle.exists():
             with new_output(bundle) as stage:
-                shutil.copytree(args.run_dir / 'final', stage / 'final')
+                for seed in SEEDS:
+                    # A killed unpublished fit directory is not a final model.
+                    shutil.copytree(args.run_dir/'final'/f'L8_{seed}', stage/'final'/f'L8_{seed}')
                 shutil.copyfile(args.run_dir / 'final_verification.json', stage / 'verification.json')
                 shutil.copyfile(cv_replay, stage / 'cv_replay.json')
                 json_output(evidence, stage / 'cv_evidence.json')
@@ -208,12 +217,13 @@ def full_refit(args):
         json_output(status, attempt)
         # Includes completed checkpoints, failed attempts and evidence, even on
         # interruption. Export outside the run avoids self-inclusion.
-        roots = {'final_run': args.run_dir, 'historical_cv': root,
-                 'e50': args.model_dir, 'clip_large': args.clip_large_model_dir}
-        destination = args.run_dir.parent / (args.run_dir.name + '-export-' + uuid.uuid4().hex[:8] + '.zip')
-        receipt = export_bundle(destination, roots,
-                                {'final_run': 'final_refit_progress', 'historical_cv': 'historical_cv',
-                                 'e50': 'production_e50', 'clip_large': 'production_clip_large'}, status)
-        json_output(receipt, args.run_dir / 'last_export.json')
-        print('Complete artifact export and checksum:', receipt, flush=True)
+        if not getattr(args, '_managed_export', False):
+            roots = {'final_run': args.run_dir, 'historical_cv': root,
+                     'e50': args.model_dir, 'clip_large': args.clip_large_model_dir}
+            destination = args.run_dir.parent / (args.run_dir.name + '-export-' + uuid.uuid4().hex[:8] + '.zip')
+            receipt = export_bundle(destination, roots,
+                                    {'final_run': 'final_refit_progress', 'historical_cv': 'historical_cv',
+                                     'e50': 'production_e50', 'clip_large': 'production_clip_large'}, status)
+            json_output(receipt, args.run_dir / 'last_export.json')
+            print('Complete artifact export and checksum:', receipt, flush=True)
     return status

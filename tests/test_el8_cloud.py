@@ -39,7 +39,7 @@ def test_notebook_templates_compile_and_default_training_is_off():
                 assert not c['outputs'] and c['execution_count'] is None
                 ast.parse(''.join(c['source']))
         config={};exec(''.join(notebook['cells'][1]['source']),config)
-        assert config['AUTHORIZE_FINAL_REFIT'] is False and config['MAX_GPU_HOURS']==0
+        assert config['AUTHORIZE_FINAL_REFIT'] is False and config['MAX_GPU_HOURS']==1.5 and config['MAX_TOTAL_WALL_HOURS']==2.0
 
 
 def test_cloud_defaults_to_no_training():
@@ -64,38 +64,37 @@ def test_notebook_run_all_imports_paths_and_approval_are_safe(tmp_path,monkeypat
     archive=tmp_path/'handoff.zip'
     with zipfile.ZipFile(archive,'w') as z:z.writestr('artifact_manifest.json',json.dumps(manifest));z.writestr('source/source.bundle',bundle)
     ns.update(HANDOFF_ZIP=str(archive),HANDOFF_SHA256=cloud.sha256(archive),HELPER_SHA256=hashlib.sha256(helper).hexdigest(),
-              LOCAL_ROOT=str(local),PERSISTENT_ROOT=str(tmp_path/'persistent'))
+              LOCAL_ROOT=str(local),PERSISTENT_ROOT=str(tmp_path/'persistent'),AUTHORIZE_FINAL_REFIT=True)
     monkeypatch.setattr(cloud.subprocess,'check_output',lambda *a,**k:ns['IMPLEMENTATION_REVISION']+'\n')
     google=types.ModuleType('google');colab=types.ModuleType('google.colab');mounts=[]
     colab.drive=types.SimpleNamespace(mount=lambda path:mounts.append(path))
     monkeypatch.setitem(sys.modules,'google',google);monkeypatch.setitem(sys.modules,'google.colab',colab)
     exec(''.join(notebook['cells'][2]['source']),ns)
-    assert ns['RESULT']=={'status':'MOCK_NO_TRAINING','authorized':False}
+    assert ns['RESULT']=={'status':'MOCK_NO_TRAINING','authorized':True}
     assert mounts==(['/content/drive'] if platform=='Colab' else [])
 
 
-@pytest.mark.parametrize('authorize',[False,True])
-def test_cloud_stage_invocation_never_runs_cv_and_requires_authorization(tmp_path,monkeypatch,authorize):
-    from types import SimpleNamespace
-    local=tmp_path/'local';deploy=local/'deployment';deploy.mkdir(parents=True)
-    persistent=tmp_path/'persistent';revision='a'*40
-    monkeypatch.setattr(cloud,'extract_handoff',lambda *a:{'metadata':{'deployment_revision':revision,'policy_sha256':'policy'}})
-    monkeypatch.setattr(cloud.subprocess,'check_output',lambda a,**k:revision if 'rev-parse' in a else '')
+def test_no_authorization_never_installs_or_trains_and_still_releases(tmp_path,monkeypatch):
     calls=[]
-    class Session:
-        def __init__(self,platform,paths,**kw):
-            self.python=tmp_path/'venv/bin/python';self.portable=local/'portable';self.env={}
-            self.run_dir=persistent/'setup/runtime-profile'
-        def setup(self):calls.append('setup')
-    def logged(command,*a,**kw):
-        stage=command[2];calls.append(stage)
-        if '--output' in command:
-            output=Path(command[command.index('--output')+1]);output.parent.mkdir(parents=True,exist_ok=True);output.write_text('{}')
-        if stage=='final-refit':
-            assert '--authorize-final-refit' in command and '--max-gpu-hours' in command
-            run=Path(command[command.index('--run-dir')+1]);(run/'last_export.json').write_text('{"status":"SYNTHETIC_EXPORT"}')
-    helper=SimpleNamespace(NotebookRun=Session,run_logged=logged)
-    monkeypatch.setattr(cloud,'load_helper',lambda p:helper)
-    result=cloud.launch(tmp_path/'unused.zip','receipt',local,persistent,authorize=authorize,max_gpu_hours=1.5 if authorize else 0.)
-    assert calls==['setup','validate','forecast']+(['final-refit'] if authorize else [])
-    assert result['status']==('SYNTHETIC_EXPORT' if authorize else 'PREPARED_NOT_AUTHORIZED')
+    monkeypatch.setattr(cloud,'extract_handoff',lambda *a:pytest.fail('Approval must precede extraction/setup'))
+    monkeypatch.setattr(cloud,'persist_export',lambda *a:{'path':'fixture'})
+    monkeypatch.setattr(cloud,'release_runtime',lambda *a:calls.append('release'))
+    result=cloud.launch(tmp_path/'unused.zip','receipt',tmp_path/'local',tmp_path/'persistent')
+    assert result['status']=='BLOCKED_AUTHORIZATION' and calls==['release']
+
+
+@pytest.mark.parametrize('platform',['Colab','Kaggle'])
+def test_notebook_bootstrap_failure_releases_colab_in_finally(tmp_path,monkeypatch,platform):
+    import sys,types
+    nb=json.loads((ROOT/'notebooks'/f'EL8_FinalRefit_{platform}.ipynb').read_text())
+    ns={};exec(''.join(nb['cells'][1]['source']),ns)
+    ns.update(AUTHORIZE_FINAL_REFIT=True,HANDOFF_ZIP=str(tmp_path/'missing.zip'),
+              PERSISTENT_ROOT=str(tmp_path/'persistent'),LOCAL_ROOT=str(tmp_path/'local'))
+    colab=types.ModuleType('google.colab');calls=[]
+    colab.drive=types.SimpleNamespace(mount=lambda p:None)
+    colab.runtime=types.SimpleNamespace(unassign=lambda:calls.append('release'))
+    monkeypatch.setitem(sys.modules,'google',types.ModuleType('google'))
+    monkeypatch.setitem(sys.modules,'google.colab',colab)
+    exec(''.join(nb['cells'][2]['source']),ns)
+    assert ns['RESULT']['status']=='FAILED_SETUP'
+    assert calls==(['release'] if platform=='Colab' else [])

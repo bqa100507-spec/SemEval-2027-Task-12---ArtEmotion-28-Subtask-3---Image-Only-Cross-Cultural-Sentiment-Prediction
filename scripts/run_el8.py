@@ -21,7 +21,7 @@ def main():
     from st3.el8_refit import forecast, full_refit
     from st3.polarity_workflow import BudgetStop, StageBlocked
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument('stage', choices=['validate', 'reconstruct', 'replay', 'export', 'import', 'forecast', 'final-refit'])
+    p.add_argument('stage', choices=['validate', 'reconstruct', 'replay', 'export', 'import', 'forecast', 'final-refit','complete','submission-check'])
     for flag, default in (('cv-run', 'runs/exp022_colab_verified/c30c4ad20092b87c'),
                           ('input-dir', 'runs/exp022_visual_lora/inputs'), ('data-dir', 'data/upstream'),
                           ('cache-dir', 'cache'), ('run-dir', 'runs/el8_final'),
@@ -33,6 +33,10 @@ def main():
     p.add_argument('--max-seconds', type=float, default=900)
     p.add_argument('--authorize-final-refit', action='store_true')
     p.add_argument('--policy-sha256'); p.add_argument('--max-gpu-hours', type=float, default=0)
+    p.add_argument('--max-total-wall-hours',type=float,default=0)
+    p.add_argument('--eval-input-csv',type=Path);p.add_argument('--eval-data-dir',type=Path)
+    p.add_argument('--require-submission-zip',action=argparse.BooleanOptionalAction,default=True)
+    p.add_argument('--invocation-id',default='direct')
     args = p.parse_args()
     if not math.isfinite(args.max_seconds) or not math.isfinite(args.max_gpu_hours) or args.max_seconds <= 0 or args.max_gpu_hours < 0:
         p.error('Resource budgets must be positive')
@@ -54,6 +58,13 @@ def main():
         elif args.stage == 'forecast':
             cv_inventory(args.cv_run);result = forecast(args.cv_run)
         elif args.stage == 'final-refit':result = full_refit(args)
+        elif args.stage in ('complete','submission-check'):
+            if args.stage=='complete':
+                from st3.el8_complete import complete
+                result=complete(args)
+            else:
+                from st3.el8_submission import readiness
+                result=readiness(args)
         elif args.stage == 'export':
             if not args.archive:p.error('export requires --archive')
             evidence = cv_inventory(args.cv_run)
@@ -64,6 +75,7 @@ def main():
             result = import_bundle(args.archive, args.run_dir, args.sha256)
         if args.output and args.stage != 'replay':json_output(result, args.output)
         print(json.dumps({k: v for k, v in result.items() if k not in ('identity', 'checks', 'files_sha256')}, indent=2))
+        if args.stage=='complete':return 0 if result['status'] in ('SUBMISSION_VALIDATED','FINAL_BUNDLE_VERIFIED_NO_SUBMISSION') else 1
         return 0 if result.get('status') not in ('FAIL', 'FAILED') else 1
     except StageBlocked as error:print('STAGE_BLOCKED: ' + str(error), file=sys.stderr);return 3
     except BudgetStop as error:print('RESUMABLE_BUDGET_STOP: ' + str(error), file=sys.stderr);return 75

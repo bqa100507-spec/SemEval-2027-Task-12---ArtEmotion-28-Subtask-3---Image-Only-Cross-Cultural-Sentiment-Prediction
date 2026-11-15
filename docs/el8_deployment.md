@@ -1,5 +1,7 @@
 # EL8 artifact recovery and final-model handoff
 
+**Current owner workflow:** use the finalized v2 ZIP and [one-run notebook/runbook](../reports/task023_final_one_run.md). Configure approval/budgets once before Run all; replay, refit, real Development submission, export and release are automatic. The historical preparation/refit-only procedure below records the first implementation and is superseded for owner execution.
+
 E50+L remains the default competition system. EL8 qualified on **training-only CV**; neither independent Development nor locked confirmation has been authorized. Existing pretrained-resource eligibility caveats remain unresolved. This is deployment engineering, with the original EXP-022 scientific source frozen at `eb4a7fac4ebe79971305b0b3de2c0e5102ea5f91`.
 
 ## Recovered evidence
