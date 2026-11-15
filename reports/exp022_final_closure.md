@@ -118,6 +118,12 @@ Paper-ready findings include (1) the factorial frozen/LoRA × BCE/CE8 comparison
 
 Lessons: retain a genuinely unexamined confirmation stage; distinguish fit populations and final recipes; require matched controls and material effects; preserve fixed probability rounding and per-runtime identities; and make operational success separate from scientific promotion. The next proposed experiment addresses a new target-supervision hypothesis with frozen encoders, rather than reopening EL8. See [proposal](next_exp_proposal.md), [research index](../docs/research_index.md) and [future workflow standard](../docs/experiment_workflow_standard.md).
 
+## Git closure delivery
+
+PR #22 was closed unmerged first (2026-11-15 16:28:07 UTC), then PR #21 (16:28:30 UTC), each with an explicit final NO-GO comment. Both original head SHAs remain unchanged. Before either action the archive report was read back from GitHub at documentation commit `1ba7f3e6e2db05b4b2225604efb1ffa6b104b863`; the training, EXP-022 head, deployment and final-delivery commits were checked as its ancestors. No unrelated downstream PR existed; upstream PRs #16–20 were left untouched. No branch was deleted, no merge performed and no history rewritten.
+
+Documentation-only [PR #23](https://github.com/bqa100507-spec/SemEval-2027-Task-12---ArtEmotion-28-Subtask-3---Image-Only-Cross-Cultural-Sentiment-Prediction/pull/23), branch `codex/024-exp022-closure`, targets production main directly. Its diff contains only README, AGENTS, documentation and reports, so it does not introduce any archived model implementation into production. It remains unmerged for review. The permanent archive also carries these closure documents while preserving the complete original research tree; the original EXP-001–015 archive remains at `cd321f142142120c17c495458390deb6574ad856`. The [machine-readable audit](../docs/task024_git_audit.json) records dependency snapshots, closure readbacks and verification boundaries.
+
 ## Reproduction and archival boundary
 
 The permanent archive retains every original source/config/report and commit. Private input ZIPs, all 60 CV models and all three final models remain outside Git. Full local inventory/receipts are under `runs/task024_closure/`; historical inputs/weights stay in their original directories. The downloaded output includes `run/bundle`, `run/final`, `run/submission`, provenance, curves, diagnostics and source bundle; model/ZIP checks can be repeated read-only on CPU. Do not regenerate these artifacts to document closure.

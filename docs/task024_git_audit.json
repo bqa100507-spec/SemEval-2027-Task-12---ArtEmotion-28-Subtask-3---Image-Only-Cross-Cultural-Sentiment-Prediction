@@ -2,8 +2,18 @@
   "task": "TASK-024",
   "production_base": "2199868364ca315fed1b141d6e565528314ba5d5",
   "review_branch": "codex/024-exp022-closure",
+  "review_pr": 23,
+  "initial_documentation_commit": "aba2ed36a7120d88c1b9291ecccfeed07261ca97",
   "archive_branch": "archive/exp022-task023-no-go",
+  "archive_documentation_verified_before_closure": "1ba7f3e6e2db05b4b2225604efb1ffa6b104b863",
+  "archive_report_readback": "PASS",
   "preserved_delivery_head": "c3337fa8ae8010d76fa598536f5ff3f506ec6215",
+  "preserved_ancestors": [
+    "eb4a7fac4ebe79971305b0b3de2c0e5102ea5f91",
+    "8babe19e53097a4a3327eacf74e10168ba87645f",
+    "f6be82a60ac0a5e6d247d463b29aa2d07fabbcf9",
+    "c3337fa8ae8010d76fa598536f5ff3f506ec6215"
+  ],
   "open_pr_dependency_snapshot": [
     {
       "number": 22,
@@ -73,6 +83,38 @@
     22,
     21
   ],
+  "closed_pr_readbacks": [
+    {
+      "number": 22,
+      "state": "closed",
+      "merged": false,
+      "merged_at": null,
+      "closed_at": "2026-11-15T16:28:07Z",
+      "head": "codex/023-el8-deployment",
+      "head_sha": "c3337fa8ae8010d76fa598536f5ff3f506ec6215",
+      "base": "exp/022-visual-lora-vote-distribution",
+      "base_sha": "8babe19e53097a4a3327eacf74e10168ba87645f",
+      "html_url": "https://github.com/bqa100507-spec/SemEval-2027-Task-12---ArtEmotion-28-Subtask-3---Image-Only-Cross-Cultural-Sentiment-Prediction/pull/22",
+      "mergeable": true
+    },
+    {
+      "number": 21,
+      "state": "closed",
+      "merged": false,
+      "merged_at": null,
+      "closed_at": "2026-11-15T16:28:30Z",
+      "head": "exp/022-visual-lora-vote-distribution",
+      "head_sha": "8babe19e53097a4a3327eacf74e10168ba87645f",
+      "base": "exp/021-vote-distribution",
+      "base_sha": "9c339a614eca9dfdb173c707ca1f17cdcdc0547f",
+      "html_url": "https://github.com/bqa100507-spec/SemEval-2027-Task-12---ArtEmotion-28-Subtask-3---Image-Only-Cross-Cultural-Sentiment-Prediction/pull/21",
+      "mergeable": true
+    }
+  ],
+  "closure_comment_ids": {
+    "21": 6897633113,
+    "22": 6897628134
+  },
   "unrelated_prs_left_unchanged": [
     16,
     17,
@@ -83,5 +125,22 @@
   "branches_deleted": [],
   "history_rewritten": false,
   "production_code_modified": false,
-  "closure_actions": "PENDING_ARCHIVE_DOCUMENTATION_VERIFICATION"
+  "closure_actions": "COMPLETED_NO_MERGE",
+  "local_validation": {
+    "production_cpu_tests": {
+      "passed": 104,
+      "skipped": 1,
+      "seconds": 4.73,
+      "cuda_visible_devices": "-1"
+    },
+    "protected_files_unchanged": 498,
+    "production_csv_sha256": "162875b641407efea3bf28d1d147c2d9a3dd3dc2faed8863f9438bee517199a3",
+    "production_zip_sha256": "38c2eca8ee4c0557bf198bf5df5dbf90571a2851404ded6302f40e42dc138e0d",
+    "production_input_pairs_validated": 849,
+    "documentation_json_and_relative_links": "PASS",
+    "gpu_run": false,
+    "training": false,
+    "model_forward": false,
+    "development_gold_read": false
+  }
 }
