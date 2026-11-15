@@ -223,7 +223,7 @@ def run_el8(args):
     print('Validated explicit EL8 predictions:', args.output_dir / 'submission.zip', flush=True)
 
 
-def replay_cv(root, input_dir, data_root, cache_dir, output, requested='auto', max_seconds=900):
+def _replay_cv(root, input_dir, data_root, cache_dir, output, requested='auto', max_seconds=900):
     """Actual image-backed replay, strict raw and six-decimal comparisons.
 
     This is deliberately separate from inspecting historical PASS manifests.
@@ -288,3 +288,19 @@ def replay_cv(root, input_dir, data_root, cache_dir, output, requested='auto', m
         raise
     json_output(report, output)
     return report
+
+
+def replay_cv(root, input_dir, data_root, cache_dir, output, requested='auto', max_seconds=900):
+    """Revoke an old PASS before ANY loading/checks; never write into evidence."""
+    output = Path(output).resolve()
+    for protected in (root, input_dir, data_root, cache_dir):
+        if output.is_relative_to(Path(protected).resolve()):
+            raise ValueError('Replay output must be outside protected inputs/CV/cache directories')
+    json_output({'status': 'STARTED', 'level': 'IMAGE_BACKED_CV_REPLAY'}, output)
+    try:
+        return _replay_cv(root, input_dir, data_root, cache_dir, output, requested, max_seconds)
+    except BaseException as error:
+        record = read_json(output)
+        record.update(status='FAILED', error=str(error))
+        json_output(record, output)
+        raise

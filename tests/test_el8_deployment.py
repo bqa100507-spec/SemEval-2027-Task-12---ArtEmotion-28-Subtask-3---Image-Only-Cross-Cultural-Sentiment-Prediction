@@ -139,6 +139,21 @@ def test_final_refit_requires_explicit_policy_and_budget():
     args.authorize_final_refit=True;args.max_gpu_hours=0
     with pytest.raises(StageBlocked):require_authorization(args)
     args.max_gpu_hours=1.;assert require_authorization(args)[0]['inner_partition_fold_argument']==0
+    for invalid in (float('nan'),float('inf')):
+        args.max_gpu_hours=invalid
+        with pytest.raises(StageBlocked):require_authorization(args)
+
+
+def test_failed_replay_revokes_pass_even_before_model_loading(tmp_path,monkeypatch):
+    import st3.el8_inference as inference
+    output=tmp_path/'replay.json';output.write_text('{"status":"PASS"}')
+    def broken(*a):raise ValueError('source validation failed')
+    monkeypatch.setattr(inference,'_replay_cv',broken)
+    with pytest.raises(ValueError,match='source validation'):
+        inference.replay_cv(tmp_path/'cv',tmp_path/'inputs',tmp_path/'data',tmp_path/'cache',output)
+    assert json.loads(output.read_text())['status']=='FAILED'
+    with pytest.raises(ValueError,match='protected'):
+        inference.replay_cv(tmp_path/'cv',tmp_path/'inputs',tmp_path/'data',tmp_path/'cache',tmp_path/'cv/run.json')
 
 
 def test_complete_cv_export_includes_all_sixty_models_and_latest_attempt(tmp_path):
@@ -189,6 +204,7 @@ def test_one_run_refit_resumes_completed_models_and_exports_on_failure(tmp_path,
         'implementation':workflow.implementation_identity(),'cv_manifest_sha256':file_sha256(cv/'cv/run.json')},a[4]))
     monkeypatch.setattr(workflow,'run_preflight',lambda a:(run/'preflight').mkdir(exist_ok=True))
     monkeypatch.setattr(workflow,'run_pilot',lambda a:None)
+    args.max_seconds=900
     monkeypatch.setattr(workflow,'load_context',lambda a:(ctx,object()))
     original_read=workflow.read_sealed
     monkeypatch.setattr(workflow,'read_sealed',lambda p,i:{'status':'PASS','microbatch':4} if p.name=='preflight' else original_read(p,i))

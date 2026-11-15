@@ -5,7 +5,9 @@ policy; it is not represented as an existing EXP-022 scientific decision.
 """
 
 import copy
+import hashlib
 import json
+import math
 import shutil
 import time
 import uuid
@@ -34,8 +36,9 @@ from .visual_training import fit_model, predict, save_checkpoint
 
 def require_authorization(args):
     policy_path = ROOT / 'configs/el8_final_refit.json'
-    digest = file_sha256(policy_path)
-    if not args.authorize_final_refit or args.policy_sha256 != digest or args.max_gpu_hours <= 0:
+    digest = hashlib.sha256(policy_path.read_bytes().replace(b'\r\n', b'\n')).hexdigest()
+    if (not args.authorize_final_refit or args.policy_sha256 != digest or
+            not math.isfinite(args.max_gpu_hours) or args.max_gpu_hours <= 0):
         raise StageBlocked('No final training authorized. Review configs/el8_final_refit.json, then explicitly pass '
                            '--authorize-final-refit --policy-sha256 ' + digest + ' --max-gpu-hours HOURS')
     policy = read_json(policy_path)
@@ -102,20 +105,23 @@ def full_refit(args):
         cv_replay = args.run_dir / 'deployment_cv_replay.json'
         if cv_replay.exists():
             previous = read_json(cv_replay)
-            if (previous['runtime'] != runtime(device) or previous['status'] != 'PASS' or
+            if previous.get('status') == 'PASS' and (previous['runtime'] != runtime(device) or
                     previous.get('implementation') != implementation_identity() or
                     previous.get('cv_manifest_sha256') != file_sha256(root / 'cv/run.json')):
-                raise StageBlocked('Current deployment CV replay has not passed on this runtime')
-        else:
+                raise StageBlocked('Deployment replay identity changed; preserve this run and choose a fresh RunDir')
+        if not cv_replay.exists() or read_json(cv_replay).get('status') != 'PASS':
             replay_cv(root, args.portable_dir / 'inputs', args.portable_dir / 'data',
                       args.portable_dir / 'cache', cv_replay, args.device,
                       min(900, max(1, budget.seconds - (time.perf_counter() - budget.start))))
             if read_json(cv_replay)['status'] != 'PASS':
                 raise StageBlocked('Strict image-backed CV parity failed; final training not started')
         budget.check('Final preflight', -1)
-        run_preflight(args)
+        stage_args = copy.copy(args)
+        stage_args.max_seconds = max(1, budget.seconds - (time.perf_counter() - budget.start))
+        run_preflight(stage_args)
         budget.check('Final timing pilot', -1)
-        run_pilot(args)
+        stage_args.max_seconds = max(1, budget.seconds - (time.perf_counter() - budget.start))
+        run_pilot(stage_args)
         # Record the exact installed environment alongside all completed seeds.
         import subprocess, sys
         lock = subprocess.check_output([sys.executable, '-m', 'pip', 'freeze', '--all'], text=True)

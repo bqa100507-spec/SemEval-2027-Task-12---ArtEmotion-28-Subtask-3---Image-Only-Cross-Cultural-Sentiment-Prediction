@@ -1,6 +1,7 @@
 """One private ZIP for owner-authorized final-refit preparation (no training)."""
 
 import argparse
+import hashlib
 import importlib.util
 import json
 import os
@@ -36,7 +37,7 @@ def package(args):
                               'source': 'immutable_deployment_source', 'production/e50': 'production_e50',
                               'production/clip_large': 'production_clip_large'},
                              {'deployment_revision': revision, 'training_revision': evidence['source_revision'],
-                              'policy_sha256': file_sha256(ROOT / 'configs/el8_final_refit.json'),
+                              'policy_sha256': hashlib.sha256((ROOT / 'configs/el8_final_refit.json').read_bytes().replace(b'\r\n', b'\n')).hexdigest(),
                               'input_zip_sha256': expected_input, 'checkpoints': 60,
                               'owner_authorization_included': False})
 

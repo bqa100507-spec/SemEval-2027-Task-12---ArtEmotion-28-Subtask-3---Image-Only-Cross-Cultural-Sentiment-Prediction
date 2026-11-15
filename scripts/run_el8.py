@@ -2,6 +2,7 @@
 
 import argparse
 import json
+import math
 import os
 import sys
 from pathlib import Path
@@ -33,12 +34,16 @@ def main():
     p.add_argument('--authorize-final-refit', action='store_true')
     p.add_argument('--policy-sha256'); p.add_argument('--max-gpu-hours', type=float, default=0)
     args = p.parse_args()
-    if args.max_seconds <= 0 or args.max_gpu_hours < 0:
+    if not math.isfinite(args.max_seconds) or not math.isfinite(args.max_gpu_hours) or args.max_seconds <= 0 or args.max_gpu_hours < 0:
         p.error('Resource budgets must be positive')
     for name, value in vars(args).items():
         if isinstance(value, Path):setattr(args, name, value.resolve())
     args.input_manifest_sha256 = 'fa2f7c4528b49925c400216037a64381bc6a0b35a1b3b11458a6bcbfda924337'
     args.pixel_cache = 'ram'; args.pixel_cache_max_gib = 2.; args.pixel_cache_margin_gib = 1.
+    if args.output:
+        for protected in (args.cv_run, args.input_dir, args.portable_dir, args.data_dir, args.cache_dir,
+                          args.model_dir, args.clip_large_model_dir):
+            if args.output.is_relative_to(protected):p.error('--output must be outside protected evidence/inputs/models')
     try:
         if args.stage == 'validate':result = cv_inventory(args.cv_run)
         elif args.stage == 'reconstruct':
