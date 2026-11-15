@@ -108,7 +108,7 @@ def build(workspace, output, revision):
         source_files = {}
         with zipfile.ZipFile(stage / "source/source.zip") as z:
             for name in z.namelist():
-                if name.startswith("src/st3/") and name.endswith(".py"):
+                if not name.endswith("/"):
                     source_files[name] = hashlib.sha256(z.read(name)).hexdigest()
         files = {p.relative_to(stage).as_posix(): sha256(p) for p in stage.rglob("*") if p.is_file()}
         handoff = {"experiment": "EXP-023", "source_revision": revision, "config_sha256": sha256(ROOT / "configs/exp023.json"),

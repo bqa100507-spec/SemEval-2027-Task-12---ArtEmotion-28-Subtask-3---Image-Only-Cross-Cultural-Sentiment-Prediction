@@ -49,6 +49,20 @@ def child(command, *, log, deadline, env=None):
                 process.wait()
             reader.join(timeout=5)
             raise StopRun("STOPPED_BUDGET", "Child deadline reached; completed models persist, interrupted fit may restart")
+        except BaseException:
+            # A user interrupt must stop the child before export/release as well.
+            if process.poll() is None:
+                if os.name != "nt":
+                    os.killpg(process.pid, signal.SIGTERM)
+                else:
+                    subprocess.run(["taskkill", "/PID", str(process.pid), "/T", "/F"], check=False, capture_output=True)
+                try:
+                    process.wait(timeout=5)
+                except subprocess.TimeoutExpired:
+                    process.kill()
+                    process.wait()
+            reader.join(timeout=5)
+            raise
         reader.join(timeout=5)
     if code:
         raise StopRun("FAILED_TRAINING", f"Stage exited {code}; inspect {log}")

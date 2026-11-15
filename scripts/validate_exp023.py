@@ -22,7 +22,7 @@ if __name__ == "__main__":
     cfg=json.loads((ROOT/"configs/exp023.json").read_text())
     manifest=json.loads((args.inputs/"input_manifest.json").read_text())
     expected=manifest["source_files_sha256"]
-    actual={p.relative_to(ROOT).as_posix():sha256(p) for p in (ROOT/"src/st3").glob("*.py")}
+    actual={name:sha256(ROOT/name) for name in expected}
     if expected!=actual or manifest["config_sha256"]!=sha256(ROOT/"configs/exp023.json"):
         raise ValueError("Source/configuration differs from the private handoff")
     train,captions,_,_,_,_,historical=load_inputs(args.inputs,cfg)

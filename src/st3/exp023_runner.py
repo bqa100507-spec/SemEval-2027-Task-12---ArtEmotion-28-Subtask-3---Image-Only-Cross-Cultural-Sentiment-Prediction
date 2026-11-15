@@ -116,8 +116,12 @@ class Experiment:
             for image in self.eval_inputs.image.unique():
                 if sha256(safe_image_path(self.eval_dir, image)) != image_hashes[image] or image not in self.visual:
                     raise StopRun("BLOCKED_INPUT", "Official image bytes or frozen feature coverage differ")
-        source = {p.relative_to(ROOT).as_posix(): sha256(p) for p in (ROOT / "src/st3").glob("*.py")}
         manifest = json.loads((self.inputs / "input_manifest.json").read_text())
+        source = {name: sha256(ROOT / name) for name in manifest["source_files_sha256"]}
+        executable = {p.relative_to(ROOT).as_posix() for directory in ("src", "scripts", "tests")
+                      for p in (ROOT / directory).rglob("*.py")}
+        if not executable <= set(source):
+            raise StopRun("BLOCKED_INPUT", "Additional unpinned executable source files")
         if manifest["config_sha256"] != sha256(ROOT / "configs/exp023.json") or source != manifest["source_files_sha256"]:
             raise StopRun("BLOCKED_INPUT", "Pinned source or scientific config differs from handoff")
         self.identity = {"source_revision": manifest["source_revision"], "source": source, "config": fingerprint(self.config),
