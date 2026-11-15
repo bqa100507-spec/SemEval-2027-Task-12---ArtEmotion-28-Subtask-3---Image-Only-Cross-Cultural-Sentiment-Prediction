@@ -34,6 +34,8 @@ Private delivery and generated notebook pins are recorded after packaging in `do
 
 The implementation has CPU/synthetic tests for target construction/leakage, matching, loss semantics, frozen fusion, tiny model fitting/reload parity, exact rounding, bootstrap/gates, sealed confirmation, source-backed eligibility, stage failures, budgets, resume/corruption, real ZIP restore, export read-back, mocked downloads/release and platform separation. Current validation counts, clean restore details, source/ZIP pins and CI links are recorded in the delivery manifest; none is evidence of a real L4 execution or an EXP-023 score.
 
+Independent restoration exposed a Windows `core.autocrlf` portability defect in source packaging: `git archive` converted LF Git objects to CRLF, so source/config/entry pins correctly failed. Packaging now uses `git -c core.autocrlf=false archive` and checks archived config bytes against the original Git object. A temporary-repository regression test covers this. Superseded engineering handoff builds remain preserved; the final delivery uses a new source identity. No numerical tolerance, scientific setting, training code or historical artifact was changed to bypass verification.
+
 ## Execution boundary and cost
 
 The next owner scope is limited to resolving [organizer eligibility](../docs/exp023_eligibility.md), then one advance notebook authorization (including conditional confirmation if a submission is required). No intermediate validation/export commands are needed. The source-backed evidence record must be reviewed/pinned before scientific execution; an owner checkbox alone cannot enable it. The implementation task does not run the experiment.

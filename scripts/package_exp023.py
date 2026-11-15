@@ -22,6 +22,12 @@ from st3.exp023_data import load_inputs
 ROOT = Path(__file__).resolve().parents[1]
 
 
+def archive_source(repository, revision, destination):
+    # Windows core.autocrlf otherwise also changes git-archive output bytes.
+    subprocess.run(["git", "-c", "core.autocrlf=false", "archive", "--format=zip", "-o", str(destination), revision],
+                   cwd=repository, check=True)
+
+
 def build(workspace, output, revision):
     workspace, output = Path(workspace), Path(output)
     output.mkdir(parents=True, exist_ok=True)
@@ -104,9 +110,11 @@ def build(workspace, output, revision):
                                                        "production_heads_used_for_predictions": False, "R0_1335_must_be_fit_after_CV_GO": True})
         copy(ROOT / "requirements-exp023.lock.txt", "environment/requirements-exp023.lock.txt")
         (stage / "source").mkdir()
-        subprocess.run(["git", "archive", "--format=zip", "-o", str(stage / "source/source.zip"), revision], cwd=ROOT, check=True)
+        archive_source(ROOT, revision, stage / "source/source.zip")
         source_files = {}
         with zipfile.ZipFile(stage / "source/source.zip") as z:
+            if hashlib.sha256(z.read("configs/exp023.json")).hexdigest() != hashlib.sha256(git_config).hexdigest():
+                raise ValueError("Archived configuration bytes differ from the immutable Git object")
             for name in z.namelist():
                 if not name.endswith("/"):
                     source_files[name] = hashlib.sha256(z.read(name)).hexdigest()
