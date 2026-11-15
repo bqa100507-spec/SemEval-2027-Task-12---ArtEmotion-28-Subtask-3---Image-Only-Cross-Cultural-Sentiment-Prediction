@@ -55,7 +55,7 @@ No Development gold was read or scored. All 34 historical frozen-cache hashes in
 | Readiness level | Result |
 | --- | --- |
 | SOURCE IMPLEMENTED | Yes: explicit inference, strict archive/import, owner-gated one-run refit and cloud launchers |
-| SYNTHETIC TESTS PASS | New deployment/cloud tests pass; complete clean-source suite recorded at delivery |
+| SYNTHETIC TESTS PASS | 31 targeted tests pass; complete clean-source Windows suite: 257 passed, 2 skipped |
 | CV CHECKPOINT PARITY PASS | **No**: sealed aggregation PASS; strict new image-backed L4-to-4060 replay FAIL |
 | FINAL REFIT COMPLETED | **No**: no owner GPU-budget authorization; three full-training models still required |
 | FINAL INFERENCE BUNDLE VERIFIED | **No**: no final checkpoints exist |
@@ -70,3 +70,7 @@ The minimum next action is to approve this policy and budget once, then use the 
 The checked one-ZIP handoff is `runs/task023_delivery/el8_refit_handoff.zip`, **595,249,375 bytes**, SHA-256 `7cc9a836e4d5eb3db90252d4c2e3bf9652667d5e46c8c47b65398c09d1f7386b`. Actual extraction and all 406 file checks passed, including all 60 CV weights. `git bundle verify` confirmed complete history and implementation revision `a6fd6559e0b08bde78f12100183dab9ff8ce2fe4`. Both new notebooks pin this implementation and archive hash. Subsequent delivery changes add notebooks, regression tests and explicit CLI error handling; inference/training math is unchanged.
 
 Review PR: [#22](https://github.com/bqa100507-spec/SemEval-2027-Task-12---ArtEmotion-28-Subtask-3---Image-Only-Cross-Cultural-Sentiment-Prediction/pull/22), draft and unmerged, stacked on open/unmerged PR #21. Both Python environments passed `pip check`. The 31 targeted deployment/cloud tests pass, including both notebook Run all paths with mocked GPU setup and no automatic training, strict checkpoint failure, archive corruption, exact seed rounding, failed-replay invalidation, completed-seed resume and automatic failure export.
+
+Complete clean-source Windows validation at code/test commit `8375326`: **257 passed, 2 skipped in 146.65 s**. Skips were unavailable Windows symlink privileges and a private production artifact absent from the isolated review checkout; real production parity was separately checked in the prepared workspace. The saved owner notebook causes two notebook-cleanliness/mock checks to fail in the dirty original folder; its outputs were deliberately preserved, and the committed notebook was tested in a separate worktree. A new policy-hash test was corrected to use the same LF canonicalization as the Windows/Linux runner. No scientific or provenance checks were relaxed.
+
+GitHub CI passed on the implementation/test commit: [push run](https://github.com/bqa100507-spec/SemEval-2027-Task-12---ArtEmotion-28-Subtask-3---Image-Only-Cross-Cultural-Sentiment-Prediction/actions/runs/43718733092), [PR run](https://github.com/bqa100507-spec/SemEval-2027-Task-12---ArtEmotion-28-Subtask-3---Image-Only-Cross-Cultural-Sentiment-Prediction/actions/runs/43718738946). The repaired historical notebook exporter was also executed against the real recovered run: all 60 weights plus CV study/verification/decision/attempts were included. Receipts and validation records remain under `runs/task023_delivery/`.
