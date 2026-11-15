@@ -1,6 +1,6 @@
-# Future ST3 experiment workflow contract
+# Permanent ST3 experiment workflow contract
 
-**Documentation standard only.** Apply when a new experiment is separately authorized. It does not reopen EXP-022/TASK-023 and does not change their archived notebooks, source, metrics or checkpoints. No future notebook or training implementation is created in TASK-024.
+**Single authoritative execution specification for every future ST3 experiment.** `AGENTS.md` is the mandatory agent entry point. Scientific protocols remain experiment-specific and must be read alongside this document. TASK-025 implements shared enforcement in `src/st3/experiment_workflow.py`, behavioral compliance tests in `tests/test_experiment_workflow.py`, and an EXP-023 cloud adapter. This does not reopen EXP-022/TASK-023 or modify their archived source, notebooks, metrics or checkpoints.
 
 ## One notebook, one authorization, one Run all
 
@@ -8,7 +8,9 @@ Before execution freeze the hypothesis, exact conditions/controls, eligible trai
 
 Required sequence:
 
-**Setup → Validate → Benchmark → Experiment → CV → Verify → Decision [guarded confirmation if declared] → Final fit only if GO → Inference → Submission validation → Export → Runtime release.**
+**Setup → Validate → Benchmark → Experiment → CV → Verify → Decision → Guarded Confirmation when eligible and authorized → Final Model → Inference → Submission Validation → Export → Browser Download → Runtime Release.**
+
+For EXP-023, the final 1,335-painting models are fitted and verified before opening confirmation, then reused without retraining after confirmation GO. A scientific NO-GO cannot publish a promotion-ready submission. Only real inference, complete validation and verified persistent artifacts may produce `SUCCESS_SUBMISSION_READY`.
 
 - Validate actual official input-only CSV/images and every required asset/cache before spending the fit budget when a submission is required. No synthetic substitute. Keep evaluation-phase resources separate from Development workflows.
 - Pilot estimates use representative full work/epochs, not tiny-batch extrapolation. Separate training-stage occupancy, observed total GPU allocation and wall time; do not call wall occupancy CUDA kernel-active time. Include setup, verification, inference/export and pre-run idle-allocation limitations in the budget definition.
@@ -58,3 +60,11 @@ finally:
 Test happy-path ordering and zero-GPU mocks; missing inputs/assets; failed gates/replay; corrupt/stale/incomplete checkpoint/report rejection; finite budgets/timeouts/OOM; exact pair/rounding/ZIP checks; completed-model reuse; export/read-back corruption; interrupted/failing-stage persistence; original production parity; and no forbidden labels/inference inputs. Verify runtime release on success, gate failure, training/verification/submission failure, budget stop and export/report failure, including bootstrap failures.
 
 Browser-download tests must prove **verified Drive export → download requests → release**, handle each download failing/being blocked, skip absent files/unverified exports, preserve Drive copies and never log owner-machine arrival as confirmed from a mock/API return. No test launches costly training or Codabench submission. Actual cloud execution must be reported separately from local fixtures. Archive the complete verified run and stop after NO_GO; do not automatically start a successor experiment.
+
+## Enforcement and readiness boundary
+
+The reusable `execute_stages` function checks automatic stage order, independent verification and fail-closed scientific decisions. `Budget`, `publish_model`/`verify_model`, `restore_handoff`, `export_artifacts` and `finalize` enforce resource, provenance, persistence and cleanup contracts. `validate_notebook_contract` checks one owner Configuration section, required settings and one orchestration entry point. Structural validation must be accompanied by the behavioral CPU/mocked tests; it is not a GPU-readiness certificate.
+
+Before spending GPU resources, the source-backed eligibility record, advance run scope, frozen protocol, real input/cache validation and current compliance tests must pass. An owner status string is not organizer permission. A new run identity is mandatory for source/runtime/scientific-input changes; historical complete boundaries are never relabeled or silently mixed. Initial platform permissions such as Drive mounting are the only permitted mid-run interaction.
+
+Persistent model seals must be atomically published as each fit finishes, before any shutdown handler. Abrupt platform loss can lose an in-progress fit; it must not lose already published persistent models. Kaggle output survival requires Save Version/output capture; no unsaved-session guarantee is made. The supported cloud environment and dependency lock must be pinned and validated independently of the notebook kernel.

@@ -1,0 +1,70 @@
+{
+  "hidden_width": 64,
+  "dropout": 0.2,
+  "seeds": [
+    2027,
+    2028,
+    2029
+  ],
+  "learning_rate": 0.001,
+  "weight_decay": 0.01,
+  "batch_size": 256,
+  "max_epochs": 150,
+  "gradient_clip": 1.0,
+  "patience": 15,
+  "target_dimensions": 64,
+  "text_weight": 0.1,
+  "pca_solver": "randomized",
+  "pca_seed": 2027,
+  "early_stop_seed": 17029,
+  "early_stop_fraction": 0.1,
+  "experiment": "EXP-023",
+  "conditions": [
+    "C0",
+    "C1",
+    "C2"
+  ],
+  "cv_folds": 5,
+  "training_paintings": 1335,
+  "training_pairs": 13600,
+  "confirmation_paintings": 236,
+  "minimum_languages": 3,
+  "normalization_epsilon": 1e-08,
+  "bootstrap_replicates": 10000,
+  "bootstrap_seed": 232027,
+  "caption_cache_sha256": "93fc6ef0fcc492dd9fff7e59d719841dfbc0e4fda381ebe46dac073d0149139d",
+  "precision": "float32",
+  "lr_C": 0.3,
+  "lr_seed": 2027,
+  "blend": 0.5,
+  "cv_gate": {
+    "gain_R0": 0.005,
+    "gain_EC0": 0.002,
+    "gain_EC1": 0.002,
+    "fold_wins_R0": 4,
+    "fold_wins_EC1": 3,
+    "worst_fold_R0": -0.01,
+    "fold_mean_loss_guardrail": 0.003,
+    "ci_lower_R0": 0.0,
+    "ci_lower_EC1": 0.0
+  },
+  "confirmation_gate": {
+    "gain_R0": 0.003,
+    "gain_EC0": 0.001,
+    "gain_EC1": 0.001,
+    "pooled_loss_guardrail": 0.003,
+    "ci_lower_R0": 0.0
+  },
+  "budget": {
+    "maximum_gpu_hours": 1.0,
+    "maximum_wall_hours": 2.0,
+    "persistence_reserve_seconds": 180,
+    "benchmark_epochs": 3,
+    "forecast_safety_factor": 1.25
+  },
+  "pretrained": {
+    "clip": "3d74acf9a28c67741b2f4f2ea7635f0aaf6f0268",
+    "siglip2": "75de2d55ec2d0b4efc50b3e9ad70dba96a7b2fa2",
+    "clip_large": "32bd64288804d66eefd0ccbe215aa642df71cc41"
+  }
+}

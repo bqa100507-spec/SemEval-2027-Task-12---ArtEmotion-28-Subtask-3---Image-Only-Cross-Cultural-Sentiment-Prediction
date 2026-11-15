@@ -14,5 +14,16 @@
 - `EXP022 = CLOSED`; `TASK023 = CLOSED`; `EL8 = NO_GO_FOR_PRODUCTION`; `PRODUCTION = E50+L`.
 - Preserve the default E50+L inference, its frozen predictions and explicit E50/CLIP fallbacks. Do not make EL8 the default or treat its retraining, retuning, deployment or re-submission as an open action item.
 - EXP-022 was a completed controlled experiment, and TASK-023 completed verified engineering. The owner-reported hosted Development comparison was negative for EL8. Do not rewrite historical metrics, notebooks, checkpoints or failure logs; preparation-era READY/next commands are archival, not authorization.
-- Read `reports/exp022_final_closure.md` and `docs/research_index.md` before related work. EXP-023 in `reports/next_exp_proposal.md` is proposal-only; implementation, training, confirmation access and hosted submission require a new explicit owner task.
+- Read `reports/exp022_final_closure.md` and `docs/research_index.md` before related work. TASK-025 authorizes EXP-023 implementation and CPU/synthetic verification only. Its scientific preregistration is `reports/next_exp_proposal.md`; GPU training, confirmation access and hosted submission remain unauthorized.
 - Future authorized experiments must follow `docs/experiment_workflow_standard.md`: one notebook/authorization/Run all, frozen gates, resumable complete models, persistent success/failure export, optional `AUTO_BROWSER_DOWNLOAD=True` attempts before Colab runtime release. Do not retrofit this standard into the closed notebooks in a closure task.
+
+## Mandatory entry point for every new experiment
+
+Before implementation, read **both** `docs/experiment_workflow_standard.md` (the single authoritative execution specification) and the current experiment's frozen scientific protocol. These requirements apply to EXP-024 and every successor without needing another long owner prompt. Scientific choices belong to their own protocol; do not create competing copies of the workflow in prompts/reports.
+
+- One notebook, one advance owner authorization, one Run all. No intermediate manual Verify, Continue, Export, Submission or Cleanup. Automatic transitions must enforce preregistered GO/NO-GO decisions.
+- Automatically verify real artifacts, save completed checkpoint boundaries persistently and resume only checksum/identity-compatible completions. Export success/failure diagnostics and verify persistent read-back.
+- Enforce GPU/allocation and wall budgets with persistence reserve and parent deadlines. **No GPU execution** before source-backed resource eligibility, scientific authorization and the reusable workflow-compliance tests pass.
+- Colab must offer automatic browser download requests after verified persistent export and before robust outer-finally runtime release. Requests do not prove local arrival or physical deallocation. Kaggle must not invoke Colab APIs.
+- Never select from Development gold or automatically upload to Codabench. Never silently change scientific settings, dependencies or gates to force success. Archive and close failed experiments rather than silently retuning them.
+- Run `tests/test_experiment_workflow.py` and the notebook contract validator in addition to experiment-specific tests; syntax checks alone cannot establish execution readiness. Keep the closed EXP-022/TASK-023 artifacts and released E50+L behavior unchanged.
