@@ -382,7 +382,10 @@ def main():
         if args.command == "predict":
             if args.mode == "el8":
                 from .el8_inference import run_el8
-                run_el8(args)
+                try:
+                    run_el8(args)
+                except (FileNotFoundError, ValueError, RuntimeError) as error:
+                    raise SystemExit("EL8 prediction blocked: " + str(error)) from None
             else:
                 run_prediction(args)
         else:

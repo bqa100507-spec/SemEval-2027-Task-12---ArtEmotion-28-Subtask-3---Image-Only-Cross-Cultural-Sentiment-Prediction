@@ -156,6 +156,19 @@ def test_failed_replay_revokes_pass_even_before_model_loading(tmp_path,monkeypat
         inference.replay_cv(tmp_path/'cv',tmp_path/'inputs',tmp_path/'data',tmp_path/'cache',tmp_path/'cv/run.json')
 
 
+def test_explicit_el8_failure_is_actionable_and_never_runs_fallback(tmp_path,monkeypatch):
+    import sys
+    from st3 import cli,e50_inference,el8_inference
+    calls=[]
+    def blocked(args):raise ValueError('Verified final bundle required')
+    monkeypatch.setattr(el8_inference,'run_el8',blocked)
+    monkeypatch.setattr(e50_inference,'run_prediction',lambda args:calls.append('fallback'))
+    monkeypatch.setattr(sys,'argv',['run_st3.py','predict','--mode','el8','--input',str(tmp_path/'inputs.csv'),
+                                   '--output-dir',str(tmp_path/'out')])
+    with pytest.raises(SystemExit,match='EL8 prediction blocked: Verified final bundle required'):cli.main()
+    assert not calls
+
+
 def test_complete_cv_export_includes_all_sixty_models_and_latest_attempt(tmp_path):
     root=Path(__file__).resolve().parents[1]
     spec=importlib.util.spec_from_file_location('notebook_export',root/'scripts/exp022_notebook.py')
