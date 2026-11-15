@@ -1,5 +1,23 @@
 # Project state
 
+
+## Current decision — TASK-024 closure
+
+| Item | Current state |
+| --- | --- |
+| EXP-022 | CLOSED; full CV and original60-checkpoint Verify completed |
+| TASK-023 | CLOSED; real L4 replay/final refit/inference/export completed |
+| EL8 | NO_GO_FOR_PRODUCTION: hosted Development0.4537 vs E50+L0.4643, owner-reported |
+| Production | E50+L; frozen849-row reference unchanged; E50/CLIP explicit fallbacks |
+| Evidence | Complete Colab archive recovered/hashed; three final checkpoints and849-row ZIP verified read-only |
+| New research | EXP-023 proposal only; no implementation/training/confirmation/submission authorized |
+
+[Final closure](../reports/exp022_final_closure.md) · [research index](research_index.md) · [next proposal](../reports/next_exp_proposal.md) · [future workflow standard](experiment_workflow_standard.md).
+
+The execution records below describe earlier states and are retained as history. A READY/handoff/next-command note below is superseded by the closure above. No additional EL8 GPU work or retuning is pending.
+
+## Historical project record
+
 | Component | Status |
 | --- | --- |
 | Public dataset | Pinned ST3 checkout and local integrity audit complete |
