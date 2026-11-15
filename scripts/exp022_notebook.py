@@ -34,7 +34,7 @@ UV_VERSION = '0.9.8'
 TORCH_INDEX = 'https://download.pytorch.org/whl/cu126'
 LONG_STAGES = ('MiniScreen', 'MiniScreenVerify', 'Screen', 'ScreenVerify')
 SEALED_STAGES = ('pixel_benchmark', 'preflight', 'pilot', 'mini', 'mini_verification', 'mini_decision',
-                 'screen', 'screen_verification', 'screen_decision')
+                 'screen', 'screen_verification', 'screen_decision', 'cv', 'cv_verification', 'cv_decision')
 
 
 class WorkflowError(RuntimeError):
@@ -228,7 +228,7 @@ def export_checkpoints(run_dir, destination, identity, execution_profile):
     for model in (run_dir/'work').glob('fold_*/*'):
         if re.fullmatch('fold_[1-5]', model.parent.name) and re.fullmatch('(F0|F8|L0|L8)_202[789]', model.name) and (model/'run.json').exists():
             verify_sealed(model, identity); files.extend(p for p in model.rglob('*') if p.is_file())
-    for name in ('logs', 'mini_verification_attempts', 'screen_verification_attempts'):
+    for name in ('logs', 'mini_verification_attempts', 'screen_verification_attempts', 'cv_verification_attempts'):
         if (run_dir/name).exists():files.extend(p for p in (run_dir/name).rglob('*') if p.is_file())
     files.extend(p for p in run_dir.glob('*.json') if p.is_file())
     if (run_dir/'environment-lock.txt').exists():files.append(run_dir/'environment-lock.txt')

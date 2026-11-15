@@ -320,7 +320,8 @@ def main():
     prepare.add_argument("--exp007-dir", type=resolved_path, default=ROOT / "runs" / "exp007_fusion")
     predict.add_argument("--input", type=resolved_path, required=True)
     predict.add_argument("--output-dir", type=resolved_path, required=True)
-    predict.add_argument("--mode", choices=("e50l", "e50", "clip"), default="e50l")
+    predict.add_argument("--mode", choices=("e50l", "e50", "clip", "el8"), default="e50l")
+    predict.add_argument("--el8-model-dir", type=resolved_path, default=ROOT / "runs" / "el8_final" / "bundle")
     predict.add_argument("--device", choices=("auto", "cuda", "cpu"), default="auto")
     predict.add_argument("--clip-batch-size", type=int)
     predict.add_argument("--siglip2-batch-size", type=int)
@@ -379,7 +380,11 @@ def main():
         from .e50_inference import run_prediction, validate_input_archive
 
         if args.command == "predict":
-            run_prediction(args)
+            if args.mode == "el8":
+                from .el8_inference import run_el8
+                run_el8(args)
+            else:
+                run_prediction(args)
         else:
             validate_input_archive(args)
         return
