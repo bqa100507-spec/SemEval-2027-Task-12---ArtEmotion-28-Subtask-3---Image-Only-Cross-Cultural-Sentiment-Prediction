@@ -1,0 +1,87 @@
+{
+  "task": "TASK-024",
+  "production_base": "2199868364ca315fed1b141d6e565528314ba5d5",
+  "review_branch": "codex/024-exp022-closure",
+  "archive_branch": "archive/exp022-task023-no-go",
+  "preserved_delivery_head": "c3337fa8ae8010d76fa598536f5ff3f506ec6215",
+  "open_pr_dependency_snapshot": [
+    {
+      "number": 22,
+      "state": "open",
+      "head": "codex/023-el8-deployment",
+      "head_sha": "c3337fa8ae8010d76fa598536f5ff3f506ec6215",
+      "base": "exp/022-visual-lora-vote-distribution",
+      "base_sha": "8babe19e53097a4a3327eacf74e10168ba87645f",
+      "merged_at": null
+    },
+    {
+      "number": 21,
+      "state": "open",
+      "head": "exp/022-visual-lora-vote-distribution",
+      "head_sha": "8babe19e53097a4a3327eacf74e10168ba87645f",
+      "base": "exp/021-vote-distribution",
+      "base_sha": "9c339a614eca9dfdb173c707ca1f17cdcdc0547f",
+      "merged_at": null
+    },
+    {
+      "number": 20,
+      "state": "open",
+      "head": "exp/021-vote-distribution",
+      "head_sha": "9c339a614eca9dfdb173c707ca1f17cdcdc0547f",
+      "base": "exp/020-emotion-specific-captions",
+      "base_sha": "b7f274c8f1a5caea5e7cadda46910588c37f7dcb",
+      "merged_at": null
+    },
+    {
+      "number": 19,
+      "state": "open",
+      "head": "exp/020-emotion-specific-captions",
+      "head_sha": "b7f274c8f1a5caea5e7cadda46910588c37f7dcb",
+      "base": "exp/019-text-gradient-scaling",
+      "base_sha": "c63bc02075a5d03b9ca53903c9f118a185f8d4f6",
+      "merged_at": null
+    },
+    {
+      "number": 18,
+      "state": "open",
+      "head": "exp/019-text-gradient-scaling",
+      "head_sha": "c63bc02075a5d03b9ca53903c9f118a185f8d4f6",
+      "base": "exp/018-polarity-aware-captions",
+      "base_sha": "7d8e5640b4ad56e1ed4f13499254d7ccb127123c",
+      "merged_at": null
+    },
+    {
+      "number": 17,
+      "state": "open",
+      "head": "exp/018-polarity-aware-captions",
+      "head_sha": "7d8e5640b4ad56e1ed4f13499254d7ccb127123c",
+      "base": "exp/017-human-caption-supervision",
+      "base_sha": "5203258aa45c8c9dd3c695c35d9001bb5b8bafda",
+      "merged_at": null
+    },
+    {
+      "number": 16,
+      "state": "open",
+      "head": "exp/017-human-caption-supervision",
+      "head_sha": "5203258aa45c8c9dd3c695c35d9001bb5b8bafda",
+      "base": "main",
+      "base_sha": "2199868364ca315fed1b141d6e565528314ba5d5",
+      "merged_at": null
+    }
+  ],
+  "closure_order": [
+    22,
+    21
+  ],
+  "unrelated_prs_left_unchanged": [
+    16,
+    17,
+    18,
+    19,
+    20
+  ],
+  "branches_deleted": [],
+  "history_rewritten": false,
+  "production_code_modified": false,
+  "closure_actions": "PENDING_ARCHIVE_DOCUMENTATION_VERIFICATION"
+}
