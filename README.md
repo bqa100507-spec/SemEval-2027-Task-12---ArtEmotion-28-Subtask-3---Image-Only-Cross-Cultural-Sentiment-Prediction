@@ -147,3 +147,9 @@ Reuse the verified local training/cache directory; no images, captions, weights 
 ```
 
 The command verifies the four required data files, selects eight configurations per retrieval method inside each original P2 training fold, and reports all five outer folds for prior-only, uncentered kNN, painting-centered retrieval and the fixed E50+L reference. It refuses to overwrite an existing run directory. The input directory supplies existing training votes/frozen image caches only; EXP-023 is never executed. No Development tuning, submission or automatic blend/promotion. [Method and results](reports/exp024_visual_retrieval.md).
+
+## EXP-025 research-only VLM semantic probe
+
+Use `scripts/extract_exp025.py` for a30-image smoke and optional `--full`, then `scripts/run_exp025.py` for two-fold screening and conditional five-fold CV. Both use `--inputs` pointing at the existing verified P2 input directory and `--cache` pointing at shared semantic records. Extraction defaults to FP16 for Colab L4; `--config configs/exp025_nf4.json` explicitly selects the separate local4-bit cache. Python3.12.10 and dependencies in requirements-exp025.lock.txt are pinned. Built with Qwen; its3B research license is non-commercial, and competition eligibility is unconfirmed.
+
+Local NF4 smoke generated/encoded30 paintings but found quality issues; full extraction and real semantic-head scores remain pending. [Short report and commands](reports/exp025_vlm_clip_probe.md). The [Colab L4 notebook](notebooks/EXP025_Colab.ipynb) attempts a fresh FP16 smoke, then full extraction/heads only if checks pass. It does not assume FP16 fixes hallucinations. E50+L stays production.

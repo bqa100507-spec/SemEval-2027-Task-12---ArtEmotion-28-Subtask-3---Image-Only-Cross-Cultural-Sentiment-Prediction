@@ -46,3 +46,9 @@ Before implementation, read **both** `docs/experiment_workflow_standard.md` (the
 
 - EXP-023 is CLOSED / NO-GO on the owner's final Colab result, with incomplete persistent scientific artifacts. No rerun, export repair or checkpoint recovery. Previous EXP-023 readiness/resume instructions are archival. Preserve EXP-022 closure and E50+L production.
 - TASK-026 authorizes independent EXP-024 retrieval on original P2 training votes and existing frozen visual caches, including small nested training-only selection and local CPU CV. Its explicit simple-CLI scope supersedes notebook/compliance/packaging requirements for this experiment. No new cloud framework, Development tuning, E50 blend or automatic promotion.
+
+## TASK-027 / EXP-025
+
+- EXP-022/023/024 stay closed; production remains E50+L. TASK-027 authorizes the image-only Qwen2.5-VL-3B semantic probe, not VLM fine-tuning or competition promotion. No captions/votes/metadata enter generation. No confirmation or Development labels.
+- Keep this method-discovery workflow to extraction/cache plus a lightweight matched-head script and a simple Colab notebook. This explicit task scope supersedes earlier elaborate notebook/compliance/packaging requirements. Preserve exact model/processor/decode/text-encoder identities and separate NF4/FP16 caches.
+- Smoke quality failures block full extraction. Local NF4 had factual errors and cultural wording; FP16 L4 quality/throughput remain unverified. Do not present partial-cache or synthetic head tests as real P2 results.
