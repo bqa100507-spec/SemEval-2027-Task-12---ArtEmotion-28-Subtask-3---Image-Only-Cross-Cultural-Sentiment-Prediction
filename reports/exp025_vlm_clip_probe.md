@@ -23,3 +23,5 @@ All five folds run regardless of intermediate scores. Report pooled/fold-mean/pe
 The notebook reuses the existing TASK-025C private ZIP. Source/prompt/precision/text-encoder cache keys remain strict and compatible; head results use a new source identity. Existing70 local cache files and499 protected historical/owner files were checked byte-identical. Tests and the final pinned notebook/PR link are reported with delivery.
 
 Validation:265 CPU tests passed,1 Windows symlink fixture skipped. New tests cover warning-only cache reuse, hard token-loss rejection, exact-smoke approval/rejection, one notebook pause, rejected-run preservation, approved resume without another pause and completion of all five folds despite zero fusion gain. Notebook schema/AST and mocked flow pass; these do not establish real L4 performance or real CV scores.
+
+The corrected notebook pins scientific source `fc3ec336ca99871fa87d1d51c4b1ddfedb208c86`; default authorization remains False. Upload the existing TASK-025C ZIP, choose L4, authorize once and Run all. The only requested pause is the agreed visual smoke assessment.
