@@ -113,28 +113,29 @@ def summarize(gold, predictions):
     return pd.DataFrame(rows), pd.concat(paintings, ignore_index=True)
 
 
-def screening_signal(gold, predictions, config):
+def contribution_evidence(gold, predictions, config):
+    """Five-fold comparisons and uncertainty are evidence, never run admission."""
+    if set(gold.fold.unique()) != {1, 2, 3, 4, 5}:
+        raise ValueError("Paired final evidence requires the complete five-fold population")
     summary, paintings = summarize(gold, predictions)
+    scores = summary.set_index("model")
     pivot = paintings.pivot(index="painting", columns="model", values="contrast").dropna()
-    comparisons, promising = {}, []
-    for candidate in ("C", "D"):
-        checks = []
-        for control in ("A", candidate + "_shuffle"):
-            delta = pivot[candidate] - pivot[control]
-            evidence = paired_interval(delta, config["bootstrap_replicates"], config["bootstrap_seed"])
-            evidence.update(wins=int((delta > 0).sum()), regressions=int((delta < 0).sum()))
-            fold_gains = []
-            for fold in config["screen_folds"]:
-                held = gold[gold.fold.eq(fold)]
-                candidate_pred = predictions[predictions.model.eq(candidate) & predictions.fold.eq(fold)]
-                control_pred = predictions[predictions.model.eq(control) & predictions.fold.eq(fold)]
-                fold_gains.append(score(held, candidate_pred[data.KEYS + ["p_positive"]])["cultural_contrast"]
-                                  - score(held, control_pred[data.KEYS + ["p_positive"]])["cultural_contrast"])
-            evidence["fold_gains"] = fold_gains
-            comparisons[candidate + "-" + control] = evidence
-            checks.append(evidence["ci95"][0] > 0 and all(gain > 0 for gain in fold_gains))
-        if all(checks):
-            promising.append(candidate)
-    return {"status": "COMPLEMENTARITY_SCREEN_PROMISING" if promising else "SCREEN_NO_CLEAR_COMPLEMENTARITY",
-            "promising_fusions": promising, "comparisons": comparisons,
-            "interpretation": "Exploratory continuation rule on reused P2; not independent confirmation or production promotion"}
+    comparisons = {}
+    pairs = [("B", "A"), ("C", "A"), ("D", "A"), ("C", "C_shuffle"), ("D", "D_shuffle"),
+             ("C", "E50+L"), ("D", "E50+L")]
+    for candidate, control in pairs:
+        delta = pivot[candidate] - pivot[control]
+        evidence = paired_interval(delta, config["bootstrap_replicates"], config["bootstrap_seed"])
+        evidence.update(wins=int((delta > 0).sum()), regressions=int((delta < 0).sum()),
+                        macro_log_loss_change=float(scores.loc[candidate, "macro_log_loss"] - scores.loc[control, "macro_log_loss"]))
+        fold_gains = {}
+        for fold in sorted(gold.fold.unique()):
+            held = gold[gold.fold.eq(fold)]
+            candidate_pred = predictions[predictions.model.eq(candidate) & predictions.fold.eq(fold)]
+            control_pred = predictions[predictions.model.eq(control) & predictions.fold.eq(fold)]
+            fold_gains[str(fold)] = score(held, candidate_pred[data.KEYS + ["p_positive"]])["cultural_contrast"] \
+                                   - score(held, control_pred[data.KEYS + ["p_positive"]])["cultural_contrast"]
+        evidence["fold_contrast_changes"] = fold_gains
+        comparisons[candidate + "-" + control] = evidence
+    return {"status": "FIVE_FOLD_EVIDENCE", "comparisons": comparisons,
+            "interpretation": "Exploratory reused-P2 evaluation, not independent confirmation, an execution gate or production promotion"}

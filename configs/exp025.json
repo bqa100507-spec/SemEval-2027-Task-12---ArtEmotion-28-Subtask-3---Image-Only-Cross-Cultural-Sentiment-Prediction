@@ -60,10 +60,6 @@
   "smoke_images": 30,
   "smoke_seed": 252027,
   "shuffle_seed": 25029,
-  "screen_folds": [
-    1,
-    3
-  ],
   "pca_dimensions": 128,
   "pca_seed": 2027,
   "early_stop_seed": 17029,
@@ -76,7 +72,6 @@
     0.75,
     1.0
   ],
-  "full_cv_rule": "Either early or late beats its matched visual-only and shuffle on both screening folds, with pooled painting-paired bootstrap CI lower bounds above0 for both comparisons; exploratory continuation only, not promotion. Log Loss reported separately.",
   "bootstrap_replicates": 10000,
   "bootstrap_seed": 252027,
   "runtime": {
@@ -91,5 +86,13 @@
     "pandas": "2.2.3",
     "Pillow": "11.2.1",
     "scikit-learn": "1.6.1"
-  }
+  },
+  "cv_folds": [
+    1,
+    2,
+    3,
+    4,
+    5
+  ],
+  "evaluation_policy": "Always complete all five original P2 folds after approved smoke and complete valid semantic extraction. Paired bootstrap is evidence, never a continuation gate."
 }

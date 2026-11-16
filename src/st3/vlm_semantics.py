@@ -152,9 +152,24 @@ def describe(image, processor, model, config):
     return description, {"generated_tokens": len(output), "generation_hit_limit": len(output) >= config["decoding"]["max_new_tokens"]}
 
 
-def extract(inputs, cache_root, config, model_path, text_path, *, full=False, max_seconds=600):
-    import gc
+def semantic_warnings(smoke, records):
+    """Quality diagnostics only. These do not establish systematic hallucination."""
     import re
+    warnings = []
+    for image, record in zip(smoke.itertuples(), records):
+        reasons = []
+        if record["generation_hit_limit"]:
+            reasons.append("generation_length_limit")
+        if re.search(r"\b(Chinese|Japanese|American|European|African|nationality|artist named|painted by)\b", record["description"], re.I):
+            reasons.append("nationality_or_artist_wording")
+        if reasons:
+            warnings.append({"painting": image.painting, "image": image.image, "image_sha256": image.image_sha256,
+                             "description": record["description"], "reasons": reasons})
+    return warnings
+
+
+def extract(inputs, cache_root, config, model_path, text_path, *, full=False, max_seconds=600, review_file=None):
+    import gc
     import torch
     started = time.perf_counter()
     if not torch.cuda.is_available():
@@ -177,15 +192,15 @@ def extract(inputs, cache_root, config, model_path, text_path, *, full=False, ma
     cache = SemanticCache(cache_root, config)
     if full:
         reviewed = [cache.read(row.image_sha256) for row in smoke.itertuples()]
-        if any(not r or "embedding" not in r or r["generation_hit_limit"] for r in reviewed):
+        if any(not r or "embedding" not in r for r in reviewed):
             raise ValueError("Complete the 30-image smoke and text encoding before full extraction")
-        report_path = cache.directory / "extraction_report.json"
-        if not report_path.exists() or json.loads(report_path.read_text(encoding="utf-8"))["smoke_review_flags"]:
-            raise ValueError("Smoke review flags block full extraction")
+        from .vlm_smoke_review import require_approval
+        require_approval(cache, smoke, review_file)
     processor = model = None
     durations, reused, generated_count = [], 0, 0
     torch.cuda.reset_peak_memory_stats()
     free, total = torch.cuda.mem_get_info()
+    generation_run_id = str(time.time_ns())
     try:
         for row in selected.itertuples():
             previous = cache.read(row.image_sha256)
@@ -202,7 +217,8 @@ def extract(inputs, cache_root, config, model_path, text_path, *, full=False, ma
             torch.cuda.synchronize()
             elapsed = time.perf_counter() - tick
             cache.save(row.image_sha256, {"description": description, **metadata, "seconds": elapsed,
-                       "GPU": torch.cuda.get_device_name(), "prompt_sha256": hashlib.sha256(config["prompt"].encode()).hexdigest()})
+                       "GPU": torch.cuda.get_device_name(), "generation_run_id": generation_run_id,
+                       "prompt_sha256": hashlib.sha256(config["prompt"].encode()).hexdigest()})
             durations.append(elapsed); generated_count += 1
             print(json.dumps({"generated": generated_count, "reused": reused, "seconds": elapsed, "description": description}), flush=True)
     finally:
@@ -211,33 +227,35 @@ def extract(inputs, cache_root, config, model_path, text_path, *, full=False, ma
                      "generated": generated_count, "reused_descriptions": reused, "inference_seconds": durations,
                      "mean_image_seconds": float(np.mean(durations)) if durations else None,
                      "projected_1335_inference_seconds": float(np.mean(durations)) * 1335 if durations else None}
-        atomic_json(cache.directory / f"telemetry_{time.time_ns()}.json", telemetry)
+        atomic_json(cache.directory / f"telemetry_{generation_run_id}.json", telemetry)
         del model, processor; gc.collect(); torch.cuda.empty_cache()
     # Text encoding runs on CPU after unloading Qwen, preserving local VRAM.
-    from transformers import AutoTokenizer, CLIPTextModelWithProjection
-    tokenizer = AutoTokenizer.from_pretrained(text_path)
-    text_model = None
+    tokenizer = text_model = None
     for row in selected.itertuples():
         record = cache.read(row.image_sha256)
         if "embedding" not in record:
             if text_model is None:
+                from transformers import AutoTokenizer, CLIPTextModelWithProjection
                 torch.set_num_threads(4)
+                tokenizer = AutoTokenizer.from_pretrained(text_path)
                 text_model = CLIPTextModelWithProjection.from_pretrained(text_path).eval()
             vector, metadata = encode_description(record["description"], tokenizer, text_model)
             cache.save(row.image_sha256, {**record, **metadata, "embedding": vector.tolist()})
     records = [cache.read(row.image_sha256) for row in selected.itertuples()]
     smoke_records = [cache.read(row.image_sha256) for row in smoke.itertuples()]
-    flags = [r["image_sha256"] for r in smoke_records if r["generation_hit_limit"] or re.search(
-                 r"\b(Chinese|Japanese|American|European|African|nationality|artist named|painted by)\b", r["description"], re.I)]
+    smoke_warnings = semantic_warnings(smoke, smoke_records)
+    warnings = semantic_warnings(selected, records)
     report = {**telemetry, "records": len(records), "smoke_images": len(smoke_records),
               "full_P2_coverage": len(records) == 1335, "empty_descriptions": 0,
               "token_coverage": "PASS", "multi_chunk_descriptions": sum(r["chunks"] > 1 for r in records),
-              "smoke_review_flags": flags, "hallucination_audit": "Automated flags only; visual review is required for factual quality conclusions",
+              "technical_status": "PASS", "technical_failures": [], "semantic_quality_warnings": warnings,
+              "smoke_review_flags": [r["image_sha256"] for r in smoke_warnings],
+              "hallucination_audit": "Warnings are not blockers. One owner review distinguishes broadly usable semantics from serious systematic hallucination.",
               "elapsed_seconds": time.perf_counter() - started, "cache": str(cache.directory)}
     atomic_json(cache.directory / f"extraction_report_{time.time_ns()}.json", report)
     atomic_json(cache.directory / "extraction_report.json", report)
     smoke[["painting", "image", "image_sha256", "aspect_ratio"]].assign(description=[r["description"] for r in smoke_records]).to_csv(
                     cache.directory / "smoke_descriptions.csv", index=False)
-    if flags:
-        raise ValueError("Smoke descriptions require review: generation length limit or unsupported cultural/artist wording; see extraction_report.json")
+    for warning in warnings:
+        print(json.dumps({"semantic_quality_warning": warning}), flush=True)
     return report

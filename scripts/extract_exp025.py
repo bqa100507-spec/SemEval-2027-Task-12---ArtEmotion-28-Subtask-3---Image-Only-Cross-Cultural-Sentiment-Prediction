@@ -11,7 +11,8 @@ os.environ.setdefault("CUBLAS_WORKSPACE_CONFIG", ":4096:8")
 os.environ.setdefault("HF_HUB_DISABLE_XET", "1")
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
-from st3.vlm_semantics import extract
+from st3.vlm_semantics import extract, atomic_json, fingerprint, semantic_identity
+from st3.vlm_smoke_review import SmokeReviewRequired, SystematicHallucination
 
 
 if __name__ == "__main__":
@@ -23,6 +24,7 @@ if __name__ == "__main__":
     parser.add_argument("--text-path", type=Path)
     parser.add_argument("--model-cache", type=Path, default=Path("cache/exp025_models"), help="Local model downloads, separate from persistent semantic records")
     parser.add_argument("--full", action="store_true", help="After successful smoke, extract all1335 image-only descriptions")
+    parser.add_argument("--review-file", type=Path, help="Exact-smoke owner assessment saved by the notebook")
     parser.add_argument("--max-seconds", type=float, default=600.)
     args = parser.parse_args()
     import math
@@ -48,11 +50,19 @@ if __name__ == "__main__":
     torch.manual_seed(252027)
     torch.backends.cuda.matmul.allow_tf32 = False
     torch.backends.cudnn.deterministic = True
-    result = extract(args.inputs, args.cache, config, *paths, max_seconds=args.max_seconds)
-    print(json.dumps(result, indent=2))
-    if args.full:
-        remaining = args.max_seconds - result["elapsed_seconds"]
-        if remaining < 60:
-            raise TimeoutError("Smoke completed; insufficient remaining allocation for full extraction")
-        result = extract(args.inputs, args.cache, config, *paths, full=True, max_seconds=remaining)
+    try:
+        result = extract(args.inputs, args.cache, config, *paths, max_seconds=args.max_seconds)
         print(json.dumps(result, indent=2))
+        if args.full:
+            remaining = args.max_seconds - result["elapsed_seconds"]
+            if remaining < 60:
+                raise TimeoutError("Smoke completed; insufficient remaining allocation for full extraction")
+            result = extract(args.inputs, args.cache, config, *paths, full=True, max_seconds=remaining, review_file=args.review_file)
+            print(json.dumps(result, indent=2))
+    except Exception as error:
+        import time
+        quality_stop = isinstance(error, (SmokeReviewRequired, SystematicHallucination))
+        atomic_json(args.cache / "failures" / f"failure_{time.time_ns()}.json",
+                    {"status": "QUALITY_REVIEW_STOP" if quality_stop else "TECHNICAL_FAILURE",
+                     "type": type(error).__name__, "error": str(error), "semantic_identity": fingerprint(semantic_identity(config))})
+        raise

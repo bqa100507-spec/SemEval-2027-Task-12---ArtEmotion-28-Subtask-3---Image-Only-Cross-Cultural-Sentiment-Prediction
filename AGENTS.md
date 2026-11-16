@@ -51,4 +51,10 @@ Before implementation, read **both** `docs/experiment_workflow_standard.md` (the
 
 - EXP-022/023/024 stay closed; production remains E50+L. TASK-027 authorizes the image-only Qwen2.5-VL-3B semantic probe, not VLM fine-tuning or competition promotion. No captions/votes/metadata enter generation. No confirmation or Development labels.
 - Keep this method-discovery workflow to extraction/cache plus a lightweight matched-head script and a simple Colab notebook. This explicit task scope supersedes earlier elaborate notebook/compliance/packaging requirements. Preserve exact model/processor/decode/text-encoder identities and separate NF4/FP16 caches.
-- Smoke quality failures block full extraction. Local NF4 had factual errors and cultural wording; FP16 L4 quality/throughput remain unverified. Do not present partial-cache or synthetic head tests as real P2 results.
+- Hard technical smoke failures block extraction. Semantic inaccuracies, nationality/artist wording and uncertain details are retained warnings, not automatic vetoes. FP16 L4 quality/throughput remain unverified; do not present partial caches or synthetic tests as real P2 results.
+
+## TASK-027B — finish EXP-025
+
+- Keep the existing model, prompt, decoding, head methods and training-only selection. Run all five P2 folds after technically valid, owner-approved extraction; bootstrap statistics are evaluation evidence, never continuation gates.
+- The owner explicitly authorizes exactly one visual quality review after the matched30-image NF4/FP16 comparison. Accept broadly useful semantics despite isolated errors. Serious systematic scene hallucination stops and preserves smoke; recommending direct hidden states/a stronger model does not authorize launching them.
+- After approval, full1335-image extraction and all five folds run without further owner pauses. Exact-smoke review and compatible completed folds resume; changed/corrupt data never bypass validation. This task-specific review is an explicit exception to the generic no-midrun-interaction wording. Preserve production E50+L and closed EXP-022/023/024.

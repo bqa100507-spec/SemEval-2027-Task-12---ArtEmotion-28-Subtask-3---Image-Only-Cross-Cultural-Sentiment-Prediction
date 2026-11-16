@@ -8,7 +8,7 @@ import pandas as pd
 import pytest
 
 from st3.vlm_semantics import SemanticCache, token_chunks, encode_description, smoke_sample, training_images
-from st3.vlm_probe import derangement, blend, choose_weight, head_predictions, screening_signal
+from st3.vlm_probe import derangement, blend, choose_weight, head_predictions, contribution_evidence
 
 
 def configuration():
@@ -114,17 +114,23 @@ def test_late_weight_selection_uses_inner_metrics():
     with pytest.raises(ValueError):blend(negative, positive.iloc[::-1], .5)
 
 
-def test_fusion_and_shuffle_both_required_for_continuation():
+def test_bootstrap_comparisons_are_evidence_not_continuation_gates():
     frame, _, _ = fixture()
+    frame["fold"] = frame.painting.map({f"p{i}": i % 5 + 1 for i in range(60)})
     positive = frame[["painting","language","fold"]].assign(p_positive=frame.k/frame.n)
     negative = positive.assign(p_positive=1-positive.p_positive)
     config = configuration();config["bootstrap_replicates"] = 100
-    preds = pd.concat([negative.assign(model="A"), negative.assign(model="C_shuffle"), negative.assign(model="D_shuffle"),
+    preds = pd.concat([negative.assign(model="A"), negative.assign(model="B"), negative.assign(model="E50+L"),
+                       negative.assign(model="C_shuffle"), negative.assign(model="D_shuffle"),
                        positive.assign(model="C"), positive.assign(model="D")],ignore_index=True)
-    assert screening_signal(frame,preds,config)["promising_fusions"] == ["C","D"]
+    result = contribution_evidence(frame,preds,config)
+    assert result["status"] == "FIVE_FOLD_EVIDENCE" and "promising_fusions" not in result
+    assert set(result["comparisons"]) == {"B-A","C-A","D-A","C-C_shuffle","D-D_shuffle","C-E50+L","D-E50+L"}
     preds.loc[preds.model.eq("C_shuffle"),"p_positive"] = preds.loc[preds.model.eq("C"),"p_positive"].to_numpy()
     preds.loc[preds.model.eq("D_shuffle"),"p_positive"] = preds.loc[preds.model.eq("D"),"p_positive"].to_numpy()
-    assert not screening_signal(frame,preds,config)["promising_fusions"]
+    result = contribution_evidence(frame,preds,config)
+    assert result["comparisons"]["C-C_shuffle"]["difference"] == 0.
+    assert result["status"] == "FIVE_FOLD_EVIDENCE"
 
 
 def test_fp16_and_nf4_never_share_semantic_records(tmp_path):
