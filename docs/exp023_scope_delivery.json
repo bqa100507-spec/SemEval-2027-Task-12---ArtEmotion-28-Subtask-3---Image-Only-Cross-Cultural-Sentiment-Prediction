@@ -1,0 +1,148 @@
+{
+  "task": "TASK-025B",
+  "experiment": "EXP-023",
+  "branch": "codex/025-exp023-caption-centering",
+  "status": "RESEARCH_ONLY_CV_IMPLEMENTED_OWNER_GPU_AUTHORIZATION_REQUIRED",
+  "competition_status": "ELIGIBILITY_UNRESOLVED",
+  "scientific_source_revision": "2f3a313453445bce7bce2cd16e79c2a998e4c9b6",
+  "private_handoff": {
+    "path": "runs/exp023_research_delivery/exp023_handoff.zip",
+    "sha256": "b6e664127fe18d0f115f33d624851aa988a222881ede14c539194cca42a206f4",
+    "manifest_sha256": "fe6757e5e15b1bfd98d7096e90e49833881e7201fbdc58aff473775026834691",
+    "bytes": 318969181,
+    "verified_files": 1693
+  },
+  "scientific_protocol_settings_and_gates_unchanged": true,
+  "frozen_eligibility_config_unchanged": true,
+  "scopes": {
+    "RESEARCH_ONLY_CV": {
+      "endpoint": [
+        "CV_GO_PENDING_ELIGIBILITY",
+        "CV_NO_GO"
+      ],
+      "organizer_permission_required": false,
+      "advance_owner_GPU_authorization_required": true,
+      "confirmation_allowed": false,
+      "development_submission_allowed": false
+    },
+    "COMPETITION_READY": {
+      "source_backed_organizer_permission_required": true,
+      "advance_confirmation_authorization_required": true,
+      "all_original_gates_required": true,
+      "automatic_promotion": false
+    }
+  },
+  "compatibility": {
+    "exact_fields": [
+      "source_revision",
+      "source",
+      "config",
+      "inputs",
+      "runtime"
+    ],
+    "same_source_scope_transition_resume": true,
+    "cross_source_migration": false,
+    "incompatible_or_corrupt_fits": "FAIL_EXPLICITLY_NO_SILENT_RETRAIN"
+  },
+  "owner_research_configuration": {
+    "EXECUTION_SCOPE": "RESEARCH_ONLY_CV",
+    "AUTHORIZE_EXP023": true,
+    "AUTHORIZE_GUARDED_CONFIRMATION": false,
+    "REQUIRE_SUBMISSION_ZIP": false,
+    "CAPTION_ELIGIBILITY_STATUS": "UNRESOLVED"
+  },
+  "distributed_notebook_authorization": false,
+  "notebooks": {
+    "Colab": "notebooks/EXP023_Colab.ipynb",
+    "Kaggle": "notebooks/EXP023_Kaggle.ipynb",
+    "schema_AST_shared_contract": "PASS"
+  },
+  "independent_restore": {
+    "caption_rows": 69719,
+    "confirmation_payload_parsed": false,
+    "development_gold_read": false,
+    "historical_parity": {
+      "boundary": "Exact stored-mean blend reconstruction; historical raw seeds were not persisted. Prior independent replay is separate evidence.",
+      "checks": 10,
+      "reference_rows": 13600,
+      "reference_sha256": "7cc728cd8b50ef828afa5cbaa8ef73c095ec5465664e54c7899d2cbc88039161",
+      "status": "PASS"
+    },
+    "input_files": 1693,
+    "painting_count": 1335,
+    "source_files": 117,
+    "source_revision": "2f3a313453445bce7bce2cd16e79c2a998e4c9b6",
+    "status": "PASS",
+    "training_or_gpu_execution": false,
+    "training_pairs": 13600
+  },
+  "actual_notebook_CPU_mock_tests": {
+    "status": "PASS",
+    "boundary": "Actual delivered cells/real ZIP on CPU; mocked cloud APIs and deliberate stop before environment installation; no scientific stages",
+    "cases": [
+      {
+        "platform_simulation": "colab",
+        "scope": "RESEARCH_ONLY_CV",
+        "authorized_for_negative_test": false,
+        "terminal_status": "BLOCKED_AUTHORIZATION",
+        "callbacks": [
+          "MOCK_MOUNT",
+          "MOCK_DOWNLOAD:outputs.zip",
+          "MOCK_RELEASE"
+        ]
+      },
+      {
+        "platform_simulation": "colab",
+        "scope": "RESEARCH_ONLY_CV",
+        "authorized_for_negative_test": true,
+        "terminal_status": "CPU_TEST_STOP_BEFORE_ENVIRONMENT",
+        "callbacks": [
+          "MOCK_MOUNT",
+          "CPU_TEST_BOOTSTRAP_REACHED",
+          "MOCK_DOWNLOAD:outputs.zip",
+          "MOCK_RELEASE"
+        ]
+      },
+      {
+        "platform_simulation": "colab",
+        "scope": "COMPETITION_READY",
+        "authorized_for_negative_test": true,
+        "terminal_status": "BLOCKED_ELIGIBILITY",
+        "callbacks": [
+          "MOCK_MOUNT",
+          "MOCK_DOWNLOAD:outputs.zip",
+          "MOCK_RELEASE"
+        ]
+      },
+      {
+        "platform_simulation": "kaggle",
+        "scope": "RESEARCH_ONLY_CV",
+        "authorized_for_negative_test": false,
+        "terminal_status": "BLOCKED_AUTHORIZATION",
+        "callbacks": []
+      }
+    ],
+    "confirmation_labels_opened": false,
+    "GPU_execution": false
+  },
+  "CPU_tests": {
+    "passed": 221,
+    "failed": 0,
+    "skipped": 1,
+    "worktree_seconds": 42.58,
+    "independently_restored_source_seconds": 40.22,
+    "skip_reason": "Windows symlink fixture"
+  },
+  "protected_files_unchanged": 498,
+  "original_TASK025_ZIP_preserved": true,
+  "scientific_GPU_execution": false,
+  "confirmation_labels_opened": false,
+  "Development_gold_scored": false,
+  "Codabench_upload": false,
+  "production": "E50+L",
+  "budget_caps": {
+    "GPU_allocation_hours": 1.0,
+    "wall_hours": 2.0
+  },
+  "readiness": "One Run all orchestration CPU/mocked-verified for both scopes; actual CUDA training/throughput not executed in this coding task."
+}
