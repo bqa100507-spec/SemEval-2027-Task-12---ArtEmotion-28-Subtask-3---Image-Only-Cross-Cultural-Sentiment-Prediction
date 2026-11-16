@@ -147,3 +147,11 @@ Reuse the verified local training/cache directory; no images, captions, weights 
 ```
 
 The command verifies the four required data files, selects eight configurations per retrieval method inside each original P2 training fold, and reports all five outer folds for prior-only, uncentered kNN, painting-centered retrieval and the fixed E50+L reference. It refuses to overwrite an existing run directory. The input directory supplies existing training votes/frozen image caches only; EXP-023 is never executed. No Development tuning, submission or automatic blend/promotion. [Method and results](reports/exp024_visual_retrieval.md).
+
+## EXP-025 research-only VLM semantic probe
+
+Open the pinned [Colab L4 notebook](notebooks/EXP025_Colab.ipynb), upload the existing TASK-025C ZIP, authorize once and Run all. The same30 images/prompt are used for NF4 and FP16. Review the side-by-side image/description gallery **once**: approve broadly useful semantics despite isolated mistakes, or reject serious systematic hallucination. Approval automatically continues to1335 FP16 images and **all five P2 folds**; no bootstrap continuation gate. Rejection preserves smoke and launches nothing else. Exact approved smoke/folds resume without another review.
+
+Technical failures remain hard errors; semantic warnings retain descriptions/IDs and do not silently disappear. `scripts/extract_exp025.py` reuses semantic caches; `scripts/run_exp025.py` only fits/evaluates cached features. The prompt, encoder revisions, PCA/head capacity, LR, inner selection and true-vs-shuffled controls remain fixed. Python3.12.10/dependencies remain pinned. Built with Qwen under its non-commercial Research License; competition eligibility is unconfirmed.
+
+The local NF4 cache has30 valid records; actual L4 FP16/full-five-fold results remain unavailable locally. No claim of semantic improvement or failure is made before real CV. [Short status/method report](reports/exp025_vlm_clip_probe.md). E50+L stays production; no Development gold, confirmation-label access or Codabench upload.
