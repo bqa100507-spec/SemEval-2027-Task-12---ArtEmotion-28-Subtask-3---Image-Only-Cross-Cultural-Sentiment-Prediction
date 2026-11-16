@@ -1,0 +1,9 @@
+{
+  "source_revision": "c3337fa8ae8010d76fa598536f5ff3f506ec6215",
+  "files_sha256": {
+    "src/st3/caption_data.py": "19e7b7e0951bd16cdd0d690b8d7b09e8e5adf63bfab060333e2c06bdeca01c14",
+    "src/st3/caption_student.py": "9a180b2f56b52bd3bc8a87ad63a6cf5d04c0763f103656c4347cdf7f315d2c8b",
+    "src/st3/caption_targets.py": "f3d5ebbfbd267e0ff83adc3396730dfaa96f2db7990bbc4344bfacbeb0496960"
+  },
+  "scope": "Unmodified EXP-017 student, target PCA and split helpers only. No EXP-022 implementation integration."
+}

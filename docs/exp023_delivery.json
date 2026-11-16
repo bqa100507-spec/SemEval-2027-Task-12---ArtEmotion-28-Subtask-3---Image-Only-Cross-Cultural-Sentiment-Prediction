@@ -1,0 +1,142 @@
+{
+  "task": "TASK-0025",
+  "experiment": "EXP-023",
+  "status": "IMPLEMENTED_CPU_VERIFIED_BLOCKED_ELIGIBILITY",
+  "implementation_branch": "codex/025-exp023-caption-centering",
+  "base_documentation_commit": "f3e8fd04e5a42d8fd88bada796a6fbaca01cfaec",
+  "scientific_source_revision": "29b94dc452c2da8962fdd46470f500b54a8b03ca",
+  "scientific_protocol": "reports/next_exp_proposal.md",
+  "private_handoff": {
+    "path": "runs/exp023_delivery/exp023_handoff.zip",
+    "sha256": "ca6aa9ed80e8a65db82273941851e2ac6b256abb29ff8f3bf5ffa51fc7ec68ae",
+    "bytes": 318947580,
+    "manifest_sha256": "0132c63fdfc98af5919dfd7e020f92973bd02081b6b393bdf12c605bab84be47",
+    "verified_files": 1693,
+    "required_frozen_feature_inputs_complete": true,
+    "training_paintings": 1335,
+    "training_pairs": 13600,
+    "caption_annotation_rows": 69719,
+    "caption_unique_texts": 69153,
+    "confirmation_paintings": 236,
+    "confirmation_payload": "opaque original training-only label mapping, never parsed during delivery",
+    "development_input_pairs": 849,
+    "development_gold_included": false,
+    "raw_caption_strings_included": false,
+    "caption_reconstruction": "original repeated annotation IDs/emotions plus exact original caption embedding cache",
+    "new_pretrained_download_needed": false,
+    "superseded_builds_retained": [
+      "build_01",
+      "build_02"
+    ]
+  },
+  "independent_restore_validation": {
+    "caption_rows": 69719,
+    "confirmation_payload_parsed": false,
+    "development_gold_read": false,
+    "historical_parity": {
+      "boundary": "Exact stored-mean blend reconstruction; historical raw seeds were not persisted. Prior independent replay is separate evidence.",
+      "checks": 10,
+      "reference_rows": 13600,
+      "reference_sha256": "7cc728cd8b50ef828afa5cbaa8ef73c095ec5465664e54c7899d2cbc88039161",
+      "status": "PASS"
+    },
+    "input_files": 1693,
+    "painting_count": 1335,
+    "source_files": 112,
+    "source_revision": "29b94dc452c2da8962fdd46470f500b54a8b03ca",
+    "status": "PASS",
+    "training_or_gpu_execution": false,
+    "training_pairs": 13600
+  },
+  "actual_notebook_cpu_smoke": {
+    "status": "PASS",
+    "boundary": "Real delivered ZIP and actual notebook cells; CPU only, injected Colab mocks, no scientific stages",
+    "cases": [
+      {
+        "platform_simulation": "colab",
+        "authorization_flag_for_negative_test": false,
+        "status": "BLOCKED_AUTHORIZATION",
+        "callbacks": [
+          "mock_mount",
+          "mock_download:outputs.zip",
+          "mock_release"
+        ],
+        "actual_GPU_execution": false,
+        "actual_Drive_or_browser_calls": false,
+        "confirmation_labels_opened": false
+      },
+      {
+        "platform_simulation": "colab",
+        "authorization_flag_for_negative_test": true,
+        "status": "BLOCKED_ELIGIBILITY",
+        "callbacks": [
+          "mock_mount",
+          "mock_download:outputs.zip",
+          "mock_release"
+        ],
+        "actual_GPU_execution": false,
+        "actual_Drive_or_browser_calls": false,
+        "confirmation_labels_opened": false
+      },
+      {
+        "platform_simulation": "kaggle",
+        "authorization_flag_for_negative_test": false,
+        "status": "BLOCKED_AUTHORIZATION",
+        "callbacks": [],
+        "actual_GPU_execution": false,
+        "actual_Drive_or_browser_calls": false,
+        "confirmation_labels_opened": false
+      }
+    ]
+  },
+  "environment_resolution": {
+    "status": "PASS",
+    "boundary": "Linux CPython3.12.10 manylinux_2_28 dependency resolution only; no Linux install or CUDA execution",
+    "uv": "0.7.13",
+    "pins": 54,
+    "lock_sha256": "05a4170a83b563e8014b0743971ecc67991e428dca364cacdd5b20f5d575ede2"
+  },
+  "tests": {
+    "passed": 191,
+    "failed": 0,
+    "skipped": 1,
+    "skip_reason": "Windows symlink fixture",
+    "working_tree_seconds": 18.02,
+    "clean_restored_source_seconds": 17.99,
+    "CUDA_VISIBLE_DEVICES": "-1"
+  },
+  "notebooks": {
+    "Colab": "notebooks/EXP023_Colab.ipynb",
+    "Kaggle": "notebooks/EXP023_Kaggle.ipynb",
+    "schema_AST_and_shared_contract": "PASS",
+    "SHA256": {
+      "EXP023_Colab.ipynb": "ef0f642116b0349fa0b934ca206261908b389f85a00735efe65c6299e0ee2215",
+      "EXP023_Kaggle.ipynb": "08b60e06de87de6ad5115158a3df3146695407989b7e740b6d13fa5df6216b19"
+    }
+  },
+  "source_CI": {
+    "revision": "29b94dc452c2da8962fdd46470f500b54a8b03ca",
+    "status": "SUCCESS",
+    "url": "https://github.com/bqa100507-spec/SemEval-2027-Task-12---ArtEmotion-28-Subtask-3---Image-Only-Cross-Cultural-Sentiment-Prediction/actions/runs/43747314377"
+  },
+  "eligibility": "ELIGIBILITY_UNRESOLVED",
+  "organizer_question_posted": false,
+  "scientific_GPU_run": false,
+  "confirmation_labels_opened": false,
+  "development_gold_scored": false,
+  "codabench_submission": false,
+  "production": "E50+L",
+  "EXP022": "CLOSED",
+  "TASK023": "CLOSED",
+  "EL8": "NO_GO_FOR_PRODUCTION",
+  "compute": {
+    "planning_GPU_hours": [
+      0.5,
+      1.0
+    ],
+    "maximum_GPU_allocation_hours": 1.0,
+    "maximum_wall_hours": 2.0,
+    "EXP023_GPU_benchmark_measured": false
+  },
+  "readiness": "One-run orchestration tested with real ZIP on CPU and mocked cloud callbacks. Scientific GPU execution deliberately blocked until authoritative eligibility evidence and one advance authorization; actual Colab/Kaggle CUDA run not performed."
+}

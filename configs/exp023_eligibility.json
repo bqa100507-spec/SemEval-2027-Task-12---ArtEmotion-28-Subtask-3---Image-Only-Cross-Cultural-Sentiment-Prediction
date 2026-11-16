@@ -1,0 +1,9 @@
+{
+  "status": "ELIGIBILITY_UNRESOLVED",
+  "checked_date": "2026-11-16",
+  "covers": [],
+  "url": null,
+  "source_sha256": null,
+  "exact_permission_excerpt": null,
+  "note": "No explicit organizer permission for ST3 original-training-caption auxiliary distillation was found. A reviewed source-backed update is required; owner status alone cannot authorize eligibility. See docs/exp023_eligibility.md."
+}
