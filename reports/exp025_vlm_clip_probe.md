@@ -31,4 +31,4 @@ Validation: **258 passed,0 failed,1 Windows symlink fixture skipped**. Includes 
 
 Current implementation is ready to attempt an FP16 L4 smoke, **not a verified full extraction/CV result**. Local smoke quality failure remains recorded; the next full-run attempt must pass the smoke checks. Source/PR pins and the notebook link are provided in delivery.
 
-Linux dependency resolution for CPython3.12.10/glibc2.28 succeeded with all55 requested package pins unchanged. This checks availability/resolution, not actual Colab installation/GPU execution. The notebook scientific source is pinned to `c52e7417b2435cdea40d9b1acd9aa392cc8b9c1f`.
+Linux dependency resolution for CPython3.12.10/glibc2.28 succeeded with all55 requested package pins unchanged. This checks availability/resolution, not actual Colab installation/GPU execution. The notebook scientific source is pinned to `6cb68f9a52c46f4aca639b1dcd7be5977f295727`.
