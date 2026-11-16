@@ -133,6 +133,7 @@ def test_fp16_and_nf4_never_share_semantic_records(tmp_path):
 
 
 def test_full_extraction_cannot_bypass_incomplete_smoke(tmp_path, monkeypatch):
+    import sys
     import torch
     from st3 import vlm_semantics
     config = configuration()
@@ -141,6 +142,7 @@ def test_full_extraction_cannot_bypass_incomplete_smoke(tmp_path, monkeypatch):
     images = pd.DataFrame({"painting":[f"p{i}" for i in range(60)], "aspect_ratio":np.linspace(.3, 3., 60),
                            "image_sha256":[hashlib.sha256(str(i).encode()).hexdigest() for i in range(60)]})
     monkeypatch.setattr(torch.cuda,"is_available",lambda:True)
+    monkeypatch.setitem(sys.modules,"transformers",None)
     monkeypatch.setattr(vlm_semantics,"training_images",lambda *args:images)
     monkeypatch.setattr(vlm_semantics,"load_vlm",lambda *args:pytest.fail("Incomplete smoke must block VLM loading"))
     with pytest.raises(ValueError,match="Complete the 30-image smoke"):

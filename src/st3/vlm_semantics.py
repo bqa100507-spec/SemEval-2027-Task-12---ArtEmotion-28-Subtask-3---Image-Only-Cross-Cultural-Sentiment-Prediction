@@ -156,7 +156,6 @@ def extract(inputs, cache_root, config, model_path, text_path, *, full=False, ma
     import gc
     import re
     import torch
-    from transformers import AutoTokenizer, CLIPTextModelWithProjection
     started = time.perf_counter()
     if not torch.cuda.is_available():
         raise RuntimeError("CUDA required for Qwen inference; use the supplied Colab L4 notebook")
@@ -215,6 +214,7 @@ def extract(inputs, cache_root, config, model_path, text_path, *, full=False, ma
         atomic_json(cache.directory / f"telemetry_{time.time_ns()}.json", telemetry)
         del model, processor; gc.collect(); torch.cuda.empty_cache()
     # Text encoding runs on CPU after unloading Qwen, preserving local VRAM.
+    from transformers import AutoTokenizer, CLIPTextModelWithProjection
     tokenizer = AutoTokenizer.from_pretrained(text_path)
     text_model = None
     for row in selected.itertuples():
