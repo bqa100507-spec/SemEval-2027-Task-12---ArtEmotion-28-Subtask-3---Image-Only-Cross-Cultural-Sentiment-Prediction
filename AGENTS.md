@@ -41,3 +41,8 @@ Before implementation, read **both** `docs/experiment_workflow_standard.md` (the
 - Keep the whole-job theoretical max-epoch bound diagnostic. Admit only a conservatively affordable complete original fit, initial independent replay, atomic persistent checkpoint and cleanup reserve. Update forecasts from measured selection/refit epochs and complete-fit timings; label small-sample limitations.
 - A budget stop with fewer than all preregistered verified fits is operationally incomplete, never scientific NO-GO. Preserve completed models and resume exact source/config/input/runtime identities; changing only owner time limits must not retrain them. New source releases require new run directories; no cross-source migration/bypass.
 - EXP-023 operational defaults live in configs/exp023_runtime.json. The legacy budget block in the byte-preserved scientific configs/exp023.json is archival and ignored by the new runtime. No scientific GPU training is authorized by this coding patch.
+
+## TASK-026 current direction
+
+- EXP-023 is CLOSED / NO-GO on the owner's final Colab result, with incomplete persistent scientific artifacts. No rerun, export repair or checkpoint recovery. Previous EXP-023 readiness/resume instructions are archival. Preserve EXP-022 closure and E50+L production.
+- TASK-026 authorizes independent EXP-024 retrieval on original P2 training votes and existing frozen visual caches, including small nested training-only selection and local CPU CV. Its explicit simple-CLI scope supersedes notebook/compliance/packaging requirements for this experiment. No new cloud framework, Development tuning, E50 blend or automatic promotion.

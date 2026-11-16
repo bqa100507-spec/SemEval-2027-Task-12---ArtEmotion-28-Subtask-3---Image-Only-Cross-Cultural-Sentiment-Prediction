@@ -1,6 +1,6 @@
 # ST3 research index and production decision
 
-**Current decision: production E50+L; EXP-022 CLOSED; TASK-023 CLOSED; EL8 NO_GO_FOR_PRODUCTION.** TASK-025B makes EXP-023 research-only CV available after advance owner GPU authorization, without requiring unconfirmed competition permission. Competition scope remains eligibility-gated. This coding task executes no scientific/GPU run. No EL8 refit, retuning, upload or promotion is pending. Historical runnable instructions/READY states are archival records, not current authorization. [Final closure](../reports/exp022_final_closure.md) · [aggregate evidence](exp022_closure_evidence.json) · [frozen EXP-023 protocol](../reports/next_exp_proposal.md) · [budget readiness](../reports/exp023_budget_readiness.md).
+**Current decision: production E50+L; EXP-022/TASK-023 CLOSED; EXP-023 CLOSED / NO-GO (incomplete persistent scientific artifacts).** No rerun, export repair or checkpoint recovery. EXP-024 tests standalone culture-conditioned visual retrieval on P2 training CV. [EXP-023 short closure](../reports/exp023_closure.md).
 
 Production remains the released default `predict --mode e50l`, with E50/CLIP explicit fallbacks. E50+L's frozen 849-row reference SHA is `162875b641407efea3bf28d1d147c2d9a3dd3dc2faed8863f9438bee517199a3`; owner-reported hosted Contrast is 0.4643 (#1046158). EL8's valid archived submission #1053827 scored 0.4537 according to the owner, so engineering success did not justify replacement.
 
@@ -42,6 +42,6 @@ Reports for EXP-001–015 are retained at [archive `cd321f1`](https://github.com
 | **EXP-022** | Matched frozen/LoRA × BCE/CE8 | P2 EL8 0.452483161, positive conditional CV interval; hosted Development0.4537 | **CLOSED / NO-GO for production**; [final closure](../reports/exp022_final_closure.md) |
 | **TASK-023** | Artifact recovery, exact L4 replay and final inference | Real Colab SUCCESS_SUBMISSION_READY; 3 final seeds verified, valid849-row ZIP | **Engineering complete / CLOSED**; no promotion; [closure](../reports/exp022_final_closure.md) |
 | TASK-024 | Research closure, archives and next hypothesis | Read-only evidence verification; documentation only | No new model execution |
-| **EXP-023 / TASK-025C** | Painting-centered caption targets with matched frozen heads | Unchanged preregistration; scope-aware implementation, no new score | **RESEARCH_CV_READY_WITH_OWNER_AUTH / COMPETITION_BLOCKED_ELIGIBILITY**; [budget readiness](../reports/exp023_budget_readiness.md) |
+| **EXP-023** | Painting-centered caption targets | Owner-reported final Colab pipeline result; persistent scientific artifacts incomplete | **CLOSED / NO-GO**, no verified complete score asserted; [short closure](../reports/exp023_closure.md) |
 
 Never promote a candidate merely because it has a valid ZIP or clears a reused-CV threshold. The future workflow requires frozen controls, verification and conditional independent confirmation before any manual hosted comparison. Its [one-click contract](experiment_workflow_standard.md) includes verified Drive export, optional browser-download attempts and runtime release; it is not retrofitted into the closed EXP-022 notebooks.

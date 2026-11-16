@@ -5,7 +5,7 @@
 
 Image-only cross-cultural sentiment prediction for SemEval 2027 Task 12. The competition release uses **E50+L**, the hosted-verified CLIP-B, SigLIP 2 Base and CLIP-L ensemble. The project owner reported Development Contrast **0.4643** for submission **#1046158**. Use the [competition release manifest and evaluation-day commands](docs/competition_release.md) for frozen inference.
 
-**EXP-023 / TASK-025C:** [current budget readiness](reports/exp023_budget_readiness.md), [eligibility review](docs/exp023_eligibility.md) and unchanged [scientific preregistration](reports/next_exp_proposal.md). The [Colab notebook](notebooks/EXP023_Colab.ipynb) and [Kaggle variant](notebooks/EXP023_Kaggle.ipynb) default to unauthorized RESEARCH_ONLY_CV, with maximum 4 allocation-hours /5 wall-hours and progressive per-fit admission. One advance owner authorization/Run all performs all45 original fits when affordable, independent verification, frozen scientific gates, persistent export/download attempt and release. Research never opens confirmation or creates a submission. Competition remains source-backed eligibility-gated. Current private ZIP/pins are in docs/exp023_budget_delivery.json; prior deliveries remain archived, with no cross-source migration. No scientific GPU execution in this coding task; E50+L remains production. Future EXPs follow the [permanent workflow authority](docs/experiment_workflow_standard.md).
+**TASK-026:** EXP-023 is [CLOSED / NO-GO](reports/exp023_closure.md); persistent scientific artifacts are incomplete. Do not rerun or recover it. EXP-024 is an independent CPU visual-retrieval comparison; E50+L remains production. Earlier EXP-023 notebooks/readiness commands are archival.
 
 The sections below retain the original baseline setup and EXP-001–011 reproduction commands. The complete EXP-001–015 history is preserved on [archive/exp001-015-verified](https://github.com/bqa100507-spec/SemEval-2027-Task-12---ArtEmotion-28-Subtask-3---Image-Only-Cross-Cultural-Sentiment-Prediction/tree/archive/exp001-015-verified). [PR integration audit](docs/release016_pr_audit.json)
 
@@ -137,3 +137,13 @@ Reuse the Task 001, EXP-002, EXP-006 and EXP-007 artifacts, then run `clip-large
 ```
 
 The local scorer implements the published specification. It also reports the starter kit's all-pairs Log Loss as a separate number. See [competition and provenance](docs/competition.md), [data audit](reports/data_audit.md), [baseline results](reports/baseline_dev.md), and [project state](docs/project_state.md).
+
+## EXP-024 standalone visual retrieval
+
+Reuse the verified local training/cache directory; no images, captions, weights or GPU are needed. From the project root:
+
+```powershell
+.venv/Scripts/python.exe scripts/run_exp024.py --inputs runs/exp023_budget_delivery/final/restore_check --run-dir runs/exp024_visual_retrieval
+```
+
+The command verifies the four required data files, selects eight configurations per retrieval method inside each original P2 training fold, and reports all five outer folds for prior-only, uncentered kNN, painting-centered retrieval and the fixed E50+L reference. It refuses to overwrite an existing run directory. The input directory supplies existing training votes/frozen image caches only; EXP-023 is never executed. No Development tuning, submission or automatic blend/promotion. [Method and results](reports/exp024_visual_retrieval.md).
