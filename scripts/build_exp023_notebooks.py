@@ -114,12 +114,14 @@ import time
 RUN_STARTED = time.time()
 AUTHORIZE_EXP023 = False
 AUTHORIZE_EXPERIMENT = AUTHORIZE_EXP023
+EXECUTION_SCOPE = "RESEARCH_ONLY_CV"
 AUTHORIZE_GUARDED_CONFIRMATION = False
 CAPTION_ELIGIBILITY_STATUS = "UNRESOLVED"
 RESOURCE_ELIGIBILITY_STATUS = CAPTION_ELIGIBILITY_STATUS
+COMPETITION_ELIGIBILITY_EVIDENCE = ""  # Optional genuine organizer-evidence JSON, competition scope only.
 MAX_GPU_HOURS = 1.0
 MAX_TOTAL_WALL_HOURS = 2.0
-REQUIRE_SUBMISSION_ZIP = True
+REQUIRE_SUBMISSION_ZIP = False
 AUTO_BROWSER_DOWNLOAD = True
 AUTO_RELEASE_COLAB = True
 INPUT_ZIP = {input_zip!r}
@@ -136,13 +138,19 @@ ENTRY_SHA256 = {hashlib.sha256(entry).hexdigest()!r}
 '''
     text = """# EXP-023 — Painting-centered caption supervision
 
-**Implemented, CPU-tested; GPU execution blocked while organizer eligibility is unresolved.**
+**Two explicit scopes; all scientific settings and acceptance gates remain frozen.**
 
-Upload the single private `exp023_handoff.zip` to MyDrive (Colab) or attach it as a private Kaggle dataset. After a source-backed organizer-permission update and advance authorization, select a CUDA GPU, configure the single cell, and choose **Run all**. No manual Verify, Continue, Export or Cleanup is required. Current default settings stop safely and release Colab; they do not authorize any training.
+Upload the single private `exp023_handoff.zip` to MyDrive (Colab) or attach it as a private Kaggle dataset. Select a CUDA GPU, choose the scope and give advance owner authorization in the single Configuration cell, then **Run all**. No manual Verify, Continue, Export or Cleanup is required. Authorization defaults to false; this notebook does not itself authorize a GPU run.
+
+**RESEARCH_ONLY_CV (default):** set only `AUTHORIZE_EXP023=True` to authorize the preregistered research CV. Leave `AUTHORIZE_GUARDED_CONFIRMATION=False`, `REQUIRE_SUBMISSION_ZIP=False`, and competition eligibility `UNRESOLVED`. All45 fits, independent replay, metrics and frozen scientific gates run automatically. CV_GO becomes **CV_GO_PENDING_ELIGIBILITY**; otherwise **CV_NO_GO**. Both outcomes export verified research outputs, request `outputs.zip` and release Colab. No sealed confirmation labels, final fits, Development prediction ZIP or Codabench upload are permitted. Unconfirmed competition eligibility does not block this research scope.
+
+**COMPETITION_READY:** source-backed organizer permission, `CAPTION_ELIGIBILITY_STATUS="VERIFIED"` and advance scope authorization remain mandatory. To request the complete candidate workflow also enable guarded confirmation and require the submission ZIP. The frozen eligibility config remains unresolved; a genuine organizer-evidence JSON may be supplied through `COMPETITION_ELIGIBILITY_EVIDENCE`. Its official URL, SHA and exact permission excerpt are independently checked before scientific GPU work. A status string is insufficient. No automatic production promotion/upload occurs.
+
+To continue compatible completed research CV into competition scope, keep the **same pinned handoff/source, runtime and PERSISTENT_ROOT**. Scope and permission are separate authorization records; none of the existing scientific identity fields/hashes are ignored. Complete fits resume and replay without retraining. A source/config/input/runtime mismatch fails explicitly; no cross-source migration or relabeling is implemented.
 
 The source archive is the exact immutable Git revision shown below. All inputs are restored locally; completed models are published directly to the persistent run directory. The isolated child uses Python **3.12.10**, the exact recorded dependency lock, FP32 heads, and no encoder training/extraction. Internet is required only to restore that pinned Python/dependency environment. A missing package/download blocks instead of changing versions.
 
-Automatic order: validate → historical parity → representative benchmark/budget gate → 45 missing C0/C1/C2 fits → independent replay → CV decision → guarded final fits/confirmation only if preauthorized and CV_GO → reuse exact confirmed models → real input-only inference → ZIP validation → verified export → browser download requests → runtime release. NO_GO exports diagnostics and produces no promotion-ready submission. Production E50+L stays unchanged.
+Automatic order: validate → historical parity → representative benchmark/budget gate → 45 missing C0/C1/C2 fits → independent replay → CV decision. Research scope stops here, exports/downloads outputs and releases. Competition scope alone may continue to guarded final fits/confirmation after verified CV_GO and advance authorization, then reuse exact confirmed models → real input-only inference → ZIP validation → verified export → downloads → release. NO_GO produces no promotion-ready submission. Production E50+L stays unchanged.
 
 Limits: 1 GPU allocation-hour / 2 wall-hours, including setup since this Run all, plus the explicit persistence reserve. These are planning caps, **not measured EXP-023 runtimes**. Allocation before Run all is not observable here. A representative benchmark may stop for insufficient budget. Same-identity completed models resume; an interrupted current fit may restart. Source/runtime changes require a new run directory. Confirmation opens once after verified CV_GO, never during preparation or this notebook's default blocked run.
 

@@ -10,6 +10,19 @@ Required sequence:
 
 **Setup → Validate → Benchmark → Experiment → CV → Verify → Decision → Guarded Confirmation when eligible and authorized → Final Model → Inference → Submission Validation → Export → Browser Download → Runtime Release.**
 
+## Explicit execution scope
+
+Choose one scope in the initial owner Configuration. Both require advance GPU authorization, released/permitted resource provenance, the frozen scientific protocol, compliance tests and the same budget caps.
+
+| Scope | Eligibility and allowed endpoint |
+| --- | --- |
+| `RESEARCH_ONLY_CV` | Competition eligibility may remain unresolved. Use only the preregistered released official training population and pinned permitted local artifacts. Complete CV, independent replay, metrics and unchanged scientific gates. Stop with `CV_GO_PENDING_ELIGIBILITY` or `CV_NO_GO`, then export/download outputs and release. No sealed confirmation, final competition fits or Development submission. Confirmation authorization and submission request must both be false. |
+| `COMPETITION_READY` | Independently verify genuine source-backed organizer permission before scientific GPU work. Confirmation/final models/submission require their original successful gates and advance authorization. No automatic competition promotion or upload. |
+
+Research permission/provenance is distinct from competition eligibility. An unresolved competition rule must not silently block otherwise authorized released-data research; a research CV_GO must never be relabeled competition eligibility. EXP-023's frozen `configs/exp023_eligibility.json` remains unresolved. Competition scope can consume a separate genuine organizer-evidence JSON (official URL, exact source SHA, permission excerpt and required resource/procedure coverage), checked by the original verifier and retained with its own checksum. Owner status strings alone remain insufficient.
+
+Scientific identity excludes scope/permission **only because they do not change training**: the exact original source revision/files, scientific config, complete input hashes and runtime are still compared without exceptions. Keep one compatible persistent run directory when changing from research CV to competition scope. Recheck seals and independently replay complete CV artifacts; do not retrain them. Different source/input/config/runtime identities fail with an explicit explanation. No semantic-equivalence migration from older source releases is allowed. Per-attempt authorization/eligibility records retain the scope history without changing immutable model seals.
+
 For EXP-023, the final 1,335-painting models are fitted and verified before opening confirmation, then reused without retraining after confirmation GO. A scientific NO-GO cannot publish a promotion-ready submission. Only real inference, complete validation and verified persistent artifacts may produce `SUCCESS_SUBMISSION_READY`.
 
 - Validate actual official input-only CSV/images and every required asset/cache before spending the fit budget when a submission is required. No synthetic substitute. Keep evaluation-phase resources separate from Development workflows.
@@ -65,6 +78,6 @@ Browser-download tests must prove **verified Drive export → download requests 
 
 The reusable `execute_stages` function checks automatic stage order, independent verification and fail-closed scientific decisions. `Budget`, `publish_model`/`verify_model`, `restore_handoff`, `export_artifacts` and `finalize` enforce resource, provenance, persistence and cleanup contracts. `validate_notebook_contract` checks one owner Configuration section, required settings and one orchestration entry point. Structural validation must be accompanied by the behavioral CPU/mocked tests; it is not a GPU-readiness certificate.
 
-Before spending GPU resources, the source-backed eligibility record, advance run scope, frozen protocol, real input/cache validation and current compliance tests must pass. An owner status string is not organizer permission. A new run identity is mandatory for source/runtime/scientific-input changes; historical complete boundaries are never relabeled or silently mixed. Initial platform permissions such as Drive mounting are the only permitted mid-run interaction.
+Before spending GPU resources, the scope-appropriate provenance/permission checks, advance authorization, frozen protocol, real input/cache validation and current compliance tests must pass. Source-backed **competition** eligibility is additionally mandatory for competition scope; research-only CV does not assert it. An owner status string is not organizer permission. A new run identity is mandatory for source/runtime/scientific-input changes; historical complete boundaries are never relabeled or silently mixed. Initial platform permissions such as Drive mounting are the only permitted mid-run interaction.
 
 Persistent model seals must be atomically published as each fit finishes, before any shutdown handler. Abrupt platform loss can lose an in-progress fit; it must not lose already published persistent models. Kaggle output survival requires Save Version/output capture; no unsaved-session guarantee is made. The supported cloud environment and dependency lock must be pinned and validated independently of the notebook kernel.

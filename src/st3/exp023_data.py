@@ -150,8 +150,8 @@ def load_inputs(root, config):
     return train, captions, dict(zip(names, values)), banks, visual, protocol, proof
 
 
-def read_confirmation(root, protocol, *, cv_verified, authorized, final_models_verified):
-    if not (cv_verified and authorized and final_models_verified):
+def read_confirmation(root, protocol, *, cv_verified, authorized, final_models_verified, execution_scope=None):
+    if execution_scope != "COMPETITION_READY" or not (cv_verified and authorized and final_models_verified):
         raise StopRun("BLOCKED_CONFIRMATION", "Confirmation remains sealed until verified CV_GO, advance authorization and final models")
     # Only this guarded function parses the opaque training-only historical label mapping.
     mapping = read_csv(Path(root) / "sealed/original_training_annotation_mapping.csv")

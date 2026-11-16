@@ -12,7 +12,8 @@ import threading
 import traceback
 import zipfile
 
-from .experiment_workflow import Budget, StopRun, finalize, restore_handoff, safe_member, sha256, write_json
+from .experiment_workflow import (Budget, StopRun, finalize, restore_handoff, safe_member, sha256, write_json,
+                                  execution_scope, eligibility_evidence, COMPETITION_READY)
 
 
 def child(command, *, log, deadline, env=None):
@@ -120,7 +121,8 @@ def run_cloud(settings, *, platform, mount=None, download=None, release=None, st
     persistent = Path(settings["PERSISTENT_ROOT"])
     local.mkdir(parents=True, exist_ok=True)
     report = {"experiment": "EXP-023", "status": "BLOCKED_INPUT", "production": "E50+L", "platform": platform,
-              "development_gold_read": False, "confirmation_labels_opened": False, "promotion": False}
+              "development_gold_read": False, "confirmation_labels_opened": False, "promotion": False,
+              "competition_eligibility": "NOT_ESTABLISHED", "development_submission_created": False}
     run_dir, destination = local / "bootstrap_diagnostics", persistent / "export"
     persistence_available = platform != "colab"
     try:
@@ -130,6 +132,8 @@ def run_cloud(settings, *, platform, mount=None, download=None, release=None, st
         persistent.mkdir(parents=True, exist_ok=True)
         run_dir = persistent / "run"
         run_dir.mkdir(parents=True, exist_ok=True)
+        scope = execution_scope(settings)
+        report["execution_scope"] = scope
         budget = Budget(settings["MAX_GPU_HOURS"], settings["MAX_TOTAL_WALL_HOURS"], cuda=True, started=started, reserve=180)
         # Check authorizations and source-backed eligibility before a model/GPU child exists.
         if not settings["AUTHORIZE_EXPERIMENT"]:
@@ -141,17 +145,20 @@ def run_cloud(settings, *, platform, mount=None, download=None, release=None, st
         if manifest["source_revision"] != settings["SOURCE_REVISION"]:
             raise StopRun("BLOCKED_INPUT", "Notebook source revision differs from handoff")
         source = restore_source(inputs, local, manifest)
-        # This early gate uses stdlib; scientific dependencies are not installed on unresolved eligibility.
-        evidence = json.loads((source / "configs/exp023_eligibility.json").read_text())
-        if evidence["status"] != "VERIFIED_ORGANIZER_PERMISSION" or settings["CAPTION_ELIGIBILITY_STATUS"] != "VERIFIED":
-            raise StopRun("BLOCKED_ELIGIBILITY", "Organizer permission remains unresolved; owner status cannot replace source evidence")
+        # Competition permission gates only competition scope. Research still requires
+        # advance GPU authorization, pinned official artifacts, compliance and budget checks.
+        if scope == COMPETITION_READY:
+            evidence, _ = eligibility_evidence(settings, source / "configs/exp023_eligibility.json")
+            if evidence["status"] != "VERIFIED_ORGANIZER_PERMISSION" or settings["CAPTION_ELIGIBILITY_STATUS"] != "VERIFIED":
+                raise StopRun("BLOCKED_ELIGIBILITY", "Organizer permission remains unresolved; owner status cannot replace source evidence")
         if settings["REQUIRE_SUBMISSION_ZIP"] and not settings["AUTHORIZE_GUARDED_CONFIRMATION"]:
             raise StopRun("BLOCKED_AUTHORIZATION", "Include guarded confirmation in initial authorization for submission scope")
         budget.check()
         python = bootstrap(source, local, started + budget.seconds - budget.reserve)
         compliance_env = dict(os.environ, PYTHONPATH=str(source / "src"), CUDA_VISIBLE_DEVICES="-1")
         child([str(python), "-m", "pytest", "-q", str(source / "tests/test_experiment_workflow.py"),
-               str(source / "tests/test_exp023.py"), str(source / "tests/test_exp023_notebooks.py")],
+               str(source / "tests/test_exp023.py"), str(source / "tests/test_exp023_notebooks.py"),
+               str(source / "tests/test_exp023_scopes.py")],
               log=run_dir / f"workflow_compliance_{time.time_ns()}.log", deadline=started + budget.seconds - budget.reserve,
               env=compliance_env)
         write_json(run_dir / "workflow_compliance.json", {"status": "PASS", "CUDA_VISIBLE_DEVICES": "-1", "source_revision": settings["SOURCE_REVISION"]})

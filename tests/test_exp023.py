@@ -288,6 +288,8 @@ def test_final_model_identity_change_blocks_promotion(tmp_path, fixture, config)
     # Exercise the production final-model guard without opening any real data.
     engine=object.__new__(Experiment)
     engine.config={**config,"conditions":["C2"],"seeds":[2027]}
+    engine.execution_scope="COMPETITION_READY"
+    engine.competition_eligible=True
     engine.run_dir=tmp_path
     engine.model_identity=lambda *args:{"synthetic":True}
     path=tmp_path/"models/fold_0_C2_2027"
@@ -299,6 +301,8 @@ def test_final_model_identity_change_blocks_promotion(tmp_path, fixture, config)
 def test_R0_1335_uses_only_allowed_training_and_resumes(tmp_path, fixture, monkeypatch):
     pairs,_,_,_,banks=fixture
     engine=object.__new__(Experiment)
+    engine.execution_scope="COMPETITION_READY"
+    engine.competition_eligible=True
     engine.run_dir=tmp_path
     engine.identity={"synthetic":True}
     engine.train=pairs[pairs.painting.ne("p7")]

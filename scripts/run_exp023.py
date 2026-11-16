@@ -27,9 +27,17 @@ def main():
         from st3.exp023_runner import Experiment, ROOT
         config = json.loads((ROOT / "configs/exp023.json").read_text())
         auth = json.loads(args.authorization.read_text())
+        report["execution_scope"] = auth.get("EXECUTION_SCOPE")
+        report.update(competition_eligibility="NOT_ESTABLISHED", confirmation_labels_opened=False,
+                      development_submission_created=False)
         engine = Experiment(args.inputs, args.run_dir, config, auth, device=args.device, started=args.started_at)
         stages = engine.run()
-        report.update(status="SUCCESS_SUBMISSION_READY", stages=stages, model="EC2_R0_1335", production_promotion=False)
+        research = engine.execution_scope == "RESEARCH_ONLY_CV"
+        report.update(status=stages["Decision"]["status"] if research else "SUCCESS_SUBMISSION_READY",
+                      stages=stages, model="VERIFIED_CV_ONLY" if research else "EC2_R0_1335", production_promotion=False,
+                      competition_eligibility="NOT_ESTABLISHED" if research else "VERIFIED_FROM_SOURCE",
+                      confirmation_labels_opened=(args.run_dir / "confirmation_access.json").exists() if not research else False,
+                      development_submission_created=not research)
     except StopRun as exc:
         report.update(status=exc.status, error=str(exc))
     except Exception as exc:
@@ -38,7 +46,7 @@ def main():
         report["observed_wall_seconds_since_Run_all"] = time.time() - args.started_at
         write_json(args.run_dir / "child_report.json", report)
     print(json.dumps(report), flush=True)
-    return 0 if report["status"] in ("SUCCESS_SUBMISSION_READY", "CV_NO_GO", "CONFIRMATION_NO_GO") else 2
+    return 0 if report["status"] in ("SUCCESS_SUBMISSION_READY", "CV_GO_PENDING_ELIGIBILITY", "CV_NO_GO", "CONFIRMATION_NO_GO") else 2
 
 
 if __name__ == "__main__":

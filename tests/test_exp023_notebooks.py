@@ -74,6 +74,8 @@ def test_notebook_generation_syntax_authorization_and_pins(monkeypatch):
         namespace={}
         exec(compile(config,"owner_configuration","exec"),namespace)
         assert namespace["AUTHORIZE_EXP023"] is False
+        assert namespace["EXECUTION_SCOPE"] == "RESEARCH_ONLY_CV"
+        assert namespace["REQUIRE_SUBMISSION_ZIP"] is False
         assert namespace["AUTHORIZE_GUARDED_CONFIRMATION"] is False
         assert namespace["CAPTION_ELIGIBILITY_STATUS"]=="UNRESOLVED"
         assert namespace["SOURCE_REVISION"]==receipt["source_revision"]

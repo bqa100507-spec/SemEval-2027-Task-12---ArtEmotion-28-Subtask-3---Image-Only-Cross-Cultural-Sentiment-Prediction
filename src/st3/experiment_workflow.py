@@ -14,6 +14,7 @@ import zipfile
 STAGES = ("Validate", "Benchmark", "Experiment", "CV", "Verify", "Decision",
           "GuardedConfirmation", "FinalModel", "Inference", "SubmissionValidation")
 CONFIGURATION = ("AUTHORIZE_EXPERIMENT", "AUTHORIZE_GUARDED_CONFIRMATION",
+                 "EXECUTION_SCOPE",
                  "RESOURCE_ELIGIBILITY_STATUS", "MAX_GPU_HOURS", "MAX_TOTAL_WALL_HOURS",
                  "REQUIRE_SUBMISSION_ZIP", "AUTO_BROWSER_DOWNLOAD", "AUTO_RELEASE_COLAB",
                  "EVAL_INPUT_CSV", "EVAL_DATA_DIR")
@@ -43,6 +44,44 @@ class StopRun(RuntimeError):
     def __init__(self, status, message):
         self.status = status
         super().__init__(message)
+
+
+RESEARCH_ONLY_CV = "RESEARCH_ONLY_CV"
+COMPETITION_READY = "COMPETITION_READY"
+
+
+def execution_scope(settings):
+    scope = settings.get("EXECUTION_SCOPE")
+    if scope not in (RESEARCH_ONLY_CV, COMPETITION_READY):
+        raise StopRun("BLOCKED_SCOPE", "Choose RESEARCH_ONLY_CV or COMPETITION_READY explicitly")
+    if scope == RESEARCH_ONLY_CV and (settings.get("AUTHORIZE_GUARDED_CONFIRMATION") or settings.get("REQUIRE_SUBMISSION_ZIP")):
+        raise StopRun("BLOCKED_SCOPE", "Research-only CV requires confirmation authorization and submission creation both disabled")
+    return scope
+
+
+def eligibility_evidence(settings, frozen_path):
+    """An optional organizer-evidence document changes authorization, never scientific inputs."""
+    path = Path(settings.get("COMPETITION_ELIGIBILITY_EVIDENCE") or frozen_path)
+    try:
+        return json.loads(path.read_text(encoding="utf-8")), {"path": str(path), "sha256": sha256(path)}
+    except (OSError, ValueError) as exc:
+        raise StopRun("BLOCKED_ELIGIBILITY", f"Cannot read organizer-evidence document {path}: {exc}") from exc
+
+
+def scoped_cv_decision(decision, scope):
+    if scope == RESEARCH_ONLY_CV:
+        return {**decision, "status": "CV_GO_PENDING_ELIGIBILITY" if decision["status"] == "CV_GO" else decision["status"],
+                "scientific_status": decision["status"], "execution_scope": scope,
+                "competition_eligibility": "NOT_ESTABLISHED", "submission_authorized": False}
+    return {**decision, "execution_scope": scope}
+
+
+def require_run_identity(recorded, current):
+    # No hash exclusions, tolerance, migration or source-equivalence shortcut.
+    if recorded != current:
+        changed = sorted(k for k in set(recorded) | set(current) if recorded.get(k) != current.get(k))
+        raise StopRun("FAILED_VERIFICATION", "Incompatible completed run: " + ", ".join(changed)
+                      + ". Scope changes never waive exact source/input/config/runtime identity; preserve this run and use a new directory for changed identities.")
 
 
 class Budget:
@@ -250,17 +289,26 @@ def validate_notebook_contract(notebook):
     return {"status": "PASS", "boundary": "Structure only; behavioral CPU compliance tests are also required"}
 
 
-def execute_stages(callbacks, budget, progress):
+def execute_stages(callbacks, budget, progress, *, scope=COMPETITION_READY):
     """Reusable fail-closed transitions. Callers supply science, never manual Continue."""
     result = {}
+    if scope not in (RESEARCH_ONLY_CV, COMPETITION_READY):
+        raise StopRun("BLOCKED_SCOPE", "Unknown execution scope")
     for stage in STAGES:
         budget.check()
         progress(stage)
         result[stage] = callbacks[stage]()
         if stage == "Verify" and result[stage].get("status") != "PASS":
             raise StopRun("FAILED_VERIFICATION", "Independent CV replay failed")
-        if stage == "Decision" and result[stage].get("status") != "CV_GO":
-            raise StopRun("CV_NO_GO", "Frozen scientific CV gate failed")
+        if stage == "Decision":
+            status = result[stage].get("status")
+            if scope == RESEARCH_ONLY_CV:
+                if status not in ("CV_GO", "CV_GO_PENDING_ELIGIBILITY"):
+                    raise StopRun("CV_NO_GO", "Frozen scientific CV gate failed")
+                result[stage] = scoped_cv_decision(result[stage], scope) if status == "CV_GO" else result[stage]
+                return result  # No confirmation, final models, inference or submission callbacks.
+            if status != "CV_GO":
+                raise StopRun("CV_NO_GO", "Frozen scientific CV gate failed")
         if stage == "GuardedConfirmation" and result[stage].get("status") != "CONFIRMATION_GO":
             raise StopRun("CONFIRMATION_NO_GO", "Frozen confirmation gate failed")
         if stage == "FinalModel" and result[stage].get("status") != "PASS":

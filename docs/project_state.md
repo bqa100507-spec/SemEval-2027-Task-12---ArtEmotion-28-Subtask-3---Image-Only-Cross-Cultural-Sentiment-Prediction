@@ -3,6 +3,8 @@
 
 ## Current decision — TASK-024 closure
 
+**TASK-025B scope patch:** EXP-023 now distinguishes `RESEARCH_ONLY_CV` (advance owner-authorized released-data CV; no confirmation/submission; GO_PENDING_ELIGIBILITY) from `COMPETITION_READY` (original source-backed eligibility and scientific gates). Scientific protocol/budgets remain unchanged. The new checksum-pinned handoff uses a new source/run identity; exact compatible models can resume across scopes without retraining. No GPU run or sealed confirmation-label access occurs in this coding task. [Scope readiness](../reports/exp023_research_scope_readiness.md).
+
 **TASK-025 update:** EXP-023 implementation is authorized and prepared on a separate review branch; CPU/synthetic validation and private handoff checks only. Scientific authority remains the unchanged `reports/next_exp_proposal.md`. Organizer caption-supervision eligibility is unresolved and no GPU training, confirmation access or Development scoring is authorized. See [implementation report](../reports/exp023_implementation.md) and [eligibility review](exp023_eligibility.md). The permanent workflow is enforced through shared code/tests and the mandatory AGENTS entry point. All TASK-024 production/closure decisions below remain final.
 
 | Item | Current state |

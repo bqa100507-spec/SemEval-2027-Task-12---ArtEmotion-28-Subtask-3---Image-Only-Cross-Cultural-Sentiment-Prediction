@@ -1,6 +1,6 @@
 # EXP-023 resource eligibility review
 
-Checked **2026-11-16**. Status: **ELIGIBILITY_UNRESOLVED**. Implementation and CPU/synthetic verification are authorized; scientific GPU execution, confirmation access and promotion are blocked.
+Checked **2026-11-16**. Competition status: **ELIGIBILITY_UNRESOLVED**. TASK-025B separates this from released-data research: `RESEARCH_ONLY_CV` may run the unchanged preregistered CV after advance owner GPU authorization and provenance/compliance/budget checks. Confirmation, competition final models/submission and promotion remain behind source-backed competition permission and their existing gates. This coding task launches no GPU work.
 
 | Official source | Direct evidence and limit |
 | --- | --- |
@@ -21,6 +21,8 @@ No message/issue was sent. An owner status string is not a substitute for an org
 
 ## Enforced evidence boundary
 
-`configs/exp023_eligibility.json` is unresolved by default. A future reviewed update must name an authoritative HTTPS organizer source, its exact byte SHA-256, an exact permission excerpt, and explicit coverage of ST3/original-caption auxiliary targets/the pinned CLIP-L text resource. `verify_eligibility` independently fetches/checks that evidence before any scientific GPU fit. The cloud supervisor rejects unresolved status before environment installation/training. The source/evidence update creates a new source and handoff identity; it cannot be bypassed by editing notebook booleans or changing a checksum to match an unreviewed file.
+`configs/exp023_eligibility.json` remains unresolved and unchanged in TASK-025B. Competition scope requires an authoritative HTTPS organizer source, exact byte SHA-256, exact permission excerpt, and explicit coverage of ST3/original-caption auxiliary targets/the pinned CLIP-L text resource. `verify_eligibility` independently fetches/checks evidence before competition-scope scientific GPU work. The cloud supervisor rejects unresolved competition status before environment installation/training in that scope only. Research scope neither fetches organizer evidence nor reports competition eligibility as verified.
 
-The frozen scientific settings and decision gates do not change when resource permission is resolved. Until then, the delivered notebook is a tested implementation with a deliberate eligibility block, not an authorized real-cloud run.
+A genuine separate organizer-evidence JSON can be supplied through `COMPETITION_ELIGIBILITY_EVIDENCE` without modifying the frozen scientific source/config/handoff. Its checksum and fetched proof are retained in per-attempt authorization history. This supports exact same-source research-to-competition resume; all existing scientific model identities still match exactly or fail explicitly. No permission example is fabricated and a notebook status string alone remains insufficient.
+
+The frozen scientific settings and decision gates do not change when competition permission is resolved. The delivered notebook is scope-aware and CPU/mocked-tested; it is not an owner authorization or evidence of a real-cloud run. Research CV_GO is reported as CV_GO_PENDING_ELIGIBILITY, never as submission readiness.

@@ -23,7 +23,9 @@ from .e50_inference import read_input, safe_image_path
 from .exp023_data import load_inputs, read_confirmation, read_csv, exact
 from .exp023_evaluation import aggregate, analyze, scientific_gate
 from .exp023_targets import prepare_partitions
-from .experiment_workflow import Budget, StopRun, execute_stages, fingerprint, publish_model, sha256, verify_model, write_json
+from .experiment_workflow import (Budget, StopRun, execute_stages, fingerprint, publish_model, sha256, verify_model, write_json,
+                                  RESEARCH_ONLY_CV, COMPETITION_READY, execution_scope, eligibility_evidence,
+                                  scoped_cv_decision, require_run_identity)
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -61,6 +63,8 @@ class Experiment:
     def __init__(self, inputs, run_dir, config, authorization, *, device="cuda", started=None):
         self.inputs, self.run_dir = Path(inputs), Path(run_dir)
         self.config, self.authorization = config, authorization
+        self.execution_scope = execution_scope(authorization)
+        self.competition_eligible = False
         self.device = torch.device(device)
         cap = config["budget"]
         gpu_hours, wall_hours = authorization["MAX_GPU_HOURS"], authorization["MAX_TOTAL_WALL_HOURS"]
@@ -73,6 +77,7 @@ class Experiment:
 
     def progress(self, stage, **details):
         row = {"stage": stage, "elapsed_seconds": time.time() - self.budget.started,
+               "execution_scope": self.execution_scope,
                "remaining_allocation_seconds": self.budget.remaining(), "gpu_hours_cap": self.authorization["MAX_GPU_HOURS"],
                "wall_hours_cap": self.authorization["MAX_TOTAL_WALL_HOURS"],
                "estimated_remaining_work_seconds": getattr(self, "forecast_remaining", None), **details}
@@ -83,10 +88,17 @@ class Experiment:
 
     def validate(self):
         if self.authorization.get("AUTHORIZE_EXPERIMENT") is not True:
-            raise StopRun("BLOCKED_AUTHORIZATION", "Set the single advance authorization only after eligibility and workflow review")
-        evidence = json.loads((ROOT / "configs/exp023_eligibility.json").read_text())
-        proof = verify_eligibility(evidence, self.authorization["CAPTION_ELIGIBILITY_STATUS"])
+            raise StopRun("BLOCKED_AUTHORIZATION", "Advance owner GPU authorization and workflow review are required in either scope")
+        if self.execution_scope == COMPETITION_READY:
+            evidence, receipt = eligibility_evidence(self.authorization, ROOT / "configs/exp023_eligibility.json")
+            proof = {**verify_eligibility(evidence, self.authorization["CAPTION_ELIGIBILITY_STATUS"]), "evidence_document": receipt}
+            self.competition_eligible = True
+        else:
+            proof = {"status": "RESEARCH_ONLY_NOT_COMPETITION_ELIGIBLE", "competition_eligibility": "NOT_ESTABLISHED",
+                     "resource_scope": "Pinned released official training artifacts only; no new data/checkpoints"}
         write_json(self.run_dir / "eligibility.json", proof)
+        write_json(self.run_dir / "authorization_history" / f"{time.time_ns()}.json",
+                   {"execution_scope": self.execution_scope, "authorization": self.authorization, "eligibility": proof})
         if self.authorization["REQUIRE_SUBMISSION_ZIP"] and not self.authorization["AUTHORIZE_GUARDED_CONFIRMATION"]:
             raise StopRun("BLOCKED_AUTHORIZATION", "Submission scope needs guarded confirmation authorization in the initial Configuration")
         if self.device.type == "cuda" and not torch.cuda.is_available():
@@ -127,8 +139,8 @@ class Experiment:
         self.identity = {"source_revision": manifest["source_revision"], "source": source, "config": fingerprint(self.config),
                          "inputs": sha256(self.inputs / "input_manifest.json"), "runtime": self.runtime}
         identity_path = self.run_dir / "run_identity.json"
-        if identity_path.exists() and json.loads(identity_path.read_text()) != self.identity:
-            raise StopRun("FAILED_VERIFICATION", "Run identity changed; preserve it and use a new run directory")
+        if identity_path.exists():
+            require_run_identity(json.loads(identity_path.read_text()), self.identity)
         write_json(identity_path, self.identity)
         write_json(self.run_dir / "historical_parity.json", historical)
         # Revoke prior successful decisions until the current complete replay passes.
@@ -209,7 +221,8 @@ class Experiment:
         missing = sum(not (self.run_dir / "models" / f"fold_{fold}_{c}_{seed}").exists()
                       for fold in range(1, 6) for c in self.config["conditions"] for seed in self.config["seeds"])
         final = sum(not (self.run_dir / "models" / f"fold_0_{c}_{seed}").exists()
-                    for c in self.config["conditions"] for seed in self.config["seeds"]) if self.authorization["AUTHORIZE_GUARDED_CONFIRMATION"] else 0
+                    for c in self.config["conditions"] for seed in self.config["seeds"]) if (
+                        self.execution_scope == COMPETITION_READY and self.authorization["AUTHORIZE_GUARDED_CONFIRMATION"]) else 0
         # Conservative full max selection+refit; validation/replay, CPU LR, bootstrap and export included.
         training = (missing + final) * self.config["max_epochs"] * 2 * max_epoch
         projection = self.config["budget"]["forecast_safety_factor"] * (training + 12 * target_seconds + 300 + 120)
@@ -230,6 +243,8 @@ class Experiment:
                                (("fit", fitting), ("held", held), ("inner", inner), ("stopping", stopping))}}
 
     def fit_one(self, fold, condition, seed, prepared, baseline, held):
+        if fold == 0:
+            self.require_competition_scope()
         path = self.run_dir / "models" / f"fold_{fold}_{condition}_{seed}"
         identity = self.model_identity(fold, condition, seed)
         fitting, _, inner, stopping = self.partition(fold)
@@ -323,9 +338,11 @@ class Experiment:
         write_json(self.run_dir / "cv_analysis.json", analysis)
         self.diagnostics(paintings, languages)
         result = scientific_gate(analysis, folds, self.config, verified_models=self.verified, inputs_verified=True)
-        write_json(self.run_dir / "decision.json", result)
         self.cv_decision = result
-        return result
+        scoped = scoped_cv_decision(result, self.execution_scope)
+        write_json(self.run_dir / "scientific_cv_decision.json", result)
+        write_json(self.run_dir / "decision.json", scoped)
+        return scoped
 
     def diagnostics(self, paintings, languages):
         # Fixed subgroups are descriptive only; never a selection input.
@@ -353,6 +370,7 @@ class Experiment:
         write_json(self.run_dir / "leave_one_fold_out_aggregation.json", leave_out)
 
     def final_baseline(self, held):
+        self.require_competition_scope()
         languages = sorted(self.train.language.unique())
         predictions = []
         for name, bank, width in zip(("clip", "siglip", "large"), self.banks, (512, 768, 768)):
@@ -372,6 +390,9 @@ class Experiment:
         return blend(blend(predictions[0], predictions[1], .5), predictions[2], .5)
 
     def confirmation(self):
+        self.require_competition_scope()
+        if self.cv_decision["status"] != "CV_GO" or self.verified != 45:
+            raise StopRun("FAILED_VERIFICATION", "Verified complete CV_GO is required before final fits or confirmation")
         if not self.authorization["AUTHORIZE_GUARDED_CONFIRMATION"]:
             raise StopRun("BLOCKED_CONFIRMATION", "Confirmation was not included in advance authorization")
         # Use training-only smoke inputs before any confirmation label is opened.
@@ -395,7 +416,7 @@ class Experiment:
             return self.confirm_decision
         write_json(ledger, {"final_model_identities": frozen, "completed": False, "opened_once": True})
         gold = read_confirmation(self.inputs, self.protocol, cv_verified=self.cv_decision["status"] == "CV_GO" and self.verified == 45,
-                                 authorized=True, final_models_verified=self.final_verified == 9)
+                                 authorized=True, final_models_verified=self.final_verified == 9, execution_scope=self.execution_scope)
         r0 = self.final_baseline(gold[data.INPUT_COLUMNS])
         predictions = {"R0": r0}
         for condition in self.config["conditions"]:
@@ -413,6 +434,7 @@ class Experiment:
         return self.confirm_decision
 
     def final_predict(self, condition, inputs, baseline):
+        self.require_competition_scope()
         values = []
         for seed in self.config["seeds"]:
             path = self.run_dir / "models" / f"fold_0_{condition}_{seed}"
@@ -424,6 +446,7 @@ class Experiment:
         return values
 
     def final_model(self):
+        self.require_competition_scope()
         expected = json.loads((self.run_dir / "final_model_identities.json").read_text())
         for condition in self.config["conditions"]:
             for seed in self.config["seeds"]:
@@ -434,6 +457,7 @@ class Experiment:
         return {"status": "PASS", "models": expected, "refitted_after_confirmation": False}
 
     def inference(self):
+        self.require_competition_scope()
         if not self.authorization["REQUIRE_SUBMISSION_ZIP"]:
             raise StopRun("CONFIRMATION_GO_NO_SUBMISSION_REQUESTED", "Science complete; no submission requested")
         r0 = self.final_baseline(self.eval_inputs)
@@ -442,6 +466,7 @@ class Experiment:
         return {"rows": len(prediction), "input": "image_pixels_and_target_language_via_checksum_verified_frozen_features"}
 
     def validate_submission(self):
+        self.require_competition_scope()
         submission.pack(self.run_dir / "predictions.csv", self.run_dir / "submission.zip", self.eval_inputs)
         actual = submission.validate_archive(self.run_dir / "submission.zip", self.eval_inputs)
         if not actual[data.KEYS].equals(self.eval_inputs[data.KEYS]):
@@ -449,6 +474,10 @@ class Experiment:
         digest = sha256(self.run_dir / "submission.zip")
         (self.run_dir / "submission.sha256").write_text(digest + "  submission.zip\n")
         return {"status": "PASS", "rows": len(actual), "sha256": digest, "automatic_promotion": False}
+
+    def require_competition_scope(self):
+        if getattr(self, "execution_scope", None) != COMPETITION_READY or not getattr(self, "competition_eligible", False):
+            raise StopRun("BLOCKED_SCOPE", "Research-only or eligibility-unverified execution cannot enter competition stages")
 
     def run(self):
         callbacks = dict(zip(("Validate", "Benchmark", "Experiment", "CV", "Verify", "Decision", "GuardedConfirmation", "FinalModel", "Inference", "SubmissionValidation"),
@@ -467,4 +496,5 @@ class Experiment:
                 except Exception as exc:
                     raise StopRun(failures[stage], f"{stage}: {type(exc).__name__}: {exc}") from exc
             return invoke
-        return execute_stages({stage: guarded(stage, callback) for stage, callback in callbacks.items()}, self.budget, self.progress)
+        return execute_stages({stage: guarded(stage, callback) for stage, callback in callbacks.items()}, self.budget, self.progress,
+                              scope=self.execution_scope)

@@ -1,5 +1,7 @@
 # EXP-023 implementation / TASK-025
 
+**TASK-025B supersedes the original all-scopes eligibility block below.** The [scope readiness report](exp023_research_scope_readiness.md) defines research-only CV versus competition-ready execution. No frozen scientific setting/gate changes; no actual research GPU run is authorized or executed by the coding patch. Original TASK-025 delivery pins/results below remain a historical record.
+
 **IMPLEMENTED FOR CPU VERIFICATION; SCIENTIFIC GPU EXECUTION BLOCKED_ELIGIBILITY.** No EXP-023 CV, confirmation, Development scoring, hosted submission or production promotion has been executed. EXP-022/TASK-023 remain CLOSED / EL8 NO_GO. Production remains E50+L.
 
 ## Authority and frozen science

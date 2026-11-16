@@ -181,7 +181,7 @@ def test_kaggle_never_invokes_colab_callbacks(tmp_path):
 @pytest.mark.parametrize("authorized,mount_failure", [(False,False),(True,False),(True,True)])
 def test_cloud_bootstrap_failures_release(tmp_path,authorized,mount_failure):
     events=[]
-    settings={"LOCAL_ROOT":str(tmp_path/"local"),"PERSISTENT_ROOT":str(tmp_path/"drive"),"AUTHORIZE_EXPERIMENT":authorized,
+    settings={"EXECUTION_SCOPE":"COMPETITION_READY","LOCAL_ROOT":str(tmp_path/"local"),"PERSISTENT_ROOT":str(tmp_path/"drive"),"AUTHORIZE_EXPERIMENT":authorized,
               "MAX_GPU_HOURS":1.,"MAX_TOTAL_WALL_HOURS":2.,"INPUT_ZIP":str(tmp_path/"missing.zip"),
               "ZIP_SHA256":"0"*64,"MANIFEST_SHA256":"0"*64,"SOURCE_REVISION":"x", "AUTO_BROWSER_DOWNLOAD":True,"AUTO_RELEASE_COLAB":True}
     def mount():
@@ -213,7 +213,7 @@ def test_eligibility_blocks_bootstrap_and_training(tmp_path,monkeypatch):
     monkeypatch.setattr(exp023_cloud,"restore_handoff",lambda *args:{"source_revision":"pinned"})
     monkeypatch.setattr(exp023_cloud,"restore_source",lambda *args:source)
     monkeypatch.setattr(exp023_cloud,"bootstrap",lambda *args:pytest.fail("Environment/model launched before eligibility"))
-    settings={"LOCAL_ROOT":str(tmp_path/"local"),"PERSISTENT_ROOT":str(tmp_path/"drive"),"AUTHORIZE_EXPERIMENT":True,
+    settings={"EXECUTION_SCOPE":"COMPETITION_READY","LOCAL_ROOT":str(tmp_path/"local"),"PERSISTENT_ROOT":str(tmp_path/"drive"),"AUTHORIZE_EXPERIMENT":True,
               "MAX_GPU_HOURS":1.,"MAX_TOTAL_WALL_HOURS":2.,"INPUT_ZIP":"unused", "ZIP_SHA256":"x","MANIFEST_SHA256":"x",
               "SOURCE_REVISION":"pinned","CAPTION_ELIGIBILITY_STATUS":"VERIFIED","AUTO_BROWSER_DOWNLOAD":True,"AUTO_RELEASE_COLAB":True}
     events=[]
