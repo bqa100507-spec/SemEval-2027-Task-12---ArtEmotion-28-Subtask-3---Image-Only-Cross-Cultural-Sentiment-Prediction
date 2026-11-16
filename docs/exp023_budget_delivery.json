@@ -1,0 +1,155 @@
+{
+  "task": "TASK-025C",
+  "experiment": "EXP-023",
+  "status": "RESEARCH_CV_OPERATIONALLY_READY_OWNER_AUTHORIZATION_REQUIRED",
+  "delivery_branch": "codex/025-exp023-caption-centering",
+  "safety_worktree_branch": "codex/025c-exp023-budget",
+  "pull_request": 24,
+  "source_revision": "dafa607e8a5e3270f2e7270f6eb5e0a5748b4472",
+  "private_handoff": {
+    "path": "runs/exp023_budget_delivery/final/exp023_handoff.zip",
+    "sha256": "2db4a53679940c7eb63c7c8272b91be8ec0618bb6c04a69ebaa15909e20f64e0",
+    "manifest_sha256": "b5315db3847c29c432e91510a3d8f99c4b1bf13aca8b17282a53059347a20aa9",
+    "bytes": 318985734
+  },
+  "notebooks": [
+    "notebooks/EXP023_Colab.ipynb",
+    "notebooks/EXP023_Kaggle.ipynb"
+  ],
+  "defaults": {
+    "EXECUTION_SCOPE": "RESEARCH_ONLY_CV",
+    "AUTHORIZE_EXP023": false,
+    "MAX_GPU_HOURS": 4.0,
+    "MAX_TOTAL_WALL_HOURS": 5.0,
+    "AUTHORIZE_GUARDED_CONFIRMATION": false,
+    "REQUIRE_SUBMISSION_ZIP": false,
+    "CAPTION_ELIGIBILITY_STATUS": "UNRESOLVED",
+    "AUTO_BROWSER_DOWNLOAD": true,
+    "AUTO_RELEASE_COLAB": true
+  },
+  "budget_policy": {
+    "limits_not_target_runtimes": true,
+    "universal_gpu_hour_ceiling": null,
+    "cleanup_reserve_seconds": 180,
+    "safety_factor": 1.25,
+    "whole_job_theoretical_forecast": "diagnostic_only",
+    "admission": "one conservative complete original fit plus independent replay and persistent I/O; cleanup reserve separate",
+    "expected_runtime": "initially null; observed same-condition complete fits with explicit max-epoch fallback for unseen conditions",
+    "incomplete_cv_is_scientific_no_go": false,
+    "required_cv_models": 45
+  },
+  "identity": {
+    "budget_and_scope_in_model_scientific_identity": false,
+    "source_config_inputs_runtime_partitions_seeds_exact": true,
+    "cross_source_migration_supported": false,
+    "old_benchmark_reusable_for_new_source": false
+  },
+  "validation": {
+    "worktree_cpu": {
+      "passed": 241,
+      "failed": 0,
+      "skipped": 1,
+      "skip_reason": "Windows symlink fixture"
+    },
+    "independent_restored_cpu": {
+      "passed": 241,
+      "failed": 0,
+      "skipped": 1
+    },
+    "input_files": 1693,
+    "source_files": 122,
+    "training_pairs": 13600,
+    "training_paintings": 1335,
+    "caption_rows": 69719,
+    "historical_blend_checks": 10,
+    "real_zip_notebook_mock_cases": [
+      {
+        "case": "colab_default",
+        "status": "BLOCKED_AUTHORIZATION",
+        "events": [
+          "mount",
+          "download",
+          "release"
+        ],
+        "readback": "PASS",
+        "GPU_executed": false
+      },
+      {
+        "case": "colab_research",
+        "status": "CPU_TEST_STOP_BEFORE_ENVIRONMENT",
+        "events": [
+          "mount",
+          "bootstrap_sentinel",
+          "download",
+          "release"
+        ],
+        "readback": "PASS",
+        "GPU_executed": false
+      },
+      {
+        "case": "colab_competition",
+        "status": "BLOCKED_ELIGIBILITY",
+        "events": [
+          "mount",
+          "download",
+          "release"
+        ],
+        "readback": "PASS",
+        "GPU_executed": false
+      },
+      {
+        "case": "kaggle_default",
+        "status": "BLOCKED_AUTHORIZATION",
+        "events": [],
+        "readback": "PASS",
+        "GPU_executed": false
+      }
+    ],
+    "schema_ast_contract": "PASS",
+    "scientific_asset_sha256": {
+      "configs/exp023.json": "1f039747dc9db8d7375a2e8189b5870f9ed62fd1c52bdbe9754fd242724ccae3",
+      "configs/exp023_eligibility.json": "3cea52026f95f989e620784fca01870f43adaa9993206a99eb5d59b05f031c66",
+      "requirements-exp023.lock.txt": "05a4170a83b563e8014b0743971ecc67991e428dca364cacdd5b20f5d575ede2",
+      "src/st3/caption_data.py": "19e7b7e0951bd16cdd0d690b8d7b09e8e5adf63bfab060333e2c06bdeca01c14",
+      "src/st3/caption_student.py": "9a180b2f56b52bd3bc8a87ad63a6cf5d04c0763f103656c4347cdf7f315d2c8b",
+      "src/st3/caption_targets.py": "f3d5ebbfbd267e0ff83adc3396730dfaa96f2db7990bbc4344bfacbeb0496960",
+      "src/st3/exp023_targets.py": "de871bfd0a558e6ae66266bfc390fc394e638ed68634d4384271e03f28325933",
+      "src/st3/exp023_evaluation.py": "ac90f6f1db770afb66e739881ab739ad7dd4771dd17ff1cc4dfc6b3cfa6fb2e0",
+      "reports/next_exp_proposal.md": "f49f0478642dcda55ef34f272fbe0251a06122c50fdbafc57dbeb7f10d55a450"
+    },
+    "all_1692_non_source_inputs_identical_to_025B": true,
+    "protected_files_unchanged": 499,
+    "exact_checkpoint_and_prediction_parity": [
+      "C0",
+      "C1",
+      "C2"
+    ]
+  },
+  "historical_failure": {
+    "attribution": "Owner-reported Colab log; original run archive not independently retrieved",
+    "status": "STOPPED_BUDGET",
+    "wall_seconds": 124.529,
+    "scientific_fits_started": 0,
+    "reusable_cv_models": false,
+    "old_benchmark": "Diagnostic context only; incompatible new source identity"
+  },
+  "competition_eligibility": "UNRESOLVED_FROZEN_EVIDENCE_UNCHANGED",
+  "production": "E50+L",
+  "production_csv_sha256": "162875b641407efea3bf28d1d147c2d9a3dd3dc2faed8863f9438bee517199a3",
+  "execution_boundary": {
+    "scientific_gpu_training": false,
+    "sealed_confirmation_annotations_read": false,
+    "development_gold_scored": false,
+    "codabench_upload": false,
+    "updated_L4_runtime_verified": false
+  },
+  "prior_handoffs_preserved": [
+    "runs/exp023_delivery/exp023_handoff.zip",
+    "runs/exp023_research_delivery/exp023_handoff.zip"
+  ],
+  "private_validation_reports": [
+    "runs/exp023_budget_delivery/final/independent_cpu_validation.json",
+    "runs/exp023_budget_delivery/final/notebook_smoke_results.json",
+    "runs/task025c_budget/protected_after.json"
+  ]
+}
