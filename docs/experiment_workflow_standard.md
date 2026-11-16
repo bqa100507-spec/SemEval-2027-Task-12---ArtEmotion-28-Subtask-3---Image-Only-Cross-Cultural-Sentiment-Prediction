@@ -8,11 +8,11 @@ Before execution freeze the hypothesis, exact conditions/controls, eligible trai
 
 Required sequence:
 
-**Setup → Validate → Benchmark → Experiment → CV → Verify → Decision → Guarded Confirmation when eligible and authorized → Final Model → Inference → Submission Validation → Export → Browser Download → Runtime Release.**
+**Setup â†’ Validate â†’ Benchmark â†’ Experiment â†’ CV â†’ Verify â†’ Decision â†’ Guarded Confirmation when eligible and authorized â†’ Final Model â†’ Inference â†’ Submission Validation â†’ Export â†’ Browser Download â†’ Runtime Release.**
 
 ## Explicit execution scope
 
-Choose one scope in the initial owner Configuration. Both require advance GPU authorization, released/permitted resource provenance, the frozen scientific protocol, compliance tests and the same budget caps.
+Choose one scope in the initial owner Configuration. Both require advance GPU authorization, released/permitted resource provenance, the frozen scientific protocol, compliance tests and explicit owner-authorized budget limits.
 
 | Scope | Eligibility and allowed endpoint |
 | --- | --- |
@@ -72,7 +72,7 @@ finally:
 
 Test happy-path ordering and zero-GPU mocks; missing inputs/assets; failed gates/replay; corrupt/stale/incomplete checkpoint/report rejection; finite budgets/timeouts/OOM; exact pair/rounding/ZIP checks; completed-model reuse; export/read-back corruption; interrupted/failing-stage persistence; original production parity; and no forbidden labels/inference inputs. Verify runtime release on success, gate failure, training/verification/submission failure, budget stop and export/report failure, including bootstrap failures.
 
-Browser-download tests must prove **verified Drive export → download requests → release**, handle each download failing/being blocked, skip absent files/unverified exports, preserve Drive copies and never log owner-machine arrival as confirmed from a mock/API return. No test launches costly training or Codabench submission. Actual cloud execution must be reported separately from local fixtures. Archive the complete verified run and stop after NO_GO; do not automatically start a successor experiment.
+Browser-download tests must prove **verified Drive export â†’ download requests â†’ release**, handle each download failing/being blocked, skip absent files/unverified exports, preserve Drive copies and never log owner-machine arrival as confirmed from a mock/API return. No test launches costly training or Codabench submission. Actual cloud execution must be reported separately from local fixtures. Archive the complete verified run and stop after NO_GO; do not automatically start a successor experiment.
 
 ## Enforcement and readiness boundary
 
@@ -81,3 +81,15 @@ The reusable `execute_stages` function checks automatic stage order, independent
 Before spending GPU resources, the scope-appropriate provenance/permission checks, advance authorization, frozen protocol, real input/cache validation and current compliance tests must pass. Source-backed **competition** eligibility is additionally mandatory for competition scope; research-only CV does not assert it. An owner status string is not organizer permission. A new run identity is mandatory for source/runtime/scientific-input changes; historical complete boundaries are never relabeled or silently mixed. Initial platform permissions such as Drive mounting are the only permitted mid-run interaction.
 
 Persistent model seals must be atomically published as each fit finishes, before any shutdown handler. Abrupt platform loss can lose an in-progress fit; it must not lose already published persistent models. Kaggle output survival requires Save Version/output capture; no unsaved-session guarantee is made. The supported cloud environment and dependency lock must be pinned and validated independently of the notebook kernel.
+
+## Progressive operational budgets — TASK-025C
+
+GPU/allocation and wall limits are maximum authorizations, not target durations. They must be finite and configurable for each experiment; there is no universal one-hour or four-hour ceiling. EXP-023 defaults to 4 allocation-hours /5 wall-hours, counted since Run all (not CUDA kernel-active time). Finish, export and release immediately after the authorized sequence ends. Setup/restoration, validation and verification consume this allowance too; pre-Run-all platform occupancy remains unobservable.
+
+Separate owner time limits from scientific identity. Changing only these limits permits exact compatible resume, with the same immutable source/config/inputs/runtime and original checkpoint hashes. Changing source still requires a fresh run identity. Operational defaults are pinned in configs/exp023_runtime.json; the unchanged scientific config's old budget block is archival and no longer read. Do not change a source file merely to raise the notebook's owner-authorized limit.
+
+Record two forecasts: theoretical_worst_case_seconds preserves the max-epoch whole-job bound; measured_expected_remaining_seconds is initially null and then uses observed complete same-condition fit durations, selection/refit epochs and measured representative operations. Unobserved conditions explicitly retain conservative planning proxies. Record min/max/sample counts and the safety factor, without statistical confidence claims. EXP-023 benchmarks inner train, validation, full refit, PCA, checkpoint I/O, reload/prediction, scorer and bootstrap independently; export/read-back duration is measured at finalization and reported separately. Export admission remains a conservative allowance plus cleanup reserve, not an alleged prior measurement.
+
+A whole-job theoretical forecast exceeding a session's budget must not veto safe partial progress. Before each original fit, reserve a conservative max-epoch fit estimate plus initial replay/persistence and cleanup; refuse admission if insufficient. Completed slower fits may raise the allowance. Seal/publish only after exact replay succeeds, on persistent storage. Recompute forecasts after each completed model. Parent deadlines and in-loop checks stop overruns, discard unpublished partial fits and retain all published completions for the next authorized run.
+
+Fewer than all preregistered fits or failed replay cannot yield a scientific GO/NO-GO. STOPPED_BUDGET and INCOMPLETE_CV are operational statuses. Re-run with the same compatible source/handoff/runtime/persistent path to continue; do not repeat completed fits. Export/read-back, browser download attempts and runtime release apply on budget interruption as on success. No polling or waiting to consume unused budget.

@@ -78,6 +78,8 @@ def test_notebook_generation_syntax_authorization_and_pins(monkeypatch):
         assert namespace["REQUIRE_SUBMISSION_ZIP"] is False
         assert namespace["AUTHORIZE_GUARDED_CONFIRMATION"] is False
         assert namespace["CAPTION_ELIGIBILITY_STATUS"]=="UNRESOLVED"
+        assert namespace["MAX_GPU_HOURS"] == 4.0
+        assert namespace["MAX_TOTAL_WALL_HOURS"] == 5.0
         assert namespace["SOURCE_REVISION"]==receipt["source_revision"]
         assert namespace["ENTRY_SHA256"]==hashlib.sha256(entry).hexdigest()
         assert not any(cell.get("outputs") for cell in notebook["cells"])

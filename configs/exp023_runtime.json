@@ -1,0 +1,12 @@
+{
+  "default_gpu_hours": 4.0,
+  "default_wall_hours": 5.0,
+  "persistence_reserve_seconds": 180,
+  "benchmark_epochs": 3,
+  "forecast_safety_factor": 1.25,
+  "minimum_fit_io_seconds": 15.0,
+  "minimum_final_scoring_seconds": 30.0,
+  "minimum_export_seconds": 30.0,
+  "baseline_component_seconds": 100.0,
+  "note": "Operational defaults, not scientific hyperparameters or universal ceilings. Positive finite owner budgets are authoritative. The legacy budget block in exp023.json is archival and not read for execution."
+}

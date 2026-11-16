@@ -119,8 +119,8 @@ AUTHORIZE_GUARDED_CONFIRMATION = False
 CAPTION_ELIGIBILITY_STATUS = "UNRESOLVED"
 RESOURCE_ELIGIBILITY_STATUS = CAPTION_ELIGIBILITY_STATUS
 COMPETITION_ELIGIBILITY_EVIDENCE = ""  # Optional genuine organizer-evidence JSON, competition scope only.
-MAX_GPU_HOURS = 1.0
-MAX_TOTAL_WALL_HOURS = 2.0
+MAX_GPU_HOURS = 4.0
+MAX_TOTAL_WALL_HOURS = 5.0
 REQUIRE_SUBMISSION_ZIP = False
 AUTO_BROWSER_DOWNLOAD = True
 AUTO_RELEASE_COLAB = True
@@ -152,7 +152,7 @@ The source archive is the exact immutable Git revision shown below. All inputs a
 
 Automatic order: validate → historical parity → representative benchmark/budget gate → 45 missing C0/C1/C2 fits → independent replay → CV decision. Research scope stops here, exports/downloads outputs and releases. Competition scope alone may continue to guarded final fits/confirmation after verified CV_GO and advance authorization, then reuse exact confirmed models → real input-only inference → ZIP validation → verified export → downloads → release. NO_GO produces no promotion-ready submission. Production E50+L stays unchanged.
 
-Limits: 1 GPU allocation-hour / 2 wall-hours, including setup since this Run all, plus the explicit persistence reserve. These are planning caps, **not measured EXP-023 runtimes**. Allocation before Run all is not observable here. A representative benchmark may stop for insufficient budget. Same-identity completed models resume; an interrupted current fit may restart. Source/runtime changes require a new run directory. Confirmation opens once after verified CV_GO, never during preparation or this notebook's default blocked run.
+Default maximum owner budgets: **4 GPU allocation-hours /5 wall-hours**, including setup since Run all; these are limits, not target runtimes. The workflow finishes and releases immediately when authorized work completes. No universal ceiling is imposed on other experiments. Whole-job max150+150 forecasts are diagnostic; progressive admission conservatively reserves one complete original fit, independent replay, persistence and cleanup before starting it. Expected remaining work is updated from actual fit durations/stopping/refit epochs; limited observations are explicitly labeled, not statistical confidence claims. If another complete fit cannot be safely admitted, STOPPED_BUDGET exports verified progress for exact compatible resume, never scientific NO-GO. Source/runtime/input changes still require a new run identity. Pre-Run-all allocation is not observable. Confirmation opens only in authorized competition scope after verified CV_GO.
 
 Downloads are requests only: browser arrival and physical runtime deallocation remain unverified. Drive retains verified archives even if the browser blocks a request. Logs and progress are visible below; durable outputs are under `PERSISTENT_ROOT`. No Codabench upload or automatic production promotion occurs.
 """

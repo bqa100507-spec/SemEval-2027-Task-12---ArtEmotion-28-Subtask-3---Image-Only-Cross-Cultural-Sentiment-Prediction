@@ -136,6 +136,7 @@ def test_scope_transition_resumes_exact_model_without_retraining(tmp_path):
 def test_cloud_scope_eligibility_isolation(tmp_path,monkeypatch,scope,expected):
     source=tmp_path/"source";(source/"configs").mkdir(parents=True)
     (source/"configs/exp023_eligibility.json").write_text(json.dumps({"status":"ELIGIBILITY_UNRESOLVED"}))
+    (source/"configs/exp023_runtime.json").write_text(json.dumps({"persistence_reserve_seconds":180}))
     monkeypatch.setattr(exp023_cloud,"restore_handoff",lambda *args:{"source_revision":"same_source"})
     monkeypatch.setattr(exp023_cloud,"restore_source",lambda *args:source)
     if scope==RESEARCH_ONLY_CV:

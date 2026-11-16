@@ -9,7 +9,7 @@
 - Use `scripts/run_st3.py` for local checks and `python -m pytest -q` from the project root for unit tests. Tests should use small fixtures and run without downloading the dataset or weights. Generate and validate archives locally for manual Codabench upload.
 
 
-## Closed research boundary — TASK-024
+## Closed research boundary â€” TASK-024
 
 - `EXP022 = CLOSED`; `TASK023 = CLOSED`; `EL8 = NO_GO_FOR_PRODUCTION`; `PRODUCTION = E50+L`.
 - Preserve the default E50+L inference, its frozen predictions and explicit E50/CLIP fallbacks. Do not make EL8 the default or treat its retraining, retuning, deployment or re-submission as an open action item.
@@ -28,9 +28,16 @@ Before implementation, read **both** `docs/experiment_workflow_standard.md` (the
 - Never select from Development gold or automatically upload to Codabench. Never silently change scientific settings, dependencies or gates to force success. Archive and close failed experiments rather than silently retuning them.
 - Run `tests/test_experiment_workflow.py` and the notebook contract validator in addition to experiment-specific tests; syntax checks alone cannot establish execution readiness. Keep the closed EXP-022/TASK-023 artifacts and released E50+L behavior unchanged.
 
-## Execution scopes — TASK-025B
+## Execution scopes â€” TASK-025B
 
 - Every new experiment must declare `RESEARCH_ONLY_CV` or `COMPETITION_READY` before Run all. Neither scope grants GPU authorization by itself. This coding task authorizes no GPU execution.
 - Research-only CV stops after complete verification, metrics and frozen CV gates. Record `CV_GO_PENDING_ELIGIBILITY` or `CV_NO_GO`; never open sealed confirmation, fit final competition models or create a Development submission. Export verified research outputs, request outputs.zip and release Colab automatically.
 - Competition scope preserves genuine source-backed eligibility, advance confirmation authorization and all scientific gates. A genuine organizer-evidence document may be supplied separately; do not rewrite the unresolved frozen eligibility config or invent permission. Never promote/upload automatically.
 - Scope/permission changes are authorization records, not scientific hyperparameters. Resume complete verified CV models only under exactly identical source revision/files, config, input hashes and runtime. Do not weaken identity checks, relabel historical fits or silently retrain corrupt/incompatible artifacts. Source changes, including this patch versus TASK-025, require a new run identity unless compatibility is exactly identical; no cross-source migration is implemented.
+
+## Operational budgets — TASK-025C
+
+- Owner GPU/wall limits are operational authorization, not scientific hyperparameters. EXP-023 defaults to maximum 4 GPU allocation-hours /5 wall-hours; these are not target durations or universal limits for future experiments. Finish and release when authorized work is complete.
+- Keep the whole-job theoretical max-epoch bound diagnostic. Admit only a conservatively affordable complete original fit, initial independent replay, atomic persistent checkpoint and cleanup reserve. Update forecasts from measured selection/refit epochs and complete-fit timings; label small-sample limitations.
+- A budget stop with fewer than all preregistered verified fits is operationally incomplete, never scientific NO-GO. Preserve completed models and resume exact source/config/input/runtime identities; changing only owner time limits must not retrain them. New source releases require new run directories; no cross-source migration/bypass.
+- EXP-023 operational defaults live in configs/exp023_runtime.json. The legacy budget block in the byte-preserved scientific configs/exp023.json is archival and ignored by the new runtime. No scientific GPU training is authorized by this coding patch.

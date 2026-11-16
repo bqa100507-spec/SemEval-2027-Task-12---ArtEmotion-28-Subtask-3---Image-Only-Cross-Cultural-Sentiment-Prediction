@@ -233,10 +233,13 @@ def finalize(run_dir, destination, report, *, platform, download=None, release=N
             pass  # This cannot prevent the release attempt below.
     try:
         try:
+            export_started = time.perf_counter()
             published = exporter(run_dir, destination, report)
             report["persistent_readback"] = "PASS"
         except Exception as exc:
             report.update(stage_status_before_export=report.get("status"), status="FAILED_EXPORT", error=str(exc), persistent_readback="FAIL")
+        finally:
+            report["export_and_readback_seconds"] = time.perf_counter() - export_started
         record()
         for name in ("submission.zip", "outputs.zip"):
             item = {"file": name, "arrival": "UNVERIFIED"}

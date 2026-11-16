@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 import platform
 import subprocess
+import tempfile
 import time
 from urllib.parse import urlparse
 from urllib.request import urlopen
@@ -17,12 +18,13 @@ import torch
 from . import data, submission
 from .ablation import predict_lr
 from .caption_data import inner_partition, require_isolation
-from .caption_student import CaptionStudent, fit_student, make_rows, predict_student, seed_model, train_epoch
+from .caption_student import CaptionStudent, fit_student, make_rows, predict_student, seed_model, train_epoch, validation_bce
 from .e50_heads import fit_frozen_head, head_from_arrays
 from .e50_inference import read_input, safe_image_path
 from .exp023_data import load_inputs, read_confirmation, read_csv, exact
 from .exp023_evaluation import aggregate, analyze, scientific_gate
 from .exp023_targets import prepare_partitions
+from .exp023_budget import condition_cost, forecast_work
 from .experiment_workflow import (Budget, StopRun, execute_stages, fingerprint, publish_model, sha256, verify_model, write_json,
                                   RESEARCH_ONLY_CV, COMPETITION_READY, execution_scope, eligibility_evidence,
                                   scoped_cv_decision, require_run_identity)
@@ -66,21 +68,21 @@ class Experiment:
         self.execution_scope = execution_scope(authorization)
         self.competition_eligible = False
         self.device = torch.device(device)
-        cap = config["budget"]
+        self.operations = json.loads((ROOT / "configs/exp023_runtime.json").read_text())
         gpu_hours, wall_hours = authorization["MAX_GPU_HOURS"], authorization["MAX_TOTAL_WALL_HOURS"]
-        if gpu_hours > cap["maximum_gpu_hours"] or wall_hours > cap["maximum_wall_hours"]:
-            raise StopRun("STOPPED_BUDGET", "Requested budget exceeds frozen EXP-023 caps")
-        self.budget = Budget(gpu_hours, wall_hours, cuda=device == "cuda", reserve=cap["persistence_reserve_seconds"], started=started)
+        self.budget = Budget(gpu_hours, wall_hours, cuda=device == "cuda", reserve=self.operations["persistence_reserve_seconds"], started=started)
         self.run_dir.mkdir(parents=True, exist_ok=True)
         self.verified = 0
         self.final_verified = 0
+        self.timing_samples = None
 
     def progress(self, stage, **details):
         row = {"stage": stage, "elapsed_seconds": time.time() - self.budget.started,
                "execution_scope": self.execution_scope,
                "remaining_allocation_seconds": self.budget.remaining(), "gpu_hours_cap": self.authorization["MAX_GPU_HOURS"],
                "wall_hours_cap": self.authorization["MAX_TOTAL_WALL_HOURS"],
-               "estimated_remaining_work_seconds": getattr(self, "forecast_remaining", None), **details}
+               "estimated_remaining_work_seconds": getattr(self, "forecast_remaining", None),
+               "runtime_estimate_basis": getattr(self, "forecast_basis", "Benchmark not yet complete"), **details}
         print(json.dumps(row, sort_keys=True), flush=True)
         with (self.run_dir / "progress.jsonl").open("a", encoding="utf-8") as handle:
             handle.write(json.dumps(row) + "\n")
@@ -188,53 +190,140 @@ class Experiment:
             recorded = json.loads(previous.read_text())
             if recorded.get("identity") != self.identity:
                 raise StopRun("FAILED_VERIFICATION", "Completed benchmark identity changed")
+            self.scoring_seconds = recorded["scoring_seconds"]
+            self.scoring_breakdown = recorded["scoring_breakdown"]
             return self.forecast(recorded["samples"], recorded["target_seconds"], reused=True)
-        fitting, _, inner, _ = self.partition(1)
+        fitting, held, inner, stopping = self.partition(1)
         prepared, target_seconds = self.targets(1)
-        epochs = self.config["budget"]["benchmark_epochs"]
+        epochs = self.operations["benchmark_epochs"]
         samples = []
+        baseline = held[data.KEYS].merge(self.r0[data.KEYS + ["p_positive"]], on=data.KEYS, validate="one_to_one")
         for condition in self.config["conditions"]:
             targets, weights = prepared.get(condition, {}).get("inner", (None, None))[:2]
             languages = sorted(inner.language.unique())
             rows = make_rows(inner, self.visual, languages, self.device, targets, weights)
             model, rng, optimizer = seed_model(languages, 2027, self.config, self.device)
+            validation = make_rows(stopping, self.visual, languages, self.device)
             if self.device.type == "cuda":
                 torch.cuda.reset_peak_memory_stats()
                 torch.cuda.synchronize()
-            tick = time.perf_counter()
+            training_times, validation_times, refit_times = [], [], []
             for epoch in range(epochs):
                 self.progress("Benchmark", condition=condition, epoch=epoch + 1, fold=1, seed=2027)
-                train_epoch(model, rows, rng, optimizer, self.config, self.config["text_weight"] if condition != "C0" else 0.)
-            if self.device.type == "cuda":
-                torch.cuda.synchronize()
-            seconds = (time.perf_counter() - tick) / epochs
+                _, elapsed = self.timed(lambda: train_epoch(model, rows, rng, optimizer, self.config, self.config["text_weight"] if condition != "C0" else 0.))
+                training_times.append(elapsed)
+                _, elapsed = self.timed(lambda: validation_bce(model, validation, self.config["batch_size"]))
+                validation_times.append(elapsed)
+            del model, optimizer, rows, validation
+            # Fresh reset, original full-partition batches; diagnostic epochs are not CV fits.
+            languages = sorted(fitting.language.unique())
+            targets, weights = prepared.get(condition, {}).get("full", (None, None))[:2]
+            rows = make_rows(fitting, self.visual, languages, self.device, targets, weights)
+            model, rng, optimizer = seed_model(languages, 2027, self.config, self.device)
+            for epoch in range(epochs):
+                self.progress("BenchmarkRefit", condition=condition, epoch=epoch + 1, fold=1, seed=2027)
+                _, elapsed = self.timed(lambda: train_epoch(model, rows, rng, optimizer, self.config, self.config["text_weight"] if condition != "C0" else 0.))
+                refit_times.append(elapsed)
+            raw, replay_seconds = self.timed(lambda: predict_student(model, held[data.INPUT_COLUMNS], self.visual, baseline, self.device, self.config["batch_size"]))
+            with tempfile.TemporaryDirectory(prefix=".pending-benchmark-", dir=self.run_dir) as temp:
+                checkpoint = Path(temp) / "diagnostic.pt"
+                _, checkpoint_seconds = self.timed(lambda: torch.save(model.state_dict(), checkpoint))
+                _, reload_seconds = self.timed(lambda: torch.load(checkpoint, map_location="cpu", weights_only=True))
+            seconds = max(training_times)
             samples.append({"condition": condition, "full_inner_epoch_seconds": seconds, "pairs": len(inner),
+                            "full_pairs": len(fitting), "inner_training_epoch_seconds": max(training_times),
+                            "validation_epoch_seconds": max(validation_times), "full_refit_epoch_seconds": max(refit_times),
+                            "inner_epoch_samples_seconds": training_times, "validation_samples_seconds": validation_times,
+                            "refit_epoch_samples_seconds": refit_times, "replay_seconds": replay_seconds + reload_seconds,
+                            "checkpoint_seconds": checkpoint_seconds,
                             "pairs_per_second": len(inner) / seconds,
                             "peak_allocated_bytes": torch.cuda.max_memory_allocated() if self.device.type == "cuda" else None,
                             "peak_reserved_bytes": torch.cuda.max_memory_reserved() if self.device.type == "cuda" else None})
             del model, optimizer, rows
+        # Timing only: constant predictions on released CV training rows, not pilot system scores.
+        from .metrics import score
+        _, score_seconds = self.timed(lambda: score(self.train, self.train[data.KEYS].assign(p_positive=.5)))
+        from .exp023_evaluation import paired_interval
+        # Time the original bootstrap kernel on neutral synthetic differences; no
+        # held-out system performance is computed or used for runtime selection.
+        _, bootstrap_seconds = self.timed(lambda: paired_interval(np.zeros(self.train.painting.nunique()),
+                                            self.config["bootstrap_replicates"], self.config["bootstrap_seed"]))
+        self.scoring_breakdown = {"single_full_population_score_seconds": score_seconds,
+                                  "single_bootstrap_seconds": bootstrap_seconds,
+                                  "scoring_calls_allowance": 87, "bootstrap_calls": 3}
+        self.scoring_seconds = max(self.operations["minimum_final_scoring_seconds"], 87 * score_seconds + 3 * bootstrap_seconds)
         return self.forecast(samples, target_seconds)
 
     def forecast(self, samples, target_seconds, *, reused=False):
-        max_epoch = max(row["full_inner_epoch_seconds"] * len(self.train) / row["pairs"] for row in samples)
-        self.max_epoch_seconds = max_epoch
-        missing = sum(not (self.run_dir / "models" / f"fold_{fold}_{c}_{seed}").exists()
-                      for fold in range(1, 6) for c in self.config["conditions"] for seed in self.config["seeds"])
-        final = sum(not (self.run_dir / "models" / f"fold_0_{c}_{seed}").exists()
-                    for c in self.config["conditions"] for seed in self.config["seeds"]) if (
-                        self.execution_scope == COMPETITION_READY and self.authorization["AUTHORIZE_GUARDED_CONFIRMATION"]) else 0
-        # Conservative full max selection+refit; validation/replay, CPU LR, bootstrap and export included.
-        training = (missing + final) * self.config["max_epochs"] * 2 * max_epoch
-        projection = self.config["budget"]["forecast_safety_factor"] * (training + 12 * target_seconds + 300 + 120)
+        self.timing_samples, self.target_seconds = samples, target_seconds
+        completed, remaining = self.completed_timings()
+        scoring = getattr(self, "scoring_seconds", self.operations["minimum_final_scoring_seconds"])
+        overhead = 12 * target_seconds + scoring + self.operations["minimum_export_seconds"]
+        if self.execution_scope == COMPETITION_READY:
+            overhead += 3 * self.operations["baseline_component_seconds"]
+        estimate = forecast_work(samples, remaining, completed, self.config, self.operations,
+                                 fit_pairs=len(self.train), target_seconds=target_seconds, overhead=overhead)
         result = {"status": "BENCHMARK_ONLY_NOT_HELD_OUT_PERFORMANCE", "identity": self.identity,
-                  "reused_verified_timing": reused, "epochs_per_condition": self.config["budget"]["benchmark_epochs"], "samples": samples,
-                  "target_seconds": target_seconds, "projected_remaining_seconds": projection,
-                  "projected_training_seconds": training, "projected_gpu_allocation_hours": projection / 3600,
-                  "assumptions": "Worst-case max150 stopping +150 refit; 25% safety, 300s CPU LR +120s scoring/replay, separate persistence reserve"}
+                  "reused_verified_timing": reused, "epochs_per_condition": self.operations["benchmark_epochs"], "samples": samples,
+                  "target_seconds": target_seconds, "scoring_seconds": scoring, **estimate,
+                  "scoring_breakdown": getattr(self, "scoring_breakdown", {}),
+                  "persistence_reserve_seconds": self.budget.reserve,
+                  "remaining_authorized_seconds": self.budget.remaining(),
+                  "admission_policy": "One complete fit plus verification/persistence and cleanup reserve; global forecast is diagnostic only"}
         write_json(self.run_dir / "benchmark.json", result)
-        self.forecast_remaining = projection
-        self.budget.check(projection)
+        with (self.run_dir / "forecast_history.jsonl").open("a", encoding="utf-8") as handle:
+            handle.write(json.dumps({"timestamp": time.time(), **result}) + "\n")
+        self.forecast_remaining = estimate["estimated_remaining_seconds"]
+        self.forecast_basis = "Same-condition completed-fit means with max-epoch fallback for unseen conditions" if completed else "No completed fits yet; max-epoch planning proxy, not measured expected duration"
+        print(json.dumps({"stage": "Forecast", "theoretical_worst_case_seconds": estimate["theoretical_worst_case_seconds"],
+                          "measured_expected_remaining_seconds": estimate["measured_expected_remaining_seconds"],
+                          "verified_fit_observations": len(completed), "remaining_fits": len(remaining),
+                          "remaining_authorized_seconds": self.budget.remaining(), "basis": self.forecast_basis}), flush=True)
+        self.budget.check()  # Never reject all CV because its theoretical total exceeds this session.
         return result
+
+    def timed(self, operation):
+        if self.device.type == "cuda":
+            torch.cuda.synchronize()
+        tick = time.perf_counter()
+        value = operation()
+        if self.device.type == "cuda":
+            torch.cuda.synchronize()
+        return value, time.perf_counter() - tick
+
+    def completed_timings(self):
+        completed, remaining = [], []
+        folds = list(range(1, 6))
+        if self.execution_scope == COMPETITION_READY and self.authorization["AUTHORIZE_GUARDED_CONFIRMATION"]:
+            folds.append(0)
+        for fold in folds:
+            for condition in self.config["conditions"]:
+                for seed in self.config["seeds"]:
+                    path = self.run_dir / "models" / f"fold_{fold}_{condition}_{seed}"
+                    if not path.exists():
+                        remaining.append((fold, condition, seed))
+                        continue
+                    verify_model(path, self.model_identity(fold, condition, seed))
+                    info = json.loads((path / "fit.json").read_text())
+                    verified = json.loads((path / "initial_replay.json").read_text())
+                    if verified.get("status") != "PASS" or verified["checkpoint_sha256"] != sha256(path / "checkpoint.pt"):
+                        raise StopRun("FAILED_VERIFICATION", "Completed model has no valid initial independent replay")
+                    completed.append({**info, "fold": fold, "condition": condition, "seed": seed,
+                                      "end_to_end_seconds": info["fit_seconds"] + info["predict_seconds"]
+                                      + info["checkpoint_write_seconds"] + verified["seconds"]})
+        return completed, remaining
+
+    def admit_fit(self, fold, condition, seed, fit_pairs):
+        if self.timing_samples is None:
+            raise StopRun("FAILED_VERIFICATION", "A matching representative timing benchmark is required before a fit")
+        completed, _ = self.completed_timings()
+        sample = next(r for r in self.timing_samples if r["condition"] == condition)
+        cost = condition_cost(sample, self.config["max_epochs"], fit_pairs, self.operations,
+                              [r for r in completed if r["condition"] == condition])
+        write_json(self.run_dir / "admission_history" / f"{time.time_ns()}.json",
+                   {"fold": fold, "condition": condition, "seed": seed, "remaining_seconds": self.budget.remaining(),
+                    "persistence_reserve_seconds": self.budget.reserve, **cost})
+        self.budget.check(cost["admission_seconds"])
 
     def model_identity(self, fold, condition, seed):
         fitting, held, inner, stopping = self.partition(fold)
@@ -249,27 +338,51 @@ class Experiment:
         identity = self.model_identity(fold, condition, seed)
         fitting, _, inner, stopping = self.partition(fold)
         if not path.exists():
+            self.admit_fit(fold, condition, seed, len(fitting))
             self.progress("Fit", fold=fold, condition=condition, seed=seed)
         def writer(stage):
+            timings = {"selection_training_seconds": 0., "refit_training_seconds": 0.}
+            phase = ["selection"]
+            def progress(which, epoch):
+                phase[0] = which
+                self.progress(which, fold=fold, condition=condition, seed=seed, epoch=epoch)
+            def measured_epoch(*args):
+                value, seconds = self.timed(lambda: train_epoch(*args))
+                timings[phase[0] + "_training_seconds"] += seconds
+                return value
             model, curves, info = fit_student(fitting, inner, stopping, self.visual, prepared.get(condition), seed,
                                              self.config, self.device,
-                                             progress=lambda phase, epoch: self.progress(phase, fold=fold, condition=condition, seed=seed, epoch=epoch))
-            raw = predict_student(model, held[data.INPUT_COLUMNS], self.visual, baseline, self.device, self.config["batch_size"])
+                                             progress=progress, epoch_function=measured_epoch)
+            timings["validation_stopping_and_setup_seconds"] = max(0., info["fit_seconds"] - sum(timings.values()))
+            raw, predict_seconds = self.timed(lambda: predict_student(model, held[data.INPUT_COLUMNS], self.visual, baseline, self.device, self.config["batch_size"]))
+            tick = time.perf_counter()
             torch.save({"state_dict": {key: value.cpu() for key, value in model.state_dict().items()},
                         "languages": list(model.languages)}, stage / "checkpoint.pt")
             np.save(stage / "raw_predictions.npy", raw, allow_pickle=False)
             held[data.KEYS].to_csv(stage / "held_keys.csv", index=False, lineterminator="\n")
             pd.DataFrame(curves).to_csv(stage / "curves.csv", index=False, lineterminator="\n")
-            write_json(stage / "fit.json", info)
+            checkpoint_seconds = time.perf_counter() - tick
+            self.budget.check()
+            (_, replay), replay_seconds = self.timed(lambda: self.replay_payload(stage, baseline, held))
+            write_json(stage / "initial_replay.json", {**replay, "seconds": replay_seconds})
+            write_json(stage / "fit.json", {**info, "timings": timings, "predict_seconds": predict_seconds,
+                                             "checkpoint_write_seconds": checkpoint_seconds})
         publish_model(path, identity, writer)
-        if hasattr(self, "max_epoch_seconds"):
-            remaining = sum(not (self.run_dir / "models" / f"fold_{f}_{c}_{s}").exists()
-                            for f in range(1, 6) for c in self.config["conditions"] for s in self.config["seeds"])
-            self.forecast_remaining = remaining * self.config["max_epochs"] * 2 * self.max_epoch_seconds + 420
+        # Reused complete fits must retain their original verified replay metadata.
+        completed, remaining = self.completed_timings()
+        write_json(self.run_dir / "cv_completion_state.json", {"status": "OPERATIONALLY_INCOMPLETE" if any(r[0] != 0 for r in remaining) else "ALL_CV_FITS_COMPLETE",
+                   "verified_CV_models": sum(r["fold"] != 0 for r in completed), "required_CV_models": 45,
+                   "remaining_CV_models": sum(r[0] != 0 for r in remaining)})
+        if self.timing_samples is not None:
+            self.forecast(self.timing_samples, self.target_seconds, reused=True)
         return path
 
     def replay(self, path, baseline, held, identity):
         seal = verify_model(path, identity)
+        values, receipt = self.replay_payload(path, baseline, held)
+        return values, {**receipt, "model_seal_sha256": sha256(path / "seal.json")}
+
+    def replay_payload(self, path, baseline, held):
         saved_keys = read_csv(path / "held_keys.csv")
         if not saved_keys.equals(held[data.KEYS].reset_index(drop=True)):
             raise StopRun("FAILED_VERIFICATION", "Held-out painting/language identities differ")
@@ -282,7 +395,7 @@ class Experiment:
         raw = np.load(path / "raw_predictions.npy", allow_pickle=False)
         if not np.array_equal(q, raw):
             raise StopRun("FAILED_VERIFICATION", "Independent checkpoint replay differs; prior successful decision is invalid")
-        return q, {"checkpoint_sha256": seal["files"]["checkpoint.pt"], "model_seal_sha256": sha256(path / "seal.json"),
+        return q, {"checkpoint_sha256": sha256(path / "checkpoint.pt"),
                    "max_abs_error": 0., "rows": len(q), "status": "PASS"}
 
     def fit_cv(self):
@@ -296,9 +409,15 @@ class Experiment:
         return {"completed": 45}
 
     def cv_placeholder(self):
+        completed, _ = self.completed_timings()
+        if sum(r["fold"] != 0 for r in completed) != 45:
+            raise StopRun("INCOMPLETE_CV", "Fewer than 45 verified fits: operationally incomplete, not scientific NO-GO")
         return {"status": "FITS_COMPLETE_PENDING_INDEPENDENT_REPLAY"}
 
     def verify_cv(self):
+        self.cv_placeholder()
+        expected = 10 * self.target_seconds + sum(r["replay_seconds"] for r in self.timing_samples) * 15
+        self.budget.check(expected * self.operations["forecast_safety_factor"])
         write_json(self.run_dir / "cv_verification.json", {"status": "RUNNING", "previous_pass_revoked": True})
         records = {key: [] for key in ("R0", "C0", "C1", "C2", "EC0", "EC1", "EC2")}
         checks, seed_metrics = [], []
@@ -332,6 +451,9 @@ class Experiment:
         return result
 
     def decision(self):
+        if self.verified != 45:
+            raise StopRun("INCOMPLETE_CV", "Scientific decisions require all 45 independently replayed fits")
+        self.budget.check(getattr(self, "scoring_seconds", self.operations["minimum_final_scoring_seconds"]))
         analysis, folds, paintings, languages = analyze(self.train, self.predictions, self.config)
         for name, frame in (("folds", folds), ("paintings", paintings), ("languages", languages)):
             frame.to_csv(self.run_dir / f"cv_{name}.csv", index=False, lineterminator="\n")
@@ -377,6 +499,7 @@ class Experiment:
             directory = self.run_dir / "R0_1335" / name
             identity = {**self.identity, "kind": "R0_1335", "encoder": name, "fit_paintings": sorted(self.train.painting.unique())}
             def writer(stage, bank=bank):
+                self.budget.check(self.operations["baseline_component_seconds"])
                 self.progress("R0_1335", encoder=name)
                 model = fit_frozen_head(self.train, bank, languages, 2027)
                 np.savez(stage / "head.npz", coef=model.coef_, intercept=model.intercept_)

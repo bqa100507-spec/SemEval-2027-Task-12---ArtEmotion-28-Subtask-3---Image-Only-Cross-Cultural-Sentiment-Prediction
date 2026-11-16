@@ -210,6 +210,7 @@ def test_eligibility_blocks_bootstrap_and_training(tmp_path,monkeypatch):
     from st3 import exp023_cloud
     source=tmp_path/"source";(source/"configs").mkdir(parents=True)
     (source/"configs/exp023_eligibility.json").write_text(json.dumps({"status":"ELIGIBILITY_UNRESOLVED"}))
+    (source/"configs/exp023_runtime.json").write_text(json.dumps({"persistence_reserve_seconds":180}))
     monkeypatch.setattr(exp023_cloud,"restore_handoff",lambda *args:{"source_revision":"pinned"})
     monkeypatch.setattr(exp023_cloud,"restore_source",lambda *args:source)
     monkeypatch.setattr(exp023_cloud,"bootstrap",lambda *args:pytest.fail("Environment/model launched before eligibility"))

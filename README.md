@@ -7,7 +7,7 @@ Image-only cross-cultural sentiment prediction for SemEval 2027 Task 12. The com
 
 **EXP-023 / TASK-025B:** [scope readiness report](reports/exp023_research_scope_readiness.md), [eligibility review](docs/exp023_eligibility.md) and the unchanged [scientific preregistration](reports/next_exp_proposal.md). The [Colab notebook](notebooks/EXP023_Colab.ipynb) and [Kaggle variant](notebooks/EXP023_Kaggle.ipynb) default to `RESEARCH_ONLY_CV`: one advance owner GPU authorization runs verified CV only, then exports/downloads outputs and releases. Research does not require unresolved competition permission. `COMPETITION_READY` still requires independently verified organizer evidence and the original confirmation/submission gates. Upload the **new** private `runs/exp023_research_delivery/exp023_handoff.zip`; older TASK-025 ZIPs remain archived and are not silently migrated. Exact current pins are in `docs/exp023_scope_delivery.json`. No scientific GPU work was launched in this patch; E50+L remains production. Future EXPs follow the [permanent scope-aware workflow authority](docs/experiment_workflow_standard.md).
 
-The sections below retain the original baseline setup and EXP-001–011 reproduction commands. The complete EXP-001–015 history is preserved on [archive/exp001-015-verified](https://github.com/bqa100507-spec/SemEval-2027-Task-12---ArtEmotion-28-Subtask-3---Image-Only-Cross-Cultural-Sentiment-Prediction/tree/archive/exp001-015-verified). [PR integration audit](docs/release016_pr_audit.json)
+The sections below retain the original baseline setup and EXP-001â€“011 reproduction commands. The complete EXP-001â€“015 history is preserved on [archive/exp001-015-verified](https://github.com/bqa100507-spec/SemEval-2027-Task-12---ArtEmotion-28-Subtask-3---Image-Only-Cross-Cultural-Sentiment-Prediction/tree/archive/exp001-015-verified). [PR integration audit](docs/release016_pr_audit.json)
 
 ## 1. Set up the workspace
 
@@ -95,7 +95,7 @@ After EXP-002, use the dedicated extraction environment, then use the unchanged 
 .venv/Scripts/python.exe scripts/run_st3.py siglip-dev
 ```
 
-All three run commands share `runs/exp006_siglip2/` and its extraction manifest. Choose the same new `--run-dir` across stages for repeats. Pass `--device cpu` to the extraction command to select CPU. [EXP-006 report](reports/exp006_siglip2.md) · [Research synthesis](reports/research_synthesis_001_006.md)
+All three run commands share `runs/exp006_siglip2/` and its extraction manifest. Choose the same new `--run-dir` across stages for repeats. Pass `--device cpu` to the extraction command to select CPU. [EXP-006 report](reports/exp006_siglip2.md) Â· [Research synthesis](reports/research_synthesis_001_006.md)
 
 ## EXP-007 CLIP and SigLIP 2 fusion
 
@@ -137,3 +137,7 @@ Reuse the Task 001, EXP-002, EXP-006 and EXP-007 artifacts, then run `clip-large
 ```
 
 The local scorer implements the published specification. It also reports the starter kit's all-pairs Log Loss as a separate number. See [competition and provenance](docs/competition.md), [data audit](reports/data_audit.md), [baseline results](reports/baseline_dev.md), and [project state](docs/project_state.md).
+
+## EXP-023 research CV
+
+Use the pinned current Colab notebook and private handoff described in [budget readiness](reports/exp023_budget_readiness.md). One owner configuration/authorization and Run all performs setup, benchmark, all45 original fits when affordable, independent verification, scientific gates, persistent export, browser-download attempt and release. Default maximum authorization: 4 GPU allocation-hours /5 wall-hours. Budget interruption retains compatible completed models and is not a scientific NO-GO. Research scope never opens confirmation or creates a Development submission. Production remains E50+L.

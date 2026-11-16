@@ -301,6 +301,9 @@ def test_final_model_identity_change_blocks_promotion(tmp_path, fixture, config)
 def test_R0_1335_uses_only_allowed_training_and_resumes(tmp_path, fixture, monkeypatch):
     pairs,_,_,_,banks=fixture
     engine=object.__new__(Experiment)
+    from st3.experiment_workflow import Budget
+    engine.budget=Budget(4,5,cuda=False)
+    engine.operations={"baseline_component_seconds":100}
     engine.execution_scope="COMPETITION_READY"
     engine.competition_eligible=True
     engine.run_dir=tmp_path

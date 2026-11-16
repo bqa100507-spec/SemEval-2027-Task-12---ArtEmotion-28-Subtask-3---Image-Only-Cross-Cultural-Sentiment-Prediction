@@ -138,13 +138,13 @@ def run_cloud(settings, *, platform, mount=None, download=None, release=None, st
         # Check authorizations and source-backed eligibility before a model/GPU child exists.
         if not settings["AUTHORIZE_EXPERIMENT"]:
             raise StopRun("BLOCKED_AUTHORIZATION", "EXP-023 is not authorized. Eligibility and one advance run authorization are required")
-        if settings["MAX_GPU_HOURS"] > 1.0 or settings["MAX_TOTAL_WALL_HOURS"] > 2.0:
-            raise StopRun("STOPPED_BUDGET", "Frozen resource caps are 1 GPU allocation-hour / 2 wall-hours")
         inputs = local / "inputs"
         manifest = restore_handoff(settings["INPUT_ZIP"], inputs, settings["ZIP_SHA256"], settings["MANIFEST_SHA256"])
         if manifest["source_revision"] != settings["SOURCE_REVISION"]:
             raise StopRun("BLOCKED_INPUT", "Notebook source revision differs from handoff")
         source = restore_source(inputs, local, manifest)
+        operations = json.loads((source / "configs/exp023_runtime.json").read_text())
+        budget.reserve = operations["persistence_reserve_seconds"]
         # Competition permission gates only competition scope. Research still requires
         # advance GPU authorization, pinned official artifacts, compliance and budget checks.
         if scope == COMPETITION_READY:
@@ -158,7 +158,7 @@ def run_cloud(settings, *, platform, mount=None, download=None, release=None, st
         compliance_env = dict(os.environ, PYTHONPATH=str(source / "src"), CUDA_VISIBLE_DEVICES="-1")
         child([str(python), "-m", "pytest", "-q", str(source / "tests/test_experiment_workflow.py"),
                str(source / "tests/test_exp023.py"), str(source / "tests/test_exp023_notebooks.py"),
-               str(source / "tests/test_exp023_scopes.py")],
+               str(source / "tests/test_exp023_scopes.py"), str(source / "tests/test_exp023_budget.py")],
               log=run_dir / f"workflow_compliance_{time.time_ns()}.log", deadline=started + budget.seconds - budget.reserve,
               env=compliance_env)
         write_json(run_dir / "workflow_compliance.json", {"status": "PASS", "CUDA_VISIBLE_DEVICES": "-1", "source_revision": settings["SOURCE_REVISION"]})
