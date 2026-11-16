@@ -148,10 +148,18 @@ Reuse the verified local training/cache directory; no images, captions, weights 
 
 The command verifies the four required data files, selects eight configurations per retrieval method inside each original P2 training fold, and reports all five outer folds for prior-only, uncentered kNN, painting-centered retrieval and the fixed E50+L reference. It refuses to overwrite an existing run directory. The input directory supplies existing training votes/frozen image caches only; EXP-023 is never executed. No Development tuning, submission or automatic blend/promotion. [Method and results](reports/exp024_visual_retrieval.md).
 
-## EXP-025 research-only VLM semantic probe
+## EXP-025 closed; EXP-026 direct VLM sentiment
 
-Open the pinned [Colab L4 notebook](notebooks/EXP025_Colab.ipynb), upload the existing TASK-025C ZIP, authorize once and Run all. The same30 images/prompt are used for NF4 and FP16. Review the side-by-side image/description gallery **once**: approve broadly useful semantics despite isolated mistakes, or reject serious systematic hallucination. Approval automatically continues to1335 FP16 images and **all five P2 folds**; no bootstrap continuation gate. Rejection preserves smoke and launches nothing else. Exact approved smoke/folds resume without another review.
+EXP-025 is CLOSED / NO-GO for caption-based semantic fusion on the owner-reported final five-fold results. Its notebook and semantic caches are archival; do not rerun it. [Short closure](reports/exp025_vlm_clip_probe.md).
 
-Technical failures remain hard errors; semantic warnings retain descriptions/IDs and do not silently disappear. `scripts/extract_exp025.py` reuses semantic caches; `scripts/run_exp025.py` only fits/evaluates cached features. The prompt, encoder revisions, PCA/head capacity, LR, inner selection and true-vs-shuffled controls remain fixed. Python3.12.10/dependencies remain pinned. Built with Qwen under its non-commercial Research License; competition eligibility is unconfirmed.
+EXP-026 compares a frozen Qwen multimodal hidden-state sentiment model with decoder-only QLoRA, using the same target-language inputs and vote-weighted BCE. The neutral-prompt frozen model is a conditioning diagnostic. E50+L remains production.
 
-The local NF4 cache has30 valid records; actual L4 FP16/full-five-fold results remain unavailable locally. No claim of semantic improvement or failure is made before real CV. [Short status/method report](reports/exp025_vlm_clip_probe.md). E50+L stays production; no Development gold, confirmation-label access or Codabench upload.
+Use [EXP026_Colab.ipynb](notebooks/EXP026_Colab.ipynb) on a Colab L4 with the existing `exp023_handoff.zip` in MyDrive. Review the owner Configuration, explicitly authorize `STAGE="pilot"`, then Run all. This installs pinned Python3.12.10/dependencies, verifies/extracts training inputs locally and persists completed cache/epoch/model boundaries and outputs to Drive. The current local technical-check authorization does not authorize Colab training.
+
+After reviewing the pilot's measured throughput, a separately authorized `STAGE="one-fold"` run resumes its exact compatible pilot, then performs inner stopping/fresh refit and evaluates original P2 fold1 if the budget fits. There is no automatic full-five-fold option. An unchanged source/config/runtime/input identity can resume; source changes require a fresh run directory. CLI equivalent inside the pinned Colab environment:
+
+```bash
+python scripts/run_exp026.py --stage pilot --inputs /content/exp026/inputs --cache /content/drive/MyDrive/exp026/features --run-dir /content/drive/MyDrive/exp026/run_SOURCE --model-cache /content/exp026/model --max-seconds 3600 --authorize-gpu
+```
+
+Local RTX4060 one-artwork technical check passed; no pilot or scientific fold has run in TASK-028. Research only: Qwen's non-commercial Research License and competition eligibility remain unresolved for competition use. No Development or sealed confirmation labels, caption supervision, generated answers, automatic promotion or submission. [Protocol and actual diagnostics](reports/exp026_vlm_supervised.md).
