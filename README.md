@@ -1,7 +1,7 @@
 # ArtEmotion-28 Subtask 3
 
 
-**Current research status (TASK-024): EXP-022 and TASK-023 are CLOSED; EL8 is NO_GO_FOR_PRODUCTION. E50+L remains the competition production model.** EL8's positive train-only CV result did not improve the owner-reported hosted Development result (0.4537 vs 0.4643). Its verified artifacts/history are retained. No EL8 retraining or promotion is pending. Read the [closure report](reports/exp022_final_closure.md), [complete research index](docs/research_index.md), [proposal-only EXP-023](reports/next_exp_proposal.md) and [future one-click workflow contract](docs/experiment_workflow_standard.md). Historical instructions below do not authorize new runs.
+**Current research status (TASK-026): EXP-022/TASK-023 and EXP-023 are CLOSED / NO-GO; E50+L remains production.** EXP-023 persistent scientific artifacts are incomplete; do not rerun, repair export or recover checkpoints. EXP-024 has completed standalone CPU retrieval CV; see [results](reports/exp024_visual_retrieval.md). Historical readiness instructions do not authorize new runs.
 
 Image-only cross-cultural sentiment prediction for SemEval 2027 Task 12. The competition release uses **E50+L**, the hosted-verified CLIP-B, SigLIP 2 Base and CLIP-L ensemble. The project owner reported Development Contrast **0.4643** for submission **#1046158**. Use the [competition release manifest and evaluation-day commands](docs/competition_release.md) for frozen inference.
 
