@@ -1,4 +1,4 @@
-# TASK-025B â€” EXP-023 execution-scope readiness
+# TASK-025B — EXP-023 execution-scope readiness
 
 **TASK-025C supersedes the historical budget/forecast instructions below.** See [budget readiness](exp023_budget_readiness.md) for the new immutable delivery, configurable 4/5-hour defaults and progressive per-fit admission. Historical validation and delivery pins below remain unchanged.
 

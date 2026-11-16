@@ -8,7 +8,7 @@ Before execution freeze the hypothesis, exact conditions/controls, eligible trai
 
 Required sequence:
 
-**Setup â†’ Validate â†’ Benchmark â†’ Experiment â†’ CV â†’ Verify â†’ Decision â†’ Guarded Confirmation when eligible and authorized â†’ Final Model â†’ Inference â†’ Submission Validation â†’ Export â†’ Browser Download â†’ Runtime Release.**
+**Setup → Validate → Benchmark → Experiment → CV → Verify → Decision → Guarded Confirmation when eligible and authorized → Final Model → Inference → Submission Validation → Export → Browser Download → Runtime Release.**
 
 ## Explicit execution scope
 
@@ -72,7 +72,7 @@ finally:
 
 Test happy-path ordering and zero-GPU mocks; missing inputs/assets; failed gates/replay; corrupt/stale/incomplete checkpoint/report rejection; finite budgets/timeouts/OOM; exact pair/rounding/ZIP checks; completed-model reuse; export/read-back corruption; interrupted/failing-stage persistence; original production parity; and no forbidden labels/inference inputs. Verify runtime release on success, gate failure, training/verification/submission failure, budget stop and export/report failure, including bootstrap failures.
 
-Browser-download tests must prove **verified Drive export â†’ download requests â†’ release**, handle each download failing/being blocked, skip absent files/unverified exports, preserve Drive copies and never log owner-machine arrival as confirmed from a mock/API return. No test launches costly training or Codabench submission. Actual cloud execution must be reported separately from local fixtures. Archive the complete verified run and stop after NO_GO; do not automatically start a successor experiment.
+Browser-download tests must prove **verified Drive export → download requests → release**, handle each download failing/being blocked, skip absent files/unverified exports, preserve Drive copies and never log owner-machine arrival as confirmed from a mock/API return. No test launches costly training or Codabench submission. Actual cloud execution must be reported separately from local fixtures. Archive the complete verified run and stop after NO_GO; do not automatically start a successor experiment.
 
 ## Enforcement and readiness boundary
 

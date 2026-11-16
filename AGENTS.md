@@ -9,7 +9,7 @@
 - Use `scripts/run_st3.py` for local checks and `python -m pytest -q` from the project root for unit tests. Tests should use small fixtures and run without downloading the dataset or weights. Generate and validate archives locally for manual Codabench upload.
 
 
-## Closed research boundary â€” TASK-024
+## Closed research boundary — TASK-024
 
 - `EXP022 = CLOSED`; `TASK023 = CLOSED`; `EL8 = NO_GO_FOR_PRODUCTION`; `PRODUCTION = E50+L`.
 - Preserve the default E50+L inference, its frozen predictions and explicit E50/CLIP fallbacks. Do not make EL8 the default or treat its retraining, retuning, deployment or re-submission as an open action item.
@@ -28,7 +28,7 @@ Before implementation, read **both** `docs/experiment_workflow_standard.md` (the
 - Never select from Development gold or automatically upload to Codabench. Never silently change scientific settings, dependencies or gates to force success. Archive and close failed experiments rather than silently retuning them.
 - Run `tests/test_experiment_workflow.py` and the notebook contract validator in addition to experiment-specific tests; syntax checks alone cannot establish execution readiness. Keep the closed EXP-022/TASK-023 artifacts and released E50+L behavior unchanged.
 
-## Execution scopes â€” TASK-025B
+## Execution scopes — TASK-025B
 
 - Every new experiment must declare `RESEARCH_ONLY_CV` or `COMPETITION_READY` before Run all. Neither scope grants GPU authorization by itself. This coding task authorizes no GPU execution.
 - Research-only CV stops after complete verification, metrics and frozen CV gates. Record `CV_GO_PENDING_ELIGIBILITY` or `CV_NO_GO`; never open sealed confirmation, fit final competition models or create a Development submission. Export verified research outputs, request outputs.zip and release Colab automatically.
