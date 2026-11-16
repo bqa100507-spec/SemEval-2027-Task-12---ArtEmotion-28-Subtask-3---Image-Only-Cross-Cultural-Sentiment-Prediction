@@ -1,0 +1,40 @@
+{
+  "experiment": "EXP-024",
+  "representation": "concat(unit_CLIP_L_768,unit_SigLIP2_768)/sqrt(2); cosine",
+  "variants": [
+    "prior",
+    "uncentered",
+    "centered"
+  ],
+  "neighbors": [
+    16,
+    64
+  ],
+  "temperatures": [
+    0.05,
+    0.1
+  ],
+  "shrinkage_votes": [
+    5.0,
+    20.0
+  ],
+  "language_prior_votes": 20.0,
+  "early_stop_seed": 17029,
+  "early_stop_fraction": 0.1,
+  "cv_folds": 5,
+  "training_paintings": 1335,
+  "training_pairs": 13600,
+  "selection": "highest inner Contrast, then lowest inner Macro Log Loss, then listed grid order",
+  "prediction_decimals": 6,
+  "input_sha256": {
+    "training/pairs.csv": "50798ddac6d9bda709c53b0ab7fc5ff2bfc6fbc33a4e581c1ab5c45f94d57534",
+    "training/protocol.csv": "869b2fe227fb614d83827d8124a80bd02c5f7677482bf64ae7098856b9c70eed",
+    "visual/features.npz": "17374581aa7b65dd9a24542b18e0a8449388b6b04262fc18d4da235d9ce68896",
+    "history/exp022_R0.csv": "7cc728cd8b50ef828afa5cbaa8ef73c095ec5465664e54c7899d2cbc88039161"
+  },
+  "checkpoint_revisions": {
+    "clip_large": "32bd64288804d66eefd0ccbe215aa642df71cc41",
+    "siglip2": "75de2d55ec2d0b4efc50b3e9ad70dba96a7b2fa2"
+  },
+  "notes": "Eight configurations each for uncentered and centered; no outer-score reselection, E50 blend, new encoding or Development use."
+}
