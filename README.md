@@ -152,6 +152,10 @@ The command verifies the four required data files, selects eight configurations 
 
 EXP-025 is CLOSED / NO-GO for caption-based semantic fusion on the owner-reported final five-fold results. Its notebook and semantic caches are archival; do not rerun it. [Short closure](reports/exp025_vlm_clip_probe.md).
 
+**Current EXP-026 continuation:** the owner-reported L4 pilot passed, but the original scientific fold was projected at13.4 hours. Use the separate [exploratory Colab notebook](notebooks/EXP026_Exploratory_Colab.ipynb) for a newly authorized, maximum2-hour run. It fits the original fold1 inner-training population for at most2 epochs, selects by inner-validation loss and evaluates F0_image/F0/L0 against the same-fold E50+L reference, with **no fresh refit or repeated pilot**. VLMs fit961 paintings; refitted E50+L uses1068, so this is screening only. Estimated total81–100 minutes from saved pilot timings; not a measured full-fold result or guarantee. No GPU training was run in this continuation. [Exploratory protocol and cost](reports/exp026_exploratory.md).
+
+The original notebook and scientific protocol below remain available separately; this exploratory continuation does not authorize their expensive `one-fold` stage.
+
 EXP-026 compares a frozen Qwen multimodal hidden-state sentiment model with decoder-only QLoRA, using the same target-language inputs and vote-weighted BCE. The neutral-prompt frozen model is a conditioning diagnostic. E50+L remains production.
 
 Use [EXP026_Colab.ipynb](notebooks/EXP026_Colab.ipynb) on a Colab L4 with the existing `exp023_handoff.zip` in MyDrive. Review the owner Configuration, explicitly authorize `STAGE="pilot"`, then Run all. This installs pinned Python3.12.10/dependencies, verifies/extracts training inputs locally and persists completed cache/epoch/model boundaries and outputs to Drive. The current local technical-check authorization does not authorize Colab training.

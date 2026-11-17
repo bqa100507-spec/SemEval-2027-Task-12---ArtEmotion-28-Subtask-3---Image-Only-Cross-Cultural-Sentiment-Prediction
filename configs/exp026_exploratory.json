@@ -1,0 +1,23 @@
+{
+  "stage": "exploratory-fold",
+  "base_config_sha256": "0e185be884cfd23c767dfc9c075ee91f1b3bca93e5054a86f8f3491f79aa09a8",
+  "fold": 1,
+  "max_epochs": 2,
+  "selection": "minimum inner-validation vote-weighted BCE; earliest epoch wins ties",
+  "refit": false,
+  "maximum_allocation_seconds": 7200,
+  "comparison": "Screening only: VLM models fit inner-training paintings only; E50+L was refitted on the larger outer-training split. No final model selection or promotion.",
+  "pilot_timing_reference": {
+    "provenance": "Owner-supplied saved Colab L4 pilot notebook; timing evidence, not independently replayed checkpoints",
+    "L0_training_pairs_per_second": 6.737383014875785,
+    "validation_pairs": 493,
+    "L0_validation_seconds": 24.195281213000044,
+    "frozen_training_pairs_per_second": 2200.0,
+    "cache_seconds": 163.95392454799997,
+    "cache_paintings": 240,
+    "compute_margin": 1.25,
+    "setup_allowance_seconds": 600,
+    "checkpoint_allowance_seconds": 120,
+    "export_allowance_seconds": 180
+  }
+}

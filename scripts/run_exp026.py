@@ -128,6 +128,11 @@ def worker(args,config):
         if time.monotonic()-started>args.max_seconds-15:raise TimeoutError("Allocation exhausted; completed cache/checkpoint boundaries persist")
     try:
         train,reference=load_training(args.inputs,config)
+        if args.stage=="exploratory-fold":
+            protocol=json.loads((ROOT/"configs/exp026_exploratory.json").read_text(encoding="utf-8"))
+            import hashlib
+            if hashlib.sha256((ROOT/"configs/exp026.json").read_bytes().replace(b"\r\n",b"\n")).hexdigest()!=protocol["base_config_sha256"]:
+                raise ValueError("Original EXP-026 config differs; exploratory stage preserves the base settings")
         backend,names=build_backend(args,config)
         report["LoRA_target_modules"]=names
         report["model_load_peak_allocated_bytes"]=torch.cuda.max_memory_allocated()
@@ -135,6 +140,9 @@ def worker(args,config):
         torch.cuda.reset_peak_memory_stats()
         cache=FeatureCache(args.cache,args.inputs,config,train)
         if args.stage=="technical":technical(backend,cache,train,config,report,check)
+        elif args.stage=="exploratory-fold":
+            from st3.vlm_exploratory import run
+            run(args,config,protocol,backend,cache,train,reference,report,check,source_identity(config,args,backend))
         else:run_research(args,config,backend,cache,train,reference,report,check)
     except torch.cuda.OutOfMemoryError as error:report.update(status="CUDA_OOM",error=str(error),retry_attempted=False)
     except Exception as error:report.update(status="STOPPED_TIME_LIMIT" if isinstance(error,TimeoutError) else "FAILED_TECHNICAL",error=f"{type(error).__name__}: {error}")
@@ -145,7 +153,7 @@ def worker(args,config):
                           total_VRAM_bytes=torch.cuda.get_device_properties(0).total_memory)
         atomic_json(args.run_dir/(args.stage+"_report.json"),report)
         print(json.dumps(report,indent=2),flush=True)
-    return 0 if report["status"] in ("TECHNICAL_PASS","PILOT_PASS","ONE_FOLD_COMPLETE") else 2
+    return 0 if report["status"] in ("TECHNICAL_PASS","PILOT_PASS","ONE_FOLD_COMPLETE","EXPLORATORY_FOLD_COMPLETE") else 2
 
 
 def save_checkpoint(path,payload):
@@ -333,7 +341,7 @@ def run_research(args,config,backend,cache,train,reference,report,check):
 
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--stage",choices=["technical","pilot","one-fold"],default="technical")
+    parser.add_argument("--stage",choices=["technical","pilot","one-fold","exploratory-fold"],default="technical")
     parser.add_argument("--inputs",type=Path,required=True);parser.add_argument("--cache",type=Path,required=True)
     parser.add_argument("--run-dir",type=Path,required=True);parser.add_argument("--model-path",type=Path)
     parser.add_argument("--model-cache",type=Path,default=Path("cache/exp026_model"))
@@ -345,6 +353,7 @@ def main():
     import math
     if not math.isfinite(args.max_seconds) or args.max_seconds<=15:parser.error("Choose a finite allocation greater than15 seconds")
     if args.stage=="technical":args.max_seconds=min(args.max_seconds,300.)
+    if args.stage=="exploratory-fold":args.max_seconds=min(args.max_seconds,7200.)
     config=json.loads((ROOT/"configs/exp026.json").read_text(encoding="utf-8"))
     if args.worker:return worker(args,config)
     args.run_dir.mkdir(parents=True,exist_ok=True)

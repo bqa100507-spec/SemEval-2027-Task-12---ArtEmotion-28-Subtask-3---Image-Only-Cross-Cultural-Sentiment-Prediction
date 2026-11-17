@@ -2,6 +2,8 @@
 
 **TECHNICAL_PASS; pilot and scientific fold NOT RUN. Production remains E50+L.** EXP-025 is closed for caption fusion; its final owner-reported scores are in [the short closure](exp025_vlm_clip_probe.md). No EXP-025 extraction or evaluation was rerun.
 
+**Continuation:** the owner subsequently completed a Colab L4 pilot (PILOT_PASS); its saved notebook logs report L0 validation BCE0.644959→0.581847 and about6.74 pairs/s. This supersedes the initial pilot-not-run status above, which records TASK-028's local execution boundary. The13.4-hour scientific fold remains unrun. A separate, unexecuted two-epoch/no-refit exploratory stage is prepared in [the short continuation report](exp026_exploratory.md); original scientific settings below are unchanged.
+
 ## Frozen design
 
 `(pixels, target language) → Qwen multimodal decoder state → supervised sigmoid head`. No generated text, caption targets, CLIP fusion or auxiliary loss. Both primary conditions use the identical NF4 Qwen2.5-VL-3B revision `66285546d2b821cf421d4f5eb2576359d3770cd3`, official processor, 128–256 image tokens and final assistant-prefix decoder state (2048 dimensions). Checkpoint/processor hashes and dependencies are pinned in `configs/exp026.json` and `requirements-exp026.lock.txt`.
