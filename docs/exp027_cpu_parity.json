@@ -1,0 +1,29 @@
+{
+  "status": "CPU_PARITY_PASS",
+  "reference": "Unsplit deterministic CPU FP32 model; float64 Pearson aggregate; no VLM/GPU execution",
+  "microbatch_parameter_gradient_errors": [
+    {
+      "microbatch": 1,
+      "max_abs_parameter_gradient_error": 3.725290298461914e-09
+    },
+    {
+      "microbatch": 2,
+      "max_abs_parameter_gradient_error": 7.450580596923828e-09
+    },
+    {
+      "microbatch": 4,
+      "max_abs_parameter_gradient_error": 7.450580596923828e-09
+    },
+    {
+      "microbatch": 8,
+      "max_abs_parameter_gradient_error": 1.1175870895385742e-08
+    },
+    {
+      "microbatch": 18,
+      "max_abs_parameter_gradient_error": 0.0
+    }
+  ],
+  "native_BCE_regression": "Bitwise parameter/AdamW state parity in test_native_bce_epoch_parameter_optimizer_and_vote_parity",
+  "stochastic_replay": "Matched microbatched dropout/Python/NumPy/Torch draws and end RNG state",
+  "real_GPU_validation": "NOT_EXECUTED; guarded L4 preflight is mandatory before pilot fits"
+}

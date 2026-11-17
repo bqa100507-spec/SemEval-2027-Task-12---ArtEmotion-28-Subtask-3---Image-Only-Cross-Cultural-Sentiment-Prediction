@@ -1,0 +1,32 @@
+{
+  "experiment": "EXP-027",
+  "base_config_sha256": "0e185be884cfd23c767dfc9c075ee91f1b3bca93e5054a86f8f3491f79aa09a8",
+  "outer_fold": 2,
+  "max_epochs": 2,
+  "pilot": {
+    "training_paintings": 192,
+    "validation_paintings": 48
+  },
+  "selection": "earliest minimum inner-validation vote-weighted binary BCE; common to all objectives; no refit",
+  "pearson_epsilon": 0.01,
+  "variants": [
+    {
+      "name": "BCE",
+      "mode": "bce_only",
+      "lambda": 0.0
+    },
+    {
+      "name": "P_low",
+      "mode": "bce_pearson",
+      "lambda": 0.000682
+    },
+    {
+      "name": "P_high",
+      "mode": "bce_pearson",
+      "lambda": 0.00196
+    }
+  ],
+  "maximum_allocation_seconds": 7200,
+  "checkpoint_replay_decimals": 6,
+  "permissions": "Research-only pilot requires future explicit authorization; no outer evaluation, full CV, confirmation or submission endpoint"
+}

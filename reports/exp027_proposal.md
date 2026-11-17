@@ -1,5 +1,7 @@
 # EXP-027 — proposal only: within-painting VLM supervision
 
+Historical proposal. TASK-029 now authorizes implementation/CPU validation under the [frozen EXP-027 protocol](../docs/exp027_protocol.md); GPU training and outer evaluation remain unauthorized. The original proposal below is retained as history.
+
 **PROPOSED_ONLY. No implementation, GPU authorization, training, new checkpoint or scientific result. Production remains E50+L.** EXP-026 stays EXPLORATORY_COMPLETED; its weights, notebooks and outputs are preserved.
 
 Hypothesis: supplement vote-weighted BCE with a within-painting term to improve image-specific differences across target languages, using the same pinned Qwen backbone, decoder LoRA and sentiment head. The owner's label-free profile analysis suggests relatively stable language offsets; this is a description of predictions, not proof of the failure mechanism. The audited L0 fold1 result0.340691 remains below E50+L0.433429, with different fitting populations. Higher between-painting prediction variance is not itself a Contrast error: within-painting Pearson is invariant to a shared additive shift and positive scaling.

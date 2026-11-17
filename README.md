@@ -156,4 +156,12 @@ EXP-025 is CLOSED / NO-GO for caption-based semantic fusion on the owner-reporte
 
 Preserve the original [pilot/scientific notebook](notebooks/EXP026_Colab.ipynb), [exploratory notebook](notebooks/EXP026_Exploratory_Colab.ipynb), source/config and all artifacts as history. Their run commands are archival; no further GPU run, longer-epoch retry or five-fold training is an open action item. E50+L production and the sealed confirmation/Development boundaries remain unchanged.
 
-[EXP-027 is proposal-only](reports/exp027_proposal.md): a within-painting objective for the same VLM/LoRA, with a matched BCE control and fresh fold-safe initialization. A new explicit owner task is required before implementation or execution.
+TASK-029 implements [EXP-027 contrast-aware QLoRA](docs/exp027_protocol.md): native matched BCE control and complete-painting Pearson loss, fixed lambda0/0.000682/0.00196, unchanged backbone/head/LoRA and fresh fold-safe initialization. CPU checks only; **no GPU training or outer scoring has run**. [Readiness and numerical limits](reports/exp027_contrast_qlora.md).
+
+The separate [EXP027_Colab notebook](notebooks/EXP027_Colab.ipynb) prepares an inner-only L4 pilot (192 training/48 validation paintings, two epochs per variant), persistent exact-identity resume and verified export/download/release. GPU authorization is OFF by default and requires a separate owner instruction; max2-hour allocation includes setup. No outer-fold/CV/Development/submission endpoint is implemented. Use the unchanged input ZIP; only permitted pilot images and two training files are extracted locally, and compatible frozen vision caches can be reused.
+
+CPU checks without weights/GPU:
+
+```powershell
+.venv/Scripts/python.exe -m pytest -q tests/test_contrast_qlora.py tests/test_exp027.py tests/test_exp027_workflow.py tests/test_experiment_workflow.py
+```
