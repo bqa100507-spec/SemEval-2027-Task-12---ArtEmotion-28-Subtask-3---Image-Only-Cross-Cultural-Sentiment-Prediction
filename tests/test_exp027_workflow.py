@@ -76,7 +76,7 @@ def test_mocked_complete_pilot_and_manifest_failure_export_before_release(tmp_pa
     with zipfile.ZipFile(s["INPUT_ZIP"],"w") as z:
         z.writestr("input_manifest.json",manifest);z.writestr("training/protocol.csv",raw_protocol);z.writestr("training/pairs.csv",pairs);z.writestr("artwork/images/p0.jpg",image)
     s["ZIP_SHA256"]=hashlib.sha256(Path(s["INPUT_ZIP"]).read_bytes()).hexdigest();s["MANIFEST_SHA256"]=hashlib.sha256(manifest).hexdigest() if failure!="manifest" else "bad"
-    names=["configs/exp026.json","configs/exp027.json","requirements-exp026.lock.txt","scripts/run_exp027.py","src/st3/vlm_supervised.py","src/st3/vlm_supervised_training.py","src/st3/contrast_qlora.py","src/st3/exp027_data.py","src/st3/exp027_pilot.py"]
+    names=["configs/exp026.json","configs/exp027.json","requirements-exp026.lock.txt","scripts/run_exp027.py","scripts/verify_exp027_validation.py","src/st3/vlm_supervised.py","src/st3/vlm_supervised_training.py","src/st3/contrast_qlora.py","src/st3/exp027_data.py","src/st3/exp027_pilot.py","src/st3/exp027_validation.py","src/st3/metrics.py","src/st3/submission.py"]
     for name in names:
         p=source/name;p.parent.mkdir(parents=True,exist_ok=True);p.write_text("CPU fixture")
     (source/"configs/exp026.json").write_text(json.dumps({"input_sha256":{"training/pairs.csv":hashlib.sha256(pairs).hexdigest(),"training/protocol.csv":hashlib.sha256(raw_protocol).hexdigest()}}))
