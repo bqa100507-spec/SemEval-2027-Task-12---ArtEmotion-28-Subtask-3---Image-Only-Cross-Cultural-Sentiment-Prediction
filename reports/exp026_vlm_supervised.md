@@ -1,8 +1,8 @@
 # EXP-026 — direct VLM sentiment, frozen versus decoder QLoRA
 
-**TECHNICAL_PASS; pilot and scientific fold NOT RUN. Production remains E50+L.** EXP-025 is closed for caption fusion; its final owner-reported scores are in [the short closure](exp025_vlm_clip_probe.md). No EXP-025 extraction or evaluation was rerun.
+**EXPLORATORY_COMPLETED / NOT PROMOTED. Production remains E50+L.** The original full scientific fold/full CV were not run. EXP-025 is closed for caption fusion; its final owner-reported scores are in [the short closure](exp025_vlm_clip_probe.md). No EXP-025 extraction or evaluation was rerun.
 
-**Continuation:** the owner subsequently completed a Colab L4 pilot (PILOT_PASS); its saved notebook logs report L0 validation BCE0.644959→0.581847 and about6.74 pairs/s. This supersedes the initial pilot-not-run status above, which records TASK-028's local execution boundary. The13.4-hour scientific fold remains unrun. A separate, unexecuted two-epoch/no-refit exploratory stage is prepared in [the short continuation report](exp026_exploratory.md); original scientific settings below are unchanged.
+**Final continuation, 2026-11-18:** after the L4 pilot, the owner completed the separate two-epoch/no-refit fold1 screen. Read-only CPU verification of Drive predictions and existing P2 votes reproduces L0 Contrast0.340691 /Macro Log Loss0.704087, versus E50+L0.433429 /0.666222. [Verified exploratory results and error analysis](exp026_exploratory.md). Preserve all artifacts; no further GPU/full-CV run. [EXP-027 remains proposal-only](exp027_proposal.md). The original design and local technical evidence below are historical, not current execution authorization.
 
 ## Frozen design
 
@@ -47,7 +47,9 @@ The allocator was capped at half of8GiB; these peaks cover the post-load forward
 
 Local evidence: `runs/exp026_technical/technical_report.json`, its unique process log and technical-only checkpoint. The exact executed source/config snapshot is preserved in `runs/task028/technical_check_source/source_sha256.json`; later pilot/one-fold code was completed with CPU tests and has not been GPU-executed. The technical checkpoint is never eligible for scientific reuse. Three one-image steps prove a connected finite gradient/update path, not convergence, generalization, L4 feasibility or training throughput. No reliable pilot/fold/GPU-hour estimate can be derived from this check.
 
-## Next execution and validation boundary
+## Archived execution guidance and original validation boundary
+
+The preparation instructions and original local-only validation status below predate the completed exploratory run. They are retained as history, not authorization for another pilot/fold. Current verified results and the no-further-GPU decision are linked at the top of this report.
 
 Use [EXP026_Colab.ipynb](../notebooks/EXP026_Colab.ipynb), the unchanged TASK-025C input ZIP (`2db4a53679940c7eb63c7c8272b91be8ec0618bb6c04a69ebaa15909e20f64e0`), a Colab L4 and **fresh explicit owner authorization**. Default `STAGE="pilot"`, `AUTHORIZE_EXP026=False`, maximum2 allocation-hours including setup. Run all after authorization. Images/weights stay local; compatible caches and completed epochs/models persist under a new `MyDrive/exp026` namespace, separately from EXP-025. Interrupted current epochs may be lost. Export/download attempts precede runtime release; browser arrival/deallocation are not independently confirmed.
 

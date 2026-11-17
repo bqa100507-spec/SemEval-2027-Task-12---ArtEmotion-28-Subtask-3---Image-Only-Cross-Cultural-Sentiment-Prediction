@@ -152,18 +152,8 @@ The command verifies the four required data files, selects eight configurations 
 
 EXP-025 is CLOSED / NO-GO for caption-based semantic fusion on the owner-reported final five-fold results. Its notebook and semantic caches are archival; do not rerun it. [Short closure](reports/exp025_vlm_clip_probe.md).
 
-**Current EXP-026 continuation:** the owner-reported L4 pilot passed, but the original scientific fold was projected at13.4 hours. Use the separate [exploratory Colab notebook](notebooks/EXP026_Exploratory_Colab.ipynb) for a newly authorized, maximum2-hour run. It fits the original fold1 inner-training population for at most2 epochs, selects by inner-validation loss and evaluates F0_image/F0/L0 against the same-fold E50+L reference, with **no fresh refit or repeated pilot**. VLMs fit961 paintings; refitted E50+L uses1068, so this is screening only. Estimated total81–100 minutes from saved pilot timings; not a measured full-fold result or guarantee. No GPU training was run in this continuation. [Exploratory protocol and cost](reports/exp026_exploratory.md).
+**EXP-026 is EXPLORATORY_COMPLETED / NOT PROMOTED.** The owner completed the L4 fold1 screen; a read-only CPU audit of checksummed predictions and existing P2 votes reproduces L0 Contrast **0.340691** /Macro Log Loss **0.704087**, versus same-fold E50+L **0.433429 /0.666222**. VLMs fit961 paintings; refitted E50+L uses1068. No full-refit VLM claim or promotion follows from this unequal-data screen. [Verified results and error analysis](reports/exp026_exploratory.md).
 
-The original notebook and scientific protocol below remain available separately; this exploratory continuation does not authorize their expensive `one-fold` stage.
+Preserve the original [pilot/scientific notebook](notebooks/EXP026_Colab.ipynb), [exploratory notebook](notebooks/EXP026_Exploratory_Colab.ipynb), source/config and all artifacts as history. Their run commands are archival; no further GPU run, longer-epoch retry or five-fold training is an open action item. E50+L production and the sealed confirmation/Development boundaries remain unchanged.
 
-EXP-026 compares a frozen Qwen multimodal hidden-state sentiment model with decoder-only QLoRA, using the same target-language inputs and vote-weighted BCE. The neutral-prompt frozen model is a conditioning diagnostic. E50+L remains production.
-
-Use [EXP026_Colab.ipynb](notebooks/EXP026_Colab.ipynb) on a Colab L4 with the existing `exp023_handoff.zip` in MyDrive. Review the owner Configuration, explicitly authorize `STAGE="pilot"`, then Run all. This installs pinned Python3.12.10/dependencies, verifies/extracts training inputs locally and persists completed cache/epoch/model boundaries and outputs to Drive. The current local technical-check authorization does not authorize Colab training.
-
-After reviewing the pilot's measured throughput, a separately authorized `STAGE="one-fold"` run resumes its exact compatible pilot, then performs inner stopping/fresh refit and evaluates original P2 fold1 if the budget fits. There is no automatic full-five-fold option. An unchanged source/config/runtime/input identity can resume; source changes require a fresh run directory. CLI equivalent inside the pinned Colab environment:
-
-```bash
-python scripts/run_exp026.py --stage pilot --inputs /content/exp026/inputs --cache /content/drive/MyDrive/exp026/features --run-dir /content/drive/MyDrive/exp026/run_SOURCE --model-cache /content/exp026/model --max-seconds 3600 --authorize-gpu
-```
-
-Local RTX4060 one-artwork technical check passed; no pilot or scientific fold has run in TASK-028. Research only: Qwen's non-commercial Research License and competition eligibility remain unresolved for competition use. No Development or sealed confirmation labels, caption supervision, generated answers, automatic promotion or submission. [Protocol and actual diagnostics](reports/exp026_vlm_supervised.md).
+[EXP-027 is proposal-only](reports/exp027_proposal.md): a within-painting objective for the same VLM/LoRA, with a matched BCE control and fresh fold-safe initialization. A new explicit owner task is required before implementation or execution.
