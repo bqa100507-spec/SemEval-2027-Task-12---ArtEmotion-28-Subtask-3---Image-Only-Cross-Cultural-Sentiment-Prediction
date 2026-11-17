@@ -37,7 +37,8 @@ def worker(args):
         cache=FeatureCache(args.cache,args.inputs,config,pd.concat([fit,val]))
         sources=["scripts/run_exp027.py","src/st3/contrast_qlora.py","src/st3/exp027_data.py","src/st3/exp027_pilot.py",
                  "scripts/run_exp026.py","src/st3/vlm_supervised.py","src/st3/vlm_supervised_training.py","src/st3/vlm_semantics.py",
-                 "src/st3/caption_data.py","src/st3/vlm_exploratory.py","src/st3/data.py","requirements-exp026.lock.txt"]
+                 "src/st3/caption_data.py","src/st3/vlm_exploratory.py","src/st3/data.py","src/st3/exp027_validation.py",
+                 "src/st3/metrics.py","src/st3/submission.py","requirements-exp026.lock.txt"]
         identity={"config":config,"source_sha256":{name:file_hash(ROOT/name) for name in sources},"GPU":torch.cuda.get_device_name(),
                   "source_revision":subprocess.check_output(["git","-C",str(ROOT),"rev-parse","HEAD"],text=True).strip(),
                   "inputs":config["input_sha256"],"fresh_initialization":"Pinned pretrained + seed2027 zero-output decoder LoRA; never EXP-026 adapters"}

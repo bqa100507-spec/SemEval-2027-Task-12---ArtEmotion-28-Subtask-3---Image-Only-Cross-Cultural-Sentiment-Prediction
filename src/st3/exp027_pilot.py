@@ -134,11 +134,14 @@ def run_pilot(args,config,protocol,backend,cache,fit,val,parts,report,check,iden
     row=fit.iloc[0]
     with Image.open(cache.inputs/"artwork/images"/row.image) as image:report["processor_parity"]=backend.parity(image.convert("RGB"),cache.vision(row.image,backend))
     report["gradient_preflight"]=gradient_preflight(backend,cache,config,languages,fit,protocol,check)
-    results={}
+    results={};selected_payloads={}
     for variant in protocol["variants"]:
         check();payload=train_variant(args.run_dir/"models"/(variant["name"]+".pt"),identity,backend,cache,config,variant,languages,fit,val,initial,check)
         results[variant["name"]]={k:payload[k] for k in ("selected_epoch","validation_BCE_nats","LoRA_update_norm","curves")}
+        selected_payloads[variant["name"]]=payload
     if frozen_digest(backend.model)!=before:raise ValueError("Frozen Qwen pretrained/vision weights changed")
+    from .exp027_validation import publish
+    report["inner_validation_reporting"]=publish(args.run_dir,val,selected_payloads)
     report.update(status="GPU_PILOT_COMPLETE",variants=results,outer_evaluation_performed=False,full_cv_performed=False,
                   pilot_train_paintings=int(fit.painting.nunique()),pilot_val_paintings=int(val.painting.nunique()),
                   scientific_conclusion="Inner-only feasibility/comparison; no outer Contrast or promotion conclusion")
