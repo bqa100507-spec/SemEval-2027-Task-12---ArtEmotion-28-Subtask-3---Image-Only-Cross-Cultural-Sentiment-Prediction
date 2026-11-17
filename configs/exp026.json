@@ -1,0 +1,104 @@
+{
+  "experiment": "EXP-026",
+  "research_only": true,
+  "vlm": {
+    "model": "Qwen/Qwen2.5-VL-3B-Instruct",
+    "revision": "66285546d2b821cf421d4f5eb2576359d3770cd3",
+    "license": "Qwen Research License; non-commercial research only; competition eligibility unresolved",
+    "assets_sha256": {
+      "model-00001-of-00002.safetensors": "41a8895c164b4d32bae6b302f4603fcbc1797f32dafa45c7e9bcda23c6755df8",
+      "model-00002-of-00002.safetensors": "365531ff8752420e89dee707b79d021fb2d6e25abafe486f080555a4fe6972e4"
+    },
+    "license_sha256": "b5c0e5cf74cf51af1ecbc4af597cfcd13fd9925611838884a681070838a14a50",
+    "quantization": "nf4",
+    "double_quant": true,
+    "compute_dtype": "float16",
+    "skip_modules": [
+      "visual",
+      "lm_head"
+    ],
+    "attention": "sdpa",
+    "min_pixels": 100352,
+    "max_pixels": 200704,
+    "assets_git_sha1": {
+      "LICENSE": "87f48cf86671d627b4dd4b8e5189b8e32ae11dd8",
+      "README.md": "d09bc2825f7d1dc394ee6766e2e95bcc59f47196",
+      "chat_template.json": "732bd68bc5427d1fb6c06a59b3bf2456b2155d24",
+      "config.json": "0ae1866f05ab0153ad293bdc92bb1b842c4d95b1",
+      "generation_config.json": "1dfafa23e24b68b694722c6211e7da36730e9917",
+      "merges.txt": "20024bfe7c83998e9aeaf98a0cd6a2ce6306c2f0",
+      "model.safetensors.index.json": "7a3ec4f48662e38593f8cab48fe12a4f28003aba",
+      "preprocessor_config.json": "7f3b746825e5eef53ed8ed57a91df9e86ee62c0a",
+      "tokenizer.json": "443909a61d429dff23010e5bddd28ff530edda00",
+      "tokenizer_config.json": "91684ea3dc135a7d815e2c932054ce88c1aab41f",
+      "vocab.json": "4783fe10ac3adce15ac8f358ef5462739852c569"
+    }
+  },
+  "runtime": {
+    "python": "3.12.10",
+    "torch": "2.7.1+cu126",
+    "transformers": "4.51.3",
+    "accelerate": "1.6.0",
+    "bitsandbytes": "0.46.1",
+    "huggingface-hub": "0.31.4",
+    "tokenizers": "0.21.1",
+    "numpy": "2.2.6",
+    "pandas": "2.2.3",
+    "Pillow": "11.2.1",
+    "scikit-learn": "1.6.1"
+  },
+  "input_sha256": {
+    "training/pairs.csv": "50798ddac6d9bda709c53b0ab7fc5ff2bfc6fbc33a4e581c1ab5c45f94d57534",
+    "training/protocol.csv": "869b2fe227fb614d83827d8124a80bd02c5f7677482bf64ae7098856b9c70eed",
+    "history/exp022_R0.csv": "7cc728cd8b50ef828afa5cbaa8ef73c095ec5465664e54c7899d2cbc88039161"
+  },
+  "neutral_prompt": "Inspect the artwork pixels. Form a visual representation for emotion assessment.",
+  "language_prompt": "Inspect the artwork pixels. Target language: {language}. Form a representation for positive-versus-negative emotion assessment for that language community.",
+  "hidden_size": 2048,
+  "decoder_layers": 36,
+  "head_width": 64,
+  "head_dropout": 0.0,
+  "lora": {
+    "rank": 8,
+    "alpha": 16,
+    "dropout": 0.0,
+    "targets": [
+      "q_proj",
+      "v_proj"
+    ],
+    "component": "model.layers.*.self_attn",
+    "expected_modules": 72
+  },
+  "optimizer": {
+    "head_lr": 0.001,
+    "adapter_lr": 0.0001,
+    "weight_decay": 0.01,
+    "gradient_clip": 1.0
+  },
+  "seed": 2027,
+  "fold": 1,
+  "early_stop_seed": 17029,
+  "early_stop_fraction": 0.1,
+  "max_epochs": 12,
+  "patience": 3,
+  "effective_painting_batch": 4,
+  "gradient_checkpointing": true,
+  "pilot": {
+    "training_paintings": 192,
+    "validation_paintings": 48,
+    "max_epochs": 2
+  },
+  "image_shuffle_paintings": 32,
+  "loss": "sum_i n_i * BCEWithLogits(logit_i,k_i/n_i) / sum_i n_i within each effective painting batch; exact count weighting across accumulated pair microbatches",
+  "selection": "inner binary BCE, then fresh reset/refit for selected epochs; held-out fold is scored once",
+  "conditions": {
+    "F0": "Frozen NF4 Qwen, real target-language prompt and trained sentiment head; matched input/control for L0",
+    "F0_image": "Diagnostic: cached neutral-prompt decoder state, same language-conditioned head",
+    "L0": "Same NF4 base and target-language input, decoder-only Q/V LoRA plus same sentiment head"
+  },
+  "full_cv": "Not implemented/authorized by default; owner decision required after measured one-fold results",
+  "microbatch_pairs": 8,
+  "technical_microbatch_pairs": 1,
+  "technical_optimizer_steps": 3,
+  "technical_vram_fraction": 0.5
+}

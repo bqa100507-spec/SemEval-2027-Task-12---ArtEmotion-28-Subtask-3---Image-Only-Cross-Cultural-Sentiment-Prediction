@@ -58,3 +58,22 @@ Before implementation, read **both** `docs/experiment_workflow_standard.md` (the
 - Keep the existing model, prompt, decoding, head methods and training-only selection. Run all five P2 folds after technically valid, owner-approved extraction; bootstrap statistics are evaluation evidence, never continuation gates.
 - The owner explicitly authorizes exactly one visual quality review after the matched30-image NF4/FP16 comparison. Accept broadly useful semantics despite isolated errors. Serious systematic scene hallucination stops and preserves smoke; recommending direct hidden states/a stronger model does not authorize launching them.
 - After approval, full1335-image extraction and all five folds run without further owner pauses. Exact-smoke review and compatible completed folds resume; changed/corrupt data never bypass validation. This task-specific review is an explicit exception to the generic no-midrun-interaction wording. Preserve production E50+L and closed EXP-022/023/024.
+
+## TASK-028 / EXP-026
+
+- EXP-025 is CLOSED / NO-GO for caption-based fusion. Preserve its1335-image FP16 cache, reports and artifacts; no rerun. E50+L stays production.
+- EXP-026 uses the pinned Qwen multimodal decoder states directly with a supervised sentiment head: frozen NF4 base versus the same base plus decoder Q/V LoRA. No caption generation/supervision, extra loss, CLIP fusion or new checkpoint. Match the target-language prompt in the primary F0/L0 comparison; neutral cached states are a conditioning diagnostic.
+- Current owner GPU authorization is strictly one local RTX4060 technical check, maximum5 minutes, one original inner-training artwork and a few gradient steps. Stop on OOM/time limit. No few-hundred-painting pilot, scientific fold, Colab execution or additional GPU experiment is authorized in this coding session. Future notebook GPU stages require their own explicit initial owner authorization.
+- Pilot precedes any one-fold fit; full five-fold QLoRA must never run automatically. Keep P2 splits and sealed confirmation annotations untouched. Existing workflow is simplified to minimal scripts/cache/checkpoints and a Colab notebook for this task; no new compliance/packaging framework.
+
+## EXP-026 exploratory continuation
+
+- Owner-reported L4 pilot passed. The expensive original scientific `one-fold` protocol is not authorized by this continuation. Preserve its config, original notebook, historical fits and E50+L production.
+- `exploratory-fold` is separate screening: original fold1/inner partition, at most2 epochs for F0_image/F0/L0, best inner-validation state, no fresh refit. Its VLM fitting population is smaller than refitted E50+L; report the unequal-data caveat and do not promote/select a final system from this screen.
+- Use a new exploratory source/run namespace and separate notebook. Reuse only exactly compatible frozen feature caches; never warm-start from pilot/scientific models. No GPU training in this coding task. Future Colab L4 execution requires separate authorization and a maximum2-hour allocation; no full CV, Development/confirmation access or submission.
+
+## EXP-026 final exploratory decision — 2026-11-18
+
+- `EXP026 = EXPLORATORY_COMPLETED`; `PRODUCTION = E50+L`. Fold1 predictions/logs were checked and scores recomputed on the existing checksum-pinned released P2 training votes. L0 Contrast0.340691 /Macro Log Loss0.704087 vs same-fold E50+L0.433429 /0.666222; VLM fits961 paintings, refitted reference1068. No promotion or claim about a fully refitted VLM.
+- Preserve all original source, configs, notebooks, caches, checkpoints, predictions and logs. No further EXP-026 GPU run, longer-epoch rerun or five-fold training is an open action item. Earlier run commands are archival, not authorization. No Development or sealed confirmation annotations.
+- EXP-027 is proposal-only: test a within-painting objective with the existing VLM/LoRA architecture and a matched BCE control. Do not implement/train it without a new explicit task. Fold1 is already examined and cannot select that loss or lambda. Other P2 folds have also been reused historically; do not call them independent confirmation. A new held-out fold requires fresh pretrained/zero-LoRA initialization, never an EXP-026 fitted checkpoint containing its paintings.
