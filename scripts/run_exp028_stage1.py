@@ -72,6 +72,8 @@ def execute(args):
             vision = visual_blocks(ROOT, args.workspace, rows)
         if cache["invalid_entries"]:
             raise ValueError("Qwen cache verification failed; inspect cache_audit.json")
+        if getattr(args, "require_full_vision_cache", False) and cache["missing_vision_images"]:
+            raise ValueError("Qwen vision coverage differs from the full Colab audit requirement")
         if not cache["complete"]:
             status = "CPU_IMPLEMENTED / BLOCKED_MISSING_QWEN_FEATURES"
         elif args.stage == "audit":
@@ -119,6 +121,8 @@ def main():
         parser.add_argument("--" + name, type=Path, required=True)
     parser.add_argument("--qwen-cache", type=Path, action="append", required=True)
     parser.add_argument("--workspace", type=Path)
+    parser.add_argument("--require-full-vision-cache", action="store_true",
+                        help="Require complete verified vision payloads as well as decoder features")
     return execute(parser.parse_args())
 
 
