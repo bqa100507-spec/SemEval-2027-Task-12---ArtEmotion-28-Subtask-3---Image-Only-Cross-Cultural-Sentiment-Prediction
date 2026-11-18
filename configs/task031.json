@@ -1,0 +1,16 @@
+{
+  "task": "TASK-031",
+  "parent_source": "4bc703af144e9121e58ed4cb75c94306c318dff1",
+  "seed": 31031,
+  "painting_pairs": 16,
+  "language_pairs_per_rectangle_group": 3,
+  "minimum_shared_languages": 3,
+  "near_zero_logit_threshold": 0.001,
+  "target_tie_threshold": 1e-12,
+  "noise_multiplier": 1.96,
+  "bootstrap_replicates": 10000,
+  "bootstrap_seed": 31032,
+  "maximum_allocation_seconds": 1800,
+  "conditions": ["A_matching", "B_neutral_prompt", "C_fixed_head", "D_crossed_head"],
+  "adapter_states": ["trained", "disabled_same_head_OOD"]
+}
