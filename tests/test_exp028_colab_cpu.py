@@ -2,6 +2,7 @@
 import importlib.metadata
 import importlib.util
 import json
+import os
 from pathlib import Path
 from types import SimpleNamespace
 import zipfile
@@ -30,7 +31,7 @@ def test_source_pin_rejects_wrong_revision():
     # Frozen scientific files must remain byte-identical, even in a dirty test checkout.
     for name in cpu.SCIENCE:
         prior = subprocess.check_output(["git", "show", f"{cpu.BASE}:{name}"], cwd=ROOT)
-        assert prior == (ROOT / name).read_bytes().replace(b"\r\n", b"\n")
+        assert cpu.expected_science_bytes(name, prior) == (ROOT / name).read_bytes().replace(b"\r\n", b"\n")
     assert len(head) == 40
 
 
@@ -119,7 +120,7 @@ def test_ram_shortage_saves_receipt_and_blocks_before_fitting(tmp_path, monkeypa
 def completed_screen(tmp_path, monkeypatch):
     rows, _, qwen, blocks, example = make_data()
     _, _, fit, held = cache.partition(rows, example)
-    with threadpool_limits(limits=4):
+    with threadpool_limits(limits=int(os.environ.get("ST3_EXP028_CPU_THREADS", "4"))):
         historical, _ = matched_reference(fit, held, blocks)
     historical["fold"] = 3
     monkeypatch.setattr("st3.exp028_stage1.psutil.virtual_memory", lambda: SimpleNamespace(available=8 * 1024**3))

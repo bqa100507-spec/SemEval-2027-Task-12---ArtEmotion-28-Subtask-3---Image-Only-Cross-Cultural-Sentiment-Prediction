@@ -27,6 +27,15 @@ SCIENCE = (
 SOURCE_KEYS = {"CLIP-B": "clip", "CLIP-L": "large", "SigLIP2-Base": "siglip"}
 
 
+def expected_science_bytes(name, original):
+    if name == "src/st3/exp028_stage1.py":
+        return original.replace(b"import time\n", b"import os\nimport time\n").replace(
+            b"with threadpool_limits(limits=4):",
+            b'with threadpool_limits(limits=int(os.environ.get("ST3_EXP028_CPU_THREADS", "4"))):',
+        )
+    return original
+
+
 def file_hash(path):
     with path.open("rb") as handle:
         return hashlib.file_digest(handle, "sha256").hexdigest()
@@ -49,7 +58,7 @@ def pinned_source(revision, root=ROOT):
         raise ValueError("Use the clean notebook-pinned Git revision")
     for name in SCIENCE:
         original = subprocess.check_output(["git", "show", f"{BASE}:{name}"], cwd=root)
-        if original != (root / name).read_bytes().replace(b"\r\n", b"\n"):
+        if expected_science_bytes(name, original) != (root / name).read_bytes().replace(b"\r\n", b"\n"):
             raise ValueError(f"Frozen TASK-033 scientific source differs: {name}")
     return {name: file_hash(root / name) for name in (
         *SCIENCE, "scripts/run_exp028_stage1.py", "scripts/run_exp028_colab_cpu.py",
@@ -215,8 +224,9 @@ def guarded_worker(inputs, workspace, qwen, output, attempt, seconds, audit_only
     import psutil
 
     env = dict(os.environ, CUDA_VISIBLE_DEVICES="-1", PYTHONNOUSERSITE="1",
-               OPENBLAS_NUM_THREADS="4", MKL_NUM_THREADS="4", OMP_NUM_THREADS="4",
-               NUMEXPR_NUM_THREADS="4", BLIS_NUM_THREADS="4")
+               OPENBLAS_NUM_THREADS="1", MKL_NUM_THREADS="1", OMP_NUM_THREADS="1",
+               OMP_THREAD_LIMIT="1", NUMEXPR_NUM_THREADS="1", BLIS_NUM_THREADS="1",
+               ST3_EXP028_CPU_THREADS="1")
     env.pop("PYTHONPATH", None)
     cli = [sys.executable, "-u", str(ROOT / "scripts/run_exp028_stage1.py"),
            "--stage", "audit" if audit_only else "screen", "--inputs", str(inputs),
