@@ -109,3 +109,8 @@ Before implementation, read **both** `docs/experiment_workflow_standard.md` (the
 - TASK-033 authorizes CPU cache audit, fixed eight-arm LR implementation and one exploratory fold-3 run only after complete compatible cache verification and matched-reference parity. Use `reports/exp028_stage1.md` and the original TASK-032 design specification.
 - Current state is `EXP028_STAGE1 = BLOCKED_VERIFICATION`. The first Drive page has 5,257 verified Qwen states out of 13,600. The original full folder has yet to be audited. The extraction-only notebook defaults to CPU audit and OFF for GPU. Separate authorization is needed for any feature inference.
 - Keep E50+L in production and preserve all historical artifacts. Stage 2, guided decoder changes, gated fusion, LoRA, full CV, Development, confirmation, and Codabench remain outside TASK-033 scope.
+
+## TASK-034 — EXP-028 CPU Colab
+
+- The complete owner Colab audit records 13,600/13,600 Qwen language states and 1,335/1,335 vision payloads. This supersedes the earlier partial connector listing. The new runtime must independently verify the mounted payloads before fold 3.
+- Use `notebooks/EXP028_Stage1_CPU_Colab.ipynb` and `reports/exp028_stage1_cpu_colab.md`. TASK-034 authorizes the frozen CPU-only exploratory fold-3 screen. The notebook reconstructs exact visual cache bytes from the existing pinned handoff and requires full cache coverage, adequate RAM and frozen E50+L parity. Keep Stage 2 and all other scientific restrictions in force.
