@@ -1,5 +1,10 @@
 # EXP-028 Stage 1 on Colab CPU
 
+TASK-035 supersedes this delivery's runtime instructions with a one-thread
+native hotfix and preflight. Use the [hotfix report](task035_colab_lbfgs_hotfix.md)
+and its new immutable notebook link in PR #33. The original input receipts below
+remain valid.
+
 **EXP028_COLAB = CPU_READY / AWAITING_OWNER_RUN.** The notebook uses the two
 existing Drive resources and defaults to the authorized exploratory fold-3
 screen. The delivery contains verified input preparation and synthetic workflow
