@@ -1,5 +1,7 @@
 # EXP-027 contrast-aware QLoRA — CPU validation and GPU readiness
 
+**Superseded readiness status:** TASK-030 closes the owner-completed pilot as **GPU_PILOT_COMPLETED / NO_GO_FOR_EXPANSION**. [Verified closure/error analysis](exp027_final_closure.md). All preparation material below is preserved as history, not authorization to rerun or expand. E50+L remains production.
+
 **EXP027 = CPU_VALIDATED / GPU_READY.** This means implementation and CPU/workflow checks passed for a future separately authorized inner-only pilot. **No GPU training, outer-fold evaluation, full CV, Development scoring, confirmation access or submission was executed.** Actual L4 mixed-precision/logit replay, memory, throughput and scientific benefit remain unverified. EXP-026 stays EXPLORATORY_COMPLETED / NOT_PROMOTED; E50+L stays production.
 
 ## Delivered design
