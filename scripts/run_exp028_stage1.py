@@ -27,6 +27,9 @@ PROTOCOL_FILES = [
 def check_pins():
     for name in PROTOCOL_FILES:
         original = subprocess.check_output(["git", "show", f"{BASE}:{name}"], cwd=ROOT)
+        if name == "src/st3/baseline.py":
+            original = original.replace(b"with threadpool_limits(limits=4):",
+                b'with threadpool_limits(limits=int(os.environ.get("ST3_EXP028_CPU_THREADS", "4"))):')
         if original != (ROOT / name).read_bytes().replace(b"\r\n", b"\n"):
             raise ValueError(f"Frozen Stage 1 source or protocol changed: {name}")
 

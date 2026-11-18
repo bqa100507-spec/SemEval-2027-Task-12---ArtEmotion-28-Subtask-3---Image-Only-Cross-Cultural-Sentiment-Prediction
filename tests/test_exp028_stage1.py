@@ -2,6 +2,7 @@ import copy
 import hashlib
 import importlib.util
 import json
+import os
 from pathlib import Path
 
 import numpy as np
@@ -134,7 +135,7 @@ def test_complete_synthetic_fold_all_arms_reference_refit_and_metrics(monkeypatc
     monkeypatch.setattr("st3.exp028_stage1.psutil.virtual_memory", lambda: SimpleNamespace(available=8 * 1024**3))
     rows, _, qwen, blocks, spec = make_data()
     _, _, fit, held = partition(rows, spec)
-    with threadpool_limits(limits=4):
+    with threadpool_limits(limits=int(os.environ.get("ST3_EXP028_CPU_THREADS", "4"))):
         ref, _ = matched_reference(fit, held, blocks)
     ref["fold"] = 3
     predictions, evaluation, paintings, fits = run_screen(rows, blocks, qwen, ref, spec)

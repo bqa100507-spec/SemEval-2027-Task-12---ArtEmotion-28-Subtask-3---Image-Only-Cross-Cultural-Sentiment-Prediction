@@ -1,4 +1,5 @@
 """Fixed eight-arm EXP-028 Stage 1 logistic comparison on verified cached features."""
+import os
 import time
 import warnings
 
@@ -198,7 +199,7 @@ def run_screen(rows, visual_blocks, qwen, historical, spec):
     if psutil.virtual_memory().available < 2 * 1024**3:
         raise MemoryError("Stage 1 requires at least 2 GiB available RAM before constructing feature matrices")
     records, predictions = {}, {}
-    with threadpool_limits(limits=4):
+    with threadpool_limits(limits=int(os.environ.get("ST3_EXP028_CPU_THREADS", "4"))):
         _, records["R0_inner"] = matched_reference(inner, stopping, visual_blocks)
         predictions["E50+L"], records["R0_refit"] = matched_reference(fitting, held, visual_blocks)
         actual = predictions["E50+L"].set_index(KEYS).p_positive.sort_index()

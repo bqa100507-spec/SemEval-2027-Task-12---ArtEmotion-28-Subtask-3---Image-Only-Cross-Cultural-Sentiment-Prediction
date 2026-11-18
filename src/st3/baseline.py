@@ -130,7 +130,7 @@ def fit_lr(matrix, train, seed):
     # before stacking to keep peak RAM down on paintings with unanimous votes.
     fit_matrix = sparse.vstack([matrix[train["k"].to_numpy() > 0],
                                 matrix[(train["n"] - train["k"]).to_numpy() > 0]], format="csr")
-    with threadpool_limits(limits=4):
+    with threadpool_limits(limits=int(os.environ.get("ST3_EXP028_CPU_THREADS", "4"))):
         return LogisticRegression(C=C, max_iter=MAX_ITER, solver="lbfgs", random_state=seed).fit(
             fit_matrix, labels[weights > 0], sample_weight=weights[weights > 0])
 

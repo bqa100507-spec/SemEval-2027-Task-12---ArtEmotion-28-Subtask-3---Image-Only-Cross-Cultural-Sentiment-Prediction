@@ -17,6 +17,13 @@ jobs:
           python-version: '3.12'
       - name: Install the pinned CPU notebook dependencies
         run: python -m pip install -r requirements-exp028-cpu.lock.txt
+      - name: Verify native EXP-028 preflight on the exact Colab Python and lock
+        run: |
+          python -m pip install uv==0.7.13
+          python -m uv python install 3.12.10
+          python -m uv venv --python 3.12.10 "$RUNNER_TEMP/exp028-python"
+          python -m uv pip sync --python "$RUNNER_TEMP/exp028-python/bin/python" requirements-exp028-cpu.lock.txt
+          "$RUNNER_TEMP/exp028-python/bin/python" scripts/exp028_native_preflight.py --output "$RUNNER_TEMP/exp028-native"
       - name: Install pinned CPU Torch for tiny student and workflow tests
         run: python -m pip install --index-url https://download.pytorch.org/whl/cpu torch==2.7.1
       - name: Validate notebook schemas
