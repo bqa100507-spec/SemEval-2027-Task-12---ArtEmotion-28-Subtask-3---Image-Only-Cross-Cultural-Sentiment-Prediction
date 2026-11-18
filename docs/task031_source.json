@@ -1,0 +1,14 @@
+{
+  "source_revision": "8d2d24b6b83b31fdf5164da6717b13c0f94c9bf7",
+  "files_sha256": {
+    "configs/task031.json": "bbe73804f857880b31aee919589048d58264fcac14ffd7b3abaeaa16d5c691be",
+    "configs/task031_manifest.json": "19dd06adfc36fb2a01c11f63406e3cc56ba4eb40ba5c5a1f73c76cd7058e7b8c",
+    "docs/task031_protocol.md": "e4b5cc470205cd6aa3c909e12aa236432145bfc1cf91aed5c2ecf5b8eb7a3610",
+    "src/st3/interaction_probe.py": "a68f1d20666b76439defc83c4072d100a8293b1869b68a4522a25f48919121dd",
+    "src/st3/probe_inference.py": "46a06b745c7aef9f7b07784a18551bf628bd1a790089baa0c45f63e6e55c6d06",
+    "scripts/run_task031.py": "45148ce2fefa301f3be07ea55684fcfdb53e92fb3e13a8463378c55347706e16",
+    "scripts/verify_task031.py": "e89058d3c67cb094fb7721b180fd8676b8cb27e44d2d829bb3ddfa63965d5d10",
+    "tests/test_interaction_probe.py": "bd3fb18275c4a8dc81b71b8b3211a94882163569d9364f045600268160426087"
+  },
+  "scope": "Frozen inference core; notebook/CPU workflow additions follow in a descendant commit. No GPU execution authorized."
+}

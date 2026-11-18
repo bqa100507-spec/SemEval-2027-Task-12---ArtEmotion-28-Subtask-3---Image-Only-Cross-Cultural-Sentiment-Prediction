@@ -10,6 +10,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Verify immutable notebook-source blobs from earlier commits.
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -20,5 +22,5 @@ jobs:
       - name: Validate notebook schemas
         run: |
           python -m pip install nbformat==5.10.4
-          python -c "import nbformat; from pathlib import Path; [nbformat.validate(nbformat.read(p, as_version=4)) for pattern in ('EXP023*.ipynb', 'EXP026*.ipynb', 'EXP027*.ipynb') for p in Path('notebooks').glob(pattern)]"
+          python -c "import nbformat; from pathlib import Path; [nbformat.validate(nbformat.read(p, as_version=4)) for pattern in ('EXP023*.ipynb', 'EXP026*.ipynb', 'EXP027*.ipynb', 'TASK031*.ipynb') for p in Path('notebooks').glob(pattern)]"
       - run: python -m pytest -q

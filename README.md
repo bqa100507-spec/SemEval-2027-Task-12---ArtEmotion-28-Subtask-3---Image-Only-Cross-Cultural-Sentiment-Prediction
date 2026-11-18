@@ -165,3 +165,14 @@ Reproduce the CPU audit from downloaded run artifacts:
 ```powershell
 .venv/Scripts/python.exe scripts/analyze_exp027.py --run-dir runs/task030/evidence --output runs/task030/new_analysis --inputs runs/exp023_budget_delivery/final/restore_check --export-zip runs/task030/export/outputs.zip
 ```
+
+### TASK-031: saved Qwen interaction mechanism probe
+
+CPU-validated implementation; no new GPU result. [Frozen protocol](docs/task031_protocol.md),
+[manifest](configs/task031_manifest.json) and [readiness/cost report](reports/task031_interaction_probe.md).
+The [inference-only Colab notebook](notebooks/TASK031_Colab.ipynb) defaults GPU authorization OFF;
+after separate owner authorization it reuses the original input ZIP and three saved EXP-027
+checkpoints, checks32 permitted inner-training paintings, persists raw keyed logits and exports
+verified descriptive analyses under a30-minute total limit. No training, outer scoring or promotion.
+Use `python scripts/verify_task031.py --run-dir <downloaded-run-directory>` for independent CPU
+integrity/analysis reconstruction. This does not replay the encoder. E50+L remains production.

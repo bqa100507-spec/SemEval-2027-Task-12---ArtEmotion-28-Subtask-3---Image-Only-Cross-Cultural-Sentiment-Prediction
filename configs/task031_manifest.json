@@ -1,0 +1,4296 @@
+{
+  "task": "TASK-031",
+  "config": {
+    "task": "TASK-031",
+    "parent_source": "4bc703af144e9121e58ed4cb75c94306c318dff1",
+    "seed": 31031,
+    "painting_pairs": 16,
+    "language_pairs_per_rectangle_group": 3,
+    "minimum_shared_languages": 3,
+    "near_zero_logit_threshold": 0.001,
+    "target_tie_threshold": 1e-12,
+    "noise_multiplier": 1.96,
+    "bootstrap_replicates": 10000,
+    "bootstrap_seed": 31032,
+    "maximum_allocation_seconds": 1800,
+    "conditions": [
+      "A_matching",
+      "B_neutral_prompt",
+      "C_fixed_head",
+      "D_crossed_head"
+    ],
+    "adapter_states": [
+      "trained",
+      "disabled_same_head_OOD"
+    ]
+  },
+  "checkpoint_run_identity": "27c38a67b7f9ece313948591d9d240ea0f47983ade7f7b6efe577e7058506051",
+  "checkpoint_sha256": {
+    "BCE": "201b44d8a2985bc8280d0bd15e28d0985e2fe36c5ce8acc0b4194f1f3b8096e2",
+    "P_low": "e32c3009ba763eeca92fc98edaebd3e11789f8c3a9114f0ea60f83d518cf5d2a",
+    "P_high": "fb4914f5c14b0384d38bc0f41a31e589397160a6bd0f04b2e8eb0bfc265af93f"
+  },
+  "images": {
+    "albrecht-durer_the-four-apostles-right-part-st-mark-s-and-st-paul-1526": {
+      "image": "Northern_Renaissance/albrecht-durer_the-four-apostles-right-part-st-mark-s-and-st-paul-1526.jpg",
+      "image_sha256": "fb93f503db45b6d92dd928b19bb48e3b9d86ec12f4f35514fdf6d9e5abaa2eb3"
+    },
+    "andrea-del-castagno_david-with-the-head-of-goliath": {
+      "image": "Early_Renaissance/andrea-del-castagno_david-with-the-head-of-goliath.jpg",
+      "image_sha256": "7b1cbbf8cd519b1ef6ae975ebd987d2df10f9cd7caef4780a1692a1683819532"
+    },
+    "anne-truitt_untitled-1967": {
+      "image": "Color_Field_Painting/anne-truitt_untitled-1967.jpg",
+      "image_sha256": "dd01eeb05e097a1bb2869a8176178445591a6f3a8fc63630594dfa48e65733dc"
+    },
+    "arkhip-kuindzhi_crimea-yayla": {
+      "image": "Impressionism/arkhip-kuindzhi_crimea-yayla.jpg",
+      "image_sha256": "9278fa51b40311c2dff32190d6cc06d4c204d89b52bb5d5ec4e823df10207cc6"
+    },
+    "arkhip-kuindzhi_ploughing-on-oxen": {
+      "image": "Realism/arkhip-kuindzhi_ploughing-on-oxen.jpg",
+      "image_sha256": "372df2cd782951cb3a9112f9c14337f00401b39101120a43b7cca8a9e5865d36"
+    },
+    "claude-monet_charing-cross-bridge-fog-on-the-themes": {
+      "image": "Impressionism/claude-monet_charing-cross-bridge-fog-on-the-themes.jpg",
+      "image_sha256": "6eec83938bab69328ed31c199e3a6c9b5f934272f154edc0205cc15333f38d2a"
+    },
+    "dmitry-levitzky_portrait-of-ursula-mniszech-1782": {
+      "image": "Rococo/dmitry-levitzky_portrait-of-ursula-mniszech-1782.jpg",
+      "image_sha256": "0d419ccfb7ba42ebed21f4ddbc04bbccd8fdc5a695d6fac6357706fbbb311888"
+    },
+    "edouard-cortes_theatre-du-vaudeville-3": {
+      "image": "Post_Impressionism/edouard-cortes_theatre-du-vaudeville-3.jpg",
+      "image_sha256": "8501cbd39d9e9d3bda2ae24a78c6b2484a9307491d328ee68c634be418e28292"
+    },
+    "felix-vallotton_seated-nude-on-a-couch": {
+      "image": "Realism/felix-vallotton_seated-nude-on-a-couch.jpg",
+      "image_sha256": "98e6035a6932e1c32a83aeb467237ba112a2fe2c9996c6a860fb8e1394d20ca4"
+    },
+    "filippo-lippi_circumcision-1465": {
+      "image": "Early_Renaissance/filippo-lippi_circumcision-1465.jpg",
+      "image_sha256": "3ed05276acd0b156d1fc5576001fbc7ba9ce28756653533261d08b3edd85bc12"
+    },
+    "gerrit-dou_still-life-with-book-and-purse": {
+      "image": "Baroque/gerrit-dou_still-life-with-book-and-purse.jpg",
+      "image_sha256": "7f2fd9246326393f3317a0599b5dccfd8344f4f046ac0d3fa6a96a0bcc5c74fc"
+    },
+    "gino-severini_harlequin-1965": {
+      "image": "Cubism/gino-severini_harlequin-1965.jpg",
+      "image_sha256": "cdee50ef9143d1f4968a24a16fce3f5cee09f8371c5a6898e4771cfec05474a7"
+    },
+    "iosif-iser_tatar-family-1920": {
+      "image": "Expressionism/iosif-iser_tatar-family-1920.jpg",
+      "image_sha256": "a5d23ab6c54612d99c0c96634ece2731d9b30011cfe0c4d3bb08a8b597661d77"
+    },
+    "jan-van-hemessen_san-girolamo-in-preghiera": {
+      "image": "Northern_Renaissance/jan-van-hemessen_san-girolamo-in-preghiera.jpg",
+      "image_sha256": "936515c676022e1f6e8602a27bc09233f3dabb49d1b418a3b6bf8f362acb1faa"
+    },
+    "lawren-harris_from-the-north-shore-lake-superior-1927": {
+      "image": "Art_Nouveau_Modern/lawren-harris_from-the-north-shore-lake-superior-1927.jpg",
+      "image_sha256": "dda9a113fde928daa1cbe55cdbb667d12fadfb14ee54f36b12bc64036cb8884e"
+    },
+    "lucian-freud_the-pearce-family": {
+      "image": "Expressionism/lucian-freud_the-pearce-family.jpg",
+      "image_sha256": "24491f651533417d9ad493cfede62ffc02f9b99bfaf8e2a78c122ef55223af75"
+    },
+    "marc-chagall_the-walk-1973": {
+      "image": "Naive_Art_Primitivism/marc-chagall_the-walk-1973.jpg",
+      "image_sha256": "963684cc60cb609199704a5799da330c982f996252619d905d3d20955d22af92"
+    },
+    "marie-bracquemond_pierre-bracquemond-as-child-1878": {
+      "image": "Impressionism/marie-bracquemond_pierre-bracquemond-as-child-1878.jpg",
+      "image_sha256": "6ea0e9f0c5c8f2e5f006f3c23748f57bd7a812668ec95b7a2a0aa743a9dce73d"
+    },
+    "nicholas-roerich_gansu": {
+      "image": "Symbolism/nicholas-roerich_gansu.jpg",
+      "image_sha256": "213d4b08dd145c248aa6febcbfcf086f8106fc349e2570c62c112dd7d9ff1c2f"
+    },
+    "nikolaos-gyzis_archangel-study-for-the-foundation-of-faith-1895": {
+      "image": "Symbolism/nikolaos-gyzis_archangel-study-for-the-foundation-of-faith-1895.jpg",
+      "image_sha256": "f9358fdc4aff76ea1318698ca13701c8e02d947aaaa0c896adf88d6736538bc2"
+    },
+    "pablo-picasso_niko-pirosmani-1972(1)": {
+      "image": "Expressionism/pablo-picasso_niko-pirosmani-1972(1).jpg",
+      "image_sha256": "da1e20be7bbee2d4bb47dbd75b79c5c1d6ddb11e390fdc05f6e20c06d8523686"
+    },
+    "paul-gauguin_two-sisters-1892(1)": {
+      "image": "Post_Impressionism/paul-gauguin_two-sisters-1892(1).jpg",
+      "image_sha256": "52f5b75e59e47a72fa6dac3ee7fafee9ec50d7259197f1742b4e743c8bb3286c"
+    },
+    "pierre-auguste-renoir_cape-saint-jean-1910": {
+      "image": "Impressionism/pierre-auguste-renoir_cape-saint-jean-1910.jpg",
+      "image_sha256": "20ffe7ab55ba61f56a4ac105924febf1db3e771a4082ad55ffafd6191462c64b"
+    },
+    "pyotr-konchalovsky_veliky-novgorod-1926": {
+      "image": "Post_Impressionism/pyotr-konchalovsky_veliky-novgorod-1926.jpg",
+      "image_sha256": "be5169544c9efa2b067d9eb1480ed614070b633febb68a3a618cd0b662cf0f62"
+    },
+    "raphael-kirchner_boys-and-girls-at-sea": {
+      "image": "Art_Nouveau_Modern/raphael-kirchner_boys-and-girls-at-sea.jpg",
+      "image_sha256": "c5112719054dc72986059263c1edfb5269b65dff58764cd5ff374ec4e19b1a4c"
+    },
+    "richard-parkes-bonington_sunset-in-the-pays-de-caux-1828": {
+      "image": "Romanticism/richard-parkes-bonington_sunset-in-the-pays-de-caux-1828.jpg",
+      "image_sha256": "cc169e15ecc8c2741fe9ffbbde119c05947ae4fb827b50dabd44e28fe19db19d"
+    },
+    "sam-francis_composition-in-blue-and-white-1960": {
+      "image": "Abstract_Expressionism/sam-francis_composition-in-blue-and-white-1960.jpg",
+      "image_sha256": "cbb35f23584125b18ae978b581dca2b5477d4331056a572234532cb5b0962d3e"
+    },
+    "sir-lawrence-alma-tadema_in-my-studio-1893": {
+      "image": "Romanticism/sir-lawrence-alma-tadema_in-my-studio-1893.jpg",
+      "image_sha256": "f7d289c6b3e812fdda7539a3bc363a23236f796dc8e1a8e875c2ec41f4d3c0d4"
+    },
+    "thomas-cole_kaaterskill-falls-1826": {
+      "image": "Romanticism/thomas-cole_kaaterskill-falls-1826.jpg",
+      "image_sha256": "9c33cc5965e989f2dcaf4df063956721c812ba7683cc61d0c5436ebc91f81d3f"
+    },
+    "vittore-carpaccio_the-miracle-of-st-tryphonius-1507": {
+      "image": "High_Renaissance/vittore-carpaccio_the-miracle-of-st-tryphonius-1507.jpg",
+      "image_sha256": "56ad0e669600d6ebc246c3debb243ff11eebff5f4af8bcc8328769acfd4dbc70"
+    },
+    "william-merritt-chase_the-open-air-breakfast": {
+      "image": "Impressionism/william-merritt-chase_the-open-air-breakfast.jpg",
+      "image_sha256": "2d0f1903e848e3a605fae635a598a454fb6765504ca4e3a7a31f165bd67f781e"
+    },
+    "winston-churchill_mells-somersetshire(1)": {
+      "image": "Impressionism/winston-churchill_mells-somersetshire(1).jpg",
+      "image_sha256": "013ce3469c306321916221627aec59cefb7798050cc963450d3ed2c489a6186a"
+    }
+  },
+  "rectangles": [
+    {
+      "pair_id": "pair00",
+      "I": "gerrit-dou_still-life-with-book-and-purse",
+      "J": "pablo-picasso_niko-pirosmani-1972(1)",
+      "a": "Arabic",
+      "b": "Hindi"
+    },
+    {
+      "pair_id": "pair00",
+      "I": "gerrit-dou_still-life-with-book-and-purse",
+      "J": "pablo-picasso_niko-pirosmani-1972(1)",
+      "a": "Arabic",
+      "b": "Chinese"
+    },
+    {
+      "pair_id": "pair00",
+      "I": "gerrit-dou_still-life-with-book-and-purse",
+      "J": "pablo-picasso_niko-pirosmani-1972(1)",
+      "a": "Chinese",
+      "b": "Yoruba"
+    },
+    {
+      "pair_id": "pair01",
+      "I": "dmitry-levitzky_portrait-of-ursula-mniszech-1782",
+      "J": "sir-lawrence-alma-tadema_in-my-studio-1893",
+      "a": "Korean",
+      "b": "Yoruba"
+    },
+    {
+      "pair_id": "pair01",
+      "I": "dmitry-levitzky_portrait-of-ursula-mniszech-1782",
+      "J": "sir-lawrence-alma-tadema_in-my-studio-1893",
+      "a": "Hindi",
+      "b": "Uzbek"
+    },
+    {
+      "pair_id": "pair01",
+      "I": "dmitry-levitzky_portrait-of-ursula-mniszech-1782",
+      "J": "sir-lawrence-alma-tadema_in-my-studio-1893",
+      "a": "Hindi",
+      "b": "Yoruba"
+    },
+    {
+      "pair_id": "pair02",
+      "I": "lawren-harris_from-the-north-shore-lake-superior-1927",
+      "J": "gino-severini_harlequin-1965",
+      "a": "Arabic",
+      "b": "Chinese"
+    },
+    {
+      "pair_id": "pair02",
+      "I": "lawren-harris_from-the-north-shore-lake-superior-1927",
+      "J": "gino-severini_harlequin-1965",
+      "a": "Chinese",
+      "b": "English"
+    },
+    {
+      "pair_id": "pair02",
+      "I": "lawren-harris_from-the-north-shore-lake-superior-1927",
+      "J": "gino-severini_harlequin-1965",
+      "a": "Arabic",
+      "b": "English"
+    },
+    {
+      "pair_id": "pair03",
+      "I": "anne-truitt_untitled-1967",
+      "J": "pyotr-konchalovsky_veliky-novgorod-1926",
+      "a": "Korean",
+      "b": "Yoruba"
+    },
+    {
+      "pair_id": "pair03",
+      "I": "anne-truitt_untitled-1967",
+      "J": "pyotr-konchalovsky_veliky-novgorod-1926",
+      "a": "Hindi",
+      "b": "Igbo"
+    },
+    {
+      "pair_id": "pair03",
+      "I": "anne-truitt_untitled-1967",
+      "J": "pyotr-konchalovsky_veliky-novgorod-1926",
+      "a": "Hindi",
+      "b": "Yoruba"
+    },
+    {
+      "pair_id": "pair04",
+      "I": "claude-monet_charing-cross-bridge-fog-on-the-themes",
+      "J": "raphael-kirchner_boys-and-girls-at-sea",
+      "a": "Chinese",
+      "b": "Igbo"
+    },
+    {
+      "pair_id": "pair04",
+      "I": "claude-monet_charing-cross-bridge-fog-on-the-themes",
+      "J": "raphael-kirchner_boys-and-girls-at-sea",
+      "a": "Chinese",
+      "b": "Malay"
+    },
+    {
+      "pair_id": "pair04",
+      "I": "claude-monet_charing-cross-bridge-fog-on-the-themes",
+      "J": "raphael-kirchner_boys-and-girls-at-sea",
+      "a": "English",
+      "b": "Vietnamese"
+    },
+    {
+      "pair_id": "pair05",
+      "I": "arkhip-kuindzhi_ploughing-on-oxen",
+      "J": "sam-francis_composition-in-blue-and-white-1960",
+      "a": "Chinese",
+      "b": "Korean"
+    },
+    {
+      "pair_id": "pair05",
+      "I": "arkhip-kuindzhi_ploughing-on-oxen",
+      "J": "sam-francis_composition-in-blue-and-white-1960",
+      "a": "Chinese",
+      "b": "Swahili"
+    },
+    {
+      "pair_id": "pair05",
+      "I": "arkhip-kuindzhi_ploughing-on-oxen",
+      "J": "sam-francis_composition-in-blue-and-white-1960",
+      "a": "Hausa",
+      "b": "Yoruba"
+    },
+    {
+      "pair_id": "pair06",
+      "I": "andrea-del-castagno_david-with-the-head-of-goliath",
+      "J": "pierre-auguste-renoir_cape-saint-jean-1910",
+      "a": "Arabic",
+      "b": "Chinese"
+    },
+    {
+      "pair_id": "pair06",
+      "I": "andrea-del-castagno_david-with-the-head-of-goliath",
+      "J": "pierre-auguste-renoir_cape-saint-jean-1910",
+      "a": "Arabic",
+      "b": "English"
+    },
+    {
+      "pair_id": "pair06",
+      "I": "andrea-del-castagno_david-with-the-head-of-goliath",
+      "J": "pierre-auguste-renoir_cape-saint-jean-1910",
+      "a": "Chinese",
+      "b": "English"
+    },
+    {
+      "pair_id": "pair07",
+      "I": "richard-parkes-bonington_sunset-in-the-pays-de-caux-1828",
+      "J": "iosif-iser_tatar-family-1920",
+      "a": "Turkish",
+      "b": "Vietnamese"
+    },
+    {
+      "pair_id": "pair07",
+      "I": "richard-parkes-bonington_sunset-in-the-pays-de-caux-1828",
+      "J": "iosif-iser_tatar-family-1920",
+      "a": "Indonesian",
+      "b": "Yoruba"
+    },
+    {
+      "pair_id": "pair07",
+      "I": "richard-parkes-bonington_sunset-in-the-pays-de-caux-1828",
+      "J": "iosif-iser_tatar-family-1920",
+      "a": "Uzbek",
+      "b": "Vietnamese"
+    },
+    {
+      "pair_id": "pair08",
+      "I": "winston-churchill_mells-somersetshire(1)",
+      "J": "jan-van-hemessen_san-girolamo-in-preghiera",
+      "a": "Chinese",
+      "b": "Uzbek"
+    },
+    {
+      "pair_id": "pair08",
+      "I": "winston-churchill_mells-somersetshire(1)",
+      "J": "jan-van-hemessen_san-girolamo-in-preghiera",
+      "a": "Tamil",
+      "b": "Uzbek"
+    },
+    {
+      "pair_id": "pair08",
+      "I": "winston-churchill_mells-somersetshire(1)",
+      "J": "jan-van-hemessen_san-girolamo-in-preghiera",
+      "a": "Chinese",
+      "b": "Tamil"
+    },
+    {
+      "pair_id": "pair09",
+      "I": "lucian-freud_the-pearce-family",
+      "J": "filippo-lippi_circumcision-1465",
+      "a": "Igbo",
+      "b": "Swahili"
+    },
+    {
+      "pair_id": "pair09",
+      "I": "lucian-freud_the-pearce-family",
+      "J": "filippo-lippi_circumcision-1465",
+      "a": "Kyrgyz",
+      "b": "Uzbek"
+    },
+    {
+      "pair_id": "pair09",
+      "I": "lucian-freud_the-pearce-family",
+      "J": "filippo-lippi_circumcision-1465",
+      "a": "Hindi",
+      "b": "Swahili"
+    },
+    {
+      "pair_id": "pair10",
+      "I": "vittore-carpaccio_the-miracle-of-st-tryphonius-1507",
+      "J": "marie-bracquemond_pierre-bracquemond-as-child-1878",
+      "a": "Hausa",
+      "b": "Uzbek"
+    },
+    {
+      "pair_id": "pair10",
+      "I": "vittore-carpaccio_the-miracle-of-st-tryphonius-1507",
+      "J": "marie-bracquemond_pierre-bracquemond-as-child-1878",
+      "a": "Chinese",
+      "b": "Swahili"
+    },
+    {
+      "pair_id": "pair10",
+      "I": "vittore-carpaccio_the-miracle-of-st-tryphonius-1507",
+      "J": "marie-bracquemond_pierre-bracquemond-as-child-1878",
+      "a": "Chinese",
+      "b": "Yoruba"
+    },
+    {
+      "pair_id": "pair11",
+      "I": "arkhip-kuindzhi_crimea-yayla",
+      "J": "thomas-cole_kaaterskill-falls-1826",
+      "a": "Uzbek",
+      "b": "Yoruba"
+    },
+    {
+      "pair_id": "pair11",
+      "I": "arkhip-kuindzhi_crimea-yayla",
+      "J": "thomas-cole_kaaterskill-falls-1826",
+      "a": "Tamil",
+      "b": "Yoruba"
+    },
+    {
+      "pair_id": "pair11",
+      "I": "arkhip-kuindzhi_crimea-yayla",
+      "J": "thomas-cole_kaaterskill-falls-1826",
+      "a": "Tamil",
+      "b": "Uzbek"
+    },
+    {
+      "pair_id": "pair12",
+      "I": "felix-vallotton_seated-nude-on-a-couch",
+      "J": "paul-gauguin_two-sisters-1892(1)",
+      "a": "Chinese",
+      "b": "Malay"
+    },
+    {
+      "pair_id": "pair12",
+      "I": "felix-vallotton_seated-nude-on-a-couch",
+      "J": "paul-gauguin_two-sisters-1892(1)",
+      "a": "Hindi",
+      "b": "IsiZulu"
+    },
+    {
+      "pair_id": "pair12",
+      "I": "felix-vallotton_seated-nude-on-a-couch",
+      "J": "paul-gauguin_two-sisters-1892(1)",
+      "a": "Chinese",
+      "b": "Turkish"
+    },
+    {
+      "pair_id": "pair13",
+      "I": "william-merritt-chase_the-open-air-breakfast",
+      "J": "nicholas-roerich_gansu",
+      "a": "Chinese",
+      "b": "Vietnamese"
+    },
+    {
+      "pair_id": "pair13",
+      "I": "william-merritt-chase_the-open-air-breakfast",
+      "J": "nicholas-roerich_gansu",
+      "a": "Igbo",
+      "b": "Korean"
+    },
+    {
+      "pair_id": "pair13",
+      "I": "william-merritt-chase_the-open-air-breakfast",
+      "J": "nicholas-roerich_gansu",
+      "a": "Chinese",
+      "b": "Korean"
+    },
+    {
+      "pair_id": "pair14",
+      "I": "albrecht-durer_the-four-apostles-right-part-st-mark-s-and-st-paul-1526",
+      "J": "edouard-cortes_theatre-du-vaudeville-3",
+      "a": "Hausa",
+      "b": "Korean"
+    },
+    {
+      "pair_id": "pair14",
+      "I": "albrecht-durer_the-four-apostles-right-part-st-mark-s-and-st-paul-1526",
+      "J": "edouard-cortes_theatre-du-vaudeville-3",
+      "a": "Arabic",
+      "b": "Igbo"
+    },
+    {
+      "pair_id": "pair14",
+      "I": "albrecht-durer_the-four-apostles-right-part-st-mark-s-and-st-paul-1526",
+      "J": "edouard-cortes_theatre-du-vaudeville-3",
+      "a": "Igbo",
+      "b": "Swahili"
+    },
+    {
+      "pair_id": "pair15",
+      "I": "marc-chagall_the-walk-1973",
+      "J": "nikolaos-gyzis_archangel-study-for-the-foundation-of-faith-1895",
+      "a": "Hindi",
+      "b": "Igbo"
+    },
+    {
+      "pair_id": "pair15",
+      "I": "marc-chagall_the-walk-1973",
+      "J": "nikolaos-gyzis_archangel-study-for-the-foundation-of-faith-1895",
+      "a": "Hindi",
+      "b": "Yoruba"
+    },
+    {
+      "pair_id": "pair15",
+      "I": "marc-chagall_the-walk-1973",
+      "J": "nikolaos-gyzis_archangel-study-for-the-foundation-of-faith-1895",
+      "a": "Korean",
+      "b": "Yoruba"
+    }
+  ],
+  "queries": [
+    {
+      "painting": "albrecht-durer_the-four-apostles-right-part-st-mark-s-and-st-paul-1526",
+      "target_language": "Arabic",
+      "condition": "A_matching",
+      "prompt_language": "Arabic",
+      "head_language": "Arabic"
+    },
+    {
+      "painting": "albrecht-durer_the-four-apostles-right-part-st-mark-s-and-st-paul-1526",
+      "target_language": "Arabic",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Arabic"
+    },
+    {
+      "painting": "albrecht-durer_the-four-apostles-right-part-st-mark-s-and-st-paul-1526",
+      "target_language": "Arabic",
+      "condition": "C_fixed_head",
+      "prompt_language": "Arabic",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "albrecht-durer_the-four-apostles-right-part-st-mark-s-and-st-paul-1526",
+      "target_language": "Arabic",
+      "condition": "D_crossed_head",
+      "prompt_language": "Arabic",
+      "head_language": "Burmese"
+    },
+    {
+      "painting": "albrecht-durer_the-four-apostles-right-part-st-mark-s-and-st-paul-1526",
+      "target_language": "Hausa",
+      "condition": "A_matching",
+      "prompt_language": "Hausa",
+      "head_language": "Hausa"
+    },
+    {
+      "painting": "albrecht-durer_the-four-apostles-right-part-st-mark-s-and-st-paul-1526",
+      "target_language": "Hausa",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Hausa"
+    },
+    {
+      "painting": "albrecht-durer_the-four-apostles-right-part-st-mark-s-and-st-paul-1526",
+      "target_language": "Hausa",
+      "condition": "C_fixed_head",
+      "prompt_language": "Hausa",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "albrecht-durer_the-four-apostles-right-part-st-mark-s-and-st-paul-1526",
+      "target_language": "Hausa",
+      "condition": "D_crossed_head",
+      "prompt_language": "Hausa",
+      "head_language": "Hindi"
+    },
+    {
+      "painting": "albrecht-durer_the-four-apostles-right-part-st-mark-s-and-st-paul-1526",
+      "target_language": "Igbo",
+      "condition": "A_matching",
+      "prompt_language": "Igbo",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "albrecht-durer_the-four-apostles-right-part-st-mark-s-and-st-paul-1526",
+      "target_language": "Igbo",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "albrecht-durer_the-four-apostles-right-part-st-mark-s-and-st-paul-1526",
+      "target_language": "Igbo",
+      "condition": "C_fixed_head",
+      "prompt_language": "Igbo",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "albrecht-durer_the-four-apostles-right-part-st-mark-s-and-st-paul-1526",
+      "target_language": "Igbo",
+      "condition": "D_crossed_head",
+      "prompt_language": "Igbo",
+      "head_language": "Indonesian"
+    },
+    {
+      "painting": "albrecht-durer_the-four-apostles-right-part-st-mark-s-and-st-paul-1526",
+      "target_language": "Korean",
+      "condition": "A_matching",
+      "prompt_language": "Korean",
+      "head_language": "Korean"
+    },
+    {
+      "painting": "albrecht-durer_the-four-apostles-right-part-st-mark-s-and-st-paul-1526",
+      "target_language": "Korean",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Korean"
+    },
+    {
+      "painting": "albrecht-durer_the-four-apostles-right-part-st-mark-s-and-st-paul-1526",
+      "target_language": "Korean",
+      "condition": "C_fixed_head",
+      "prompt_language": "Korean",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "albrecht-durer_the-four-apostles-right-part-st-mark-s-and-st-paul-1526",
+      "target_language": "Korean",
+      "condition": "D_crossed_head",
+      "prompt_language": "Korean",
+      "head_language": "Kyrgyz"
+    },
+    {
+      "painting": "albrecht-durer_the-four-apostles-right-part-st-mark-s-and-st-paul-1526",
+      "target_language": "Swahili",
+      "condition": "A_matching",
+      "prompt_language": "Swahili",
+      "head_language": "Swahili"
+    },
+    {
+      "painting": "albrecht-durer_the-four-apostles-right-part-st-mark-s-and-st-paul-1526",
+      "target_language": "Swahili",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Swahili"
+    },
+    {
+      "painting": "albrecht-durer_the-four-apostles-right-part-st-mark-s-and-st-paul-1526",
+      "target_language": "Swahili",
+      "condition": "C_fixed_head",
+      "prompt_language": "Swahili",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "albrecht-durer_the-four-apostles-right-part-st-mark-s-and-st-paul-1526",
+      "target_language": "Swahili",
+      "condition": "D_crossed_head",
+      "prompt_language": "Swahili",
+      "head_language": "Tagalog"
+    },
+    {
+      "painting": "andrea-del-castagno_david-with-the-head-of-goliath",
+      "target_language": "Arabic",
+      "condition": "A_matching",
+      "prompt_language": "Arabic",
+      "head_language": "Arabic"
+    },
+    {
+      "painting": "andrea-del-castagno_david-with-the-head-of-goliath",
+      "target_language": "Arabic",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Arabic"
+    },
+    {
+      "painting": "andrea-del-castagno_david-with-the-head-of-goliath",
+      "target_language": "Arabic",
+      "condition": "C_fixed_head",
+      "prompt_language": "Arabic",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "andrea-del-castagno_david-with-the-head-of-goliath",
+      "target_language": "Arabic",
+      "condition": "D_crossed_head",
+      "prompt_language": "Arabic",
+      "head_language": "Burmese"
+    },
+    {
+      "painting": "andrea-del-castagno_david-with-the-head-of-goliath",
+      "target_language": "Chinese",
+      "condition": "A_matching",
+      "prompt_language": "Chinese",
+      "head_language": "Chinese"
+    },
+    {
+      "painting": "andrea-del-castagno_david-with-the-head-of-goliath",
+      "target_language": "Chinese",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Chinese"
+    },
+    {
+      "painting": "andrea-del-castagno_david-with-the-head-of-goliath",
+      "target_language": "Chinese",
+      "condition": "C_fixed_head",
+      "prompt_language": "Chinese",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "andrea-del-castagno_david-with-the-head-of-goliath",
+      "target_language": "Chinese",
+      "condition": "D_crossed_head",
+      "prompt_language": "Chinese",
+      "head_language": "Darija"
+    },
+    {
+      "painting": "andrea-del-castagno_david-with-the-head-of-goliath",
+      "target_language": "English",
+      "condition": "A_matching",
+      "prompt_language": "English",
+      "head_language": "English"
+    },
+    {
+      "painting": "andrea-del-castagno_david-with-the-head-of-goliath",
+      "target_language": "English",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "English"
+    },
+    {
+      "painting": "andrea-del-castagno_david-with-the-head-of-goliath",
+      "target_language": "English",
+      "condition": "C_fixed_head",
+      "prompt_language": "English",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "andrea-del-castagno_david-with-the-head-of-goliath",
+      "target_language": "English",
+      "condition": "D_crossed_head",
+      "prompt_language": "English",
+      "head_language": "Hausa"
+    },
+    {
+      "painting": "anne-truitt_untitled-1967",
+      "target_language": "Hindi",
+      "condition": "A_matching",
+      "prompt_language": "Hindi",
+      "head_language": "Hindi"
+    },
+    {
+      "painting": "anne-truitt_untitled-1967",
+      "target_language": "Hindi",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Hindi"
+    },
+    {
+      "painting": "anne-truitt_untitled-1967",
+      "target_language": "Hindi",
+      "condition": "C_fixed_head",
+      "prompt_language": "Hindi",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "anne-truitt_untitled-1967",
+      "target_language": "Hindi",
+      "condition": "D_crossed_head",
+      "prompt_language": "Hindi",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "anne-truitt_untitled-1967",
+      "target_language": "Igbo",
+      "condition": "A_matching",
+      "prompt_language": "Igbo",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "anne-truitt_untitled-1967",
+      "target_language": "Igbo",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "anne-truitt_untitled-1967",
+      "target_language": "Igbo",
+      "condition": "C_fixed_head",
+      "prompt_language": "Igbo",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "anne-truitt_untitled-1967",
+      "target_language": "Igbo",
+      "condition": "D_crossed_head",
+      "prompt_language": "Igbo",
+      "head_language": "Indonesian"
+    },
+    {
+      "painting": "anne-truitt_untitled-1967",
+      "target_language": "Korean",
+      "condition": "A_matching",
+      "prompt_language": "Korean",
+      "head_language": "Korean"
+    },
+    {
+      "painting": "anne-truitt_untitled-1967",
+      "target_language": "Korean",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Korean"
+    },
+    {
+      "painting": "anne-truitt_untitled-1967",
+      "target_language": "Korean",
+      "condition": "C_fixed_head",
+      "prompt_language": "Korean",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "anne-truitt_untitled-1967",
+      "target_language": "Korean",
+      "condition": "D_crossed_head",
+      "prompt_language": "Korean",
+      "head_language": "Kyrgyz"
+    },
+    {
+      "painting": "anne-truitt_untitled-1967",
+      "target_language": "Yoruba",
+      "condition": "A_matching",
+      "prompt_language": "Yoruba",
+      "head_language": "Yoruba"
+    },
+    {
+      "painting": "anne-truitt_untitled-1967",
+      "target_language": "Yoruba",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Yoruba"
+    },
+    {
+      "painting": "anne-truitt_untitled-1967",
+      "target_language": "Yoruba",
+      "condition": "C_fixed_head",
+      "prompt_language": "Yoruba",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "anne-truitt_untitled-1967",
+      "target_language": "Yoruba",
+      "condition": "D_crossed_head",
+      "prompt_language": "Yoruba",
+      "head_language": "Arabic"
+    },
+    {
+      "painting": "arkhip-kuindzhi_crimea-yayla",
+      "target_language": "Tamil",
+      "condition": "A_matching",
+      "prompt_language": "Tamil",
+      "head_language": "Tamil"
+    },
+    {
+      "painting": "arkhip-kuindzhi_crimea-yayla",
+      "target_language": "Tamil",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Tamil"
+    },
+    {
+      "painting": "arkhip-kuindzhi_crimea-yayla",
+      "target_language": "Tamil",
+      "condition": "C_fixed_head",
+      "prompt_language": "Tamil",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "arkhip-kuindzhi_crimea-yayla",
+      "target_language": "Tamil",
+      "condition": "D_crossed_head",
+      "prompt_language": "Tamil",
+      "head_language": "Thai"
+    },
+    {
+      "painting": "arkhip-kuindzhi_crimea-yayla",
+      "target_language": "Uzbek",
+      "condition": "A_matching",
+      "prompt_language": "Uzbek",
+      "head_language": "Uzbek"
+    },
+    {
+      "painting": "arkhip-kuindzhi_crimea-yayla",
+      "target_language": "Uzbek",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Uzbek"
+    },
+    {
+      "painting": "arkhip-kuindzhi_crimea-yayla",
+      "target_language": "Uzbek",
+      "condition": "C_fixed_head",
+      "prompt_language": "Uzbek",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "arkhip-kuindzhi_crimea-yayla",
+      "target_language": "Uzbek",
+      "condition": "D_crossed_head",
+      "prompt_language": "Uzbek",
+      "head_language": "Vietnamese"
+    },
+    {
+      "painting": "arkhip-kuindzhi_crimea-yayla",
+      "target_language": "Yoruba",
+      "condition": "A_matching",
+      "prompt_language": "Yoruba",
+      "head_language": "Yoruba"
+    },
+    {
+      "painting": "arkhip-kuindzhi_crimea-yayla",
+      "target_language": "Yoruba",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Yoruba"
+    },
+    {
+      "painting": "arkhip-kuindzhi_crimea-yayla",
+      "target_language": "Yoruba",
+      "condition": "C_fixed_head",
+      "prompt_language": "Yoruba",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "arkhip-kuindzhi_crimea-yayla",
+      "target_language": "Yoruba",
+      "condition": "D_crossed_head",
+      "prompt_language": "Yoruba",
+      "head_language": "Arabic"
+    },
+    {
+      "painting": "arkhip-kuindzhi_ploughing-on-oxen",
+      "target_language": "Chinese",
+      "condition": "A_matching",
+      "prompt_language": "Chinese",
+      "head_language": "Chinese"
+    },
+    {
+      "painting": "arkhip-kuindzhi_ploughing-on-oxen",
+      "target_language": "Chinese",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Chinese"
+    },
+    {
+      "painting": "arkhip-kuindzhi_ploughing-on-oxen",
+      "target_language": "Chinese",
+      "condition": "C_fixed_head",
+      "prompt_language": "Chinese",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "arkhip-kuindzhi_ploughing-on-oxen",
+      "target_language": "Chinese",
+      "condition": "D_crossed_head",
+      "prompt_language": "Chinese",
+      "head_language": "Darija"
+    },
+    {
+      "painting": "arkhip-kuindzhi_ploughing-on-oxen",
+      "target_language": "Hausa",
+      "condition": "A_matching",
+      "prompt_language": "Hausa",
+      "head_language": "Hausa"
+    },
+    {
+      "painting": "arkhip-kuindzhi_ploughing-on-oxen",
+      "target_language": "Hausa",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Hausa"
+    },
+    {
+      "painting": "arkhip-kuindzhi_ploughing-on-oxen",
+      "target_language": "Hausa",
+      "condition": "C_fixed_head",
+      "prompt_language": "Hausa",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "arkhip-kuindzhi_ploughing-on-oxen",
+      "target_language": "Hausa",
+      "condition": "D_crossed_head",
+      "prompt_language": "Hausa",
+      "head_language": "Hindi"
+    },
+    {
+      "painting": "arkhip-kuindzhi_ploughing-on-oxen",
+      "target_language": "Korean",
+      "condition": "A_matching",
+      "prompt_language": "Korean",
+      "head_language": "Korean"
+    },
+    {
+      "painting": "arkhip-kuindzhi_ploughing-on-oxen",
+      "target_language": "Korean",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Korean"
+    },
+    {
+      "painting": "arkhip-kuindzhi_ploughing-on-oxen",
+      "target_language": "Korean",
+      "condition": "C_fixed_head",
+      "prompt_language": "Korean",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "arkhip-kuindzhi_ploughing-on-oxen",
+      "target_language": "Korean",
+      "condition": "D_crossed_head",
+      "prompt_language": "Korean",
+      "head_language": "Kyrgyz"
+    },
+    {
+      "painting": "arkhip-kuindzhi_ploughing-on-oxen",
+      "target_language": "Swahili",
+      "condition": "A_matching",
+      "prompt_language": "Swahili",
+      "head_language": "Swahili"
+    },
+    {
+      "painting": "arkhip-kuindzhi_ploughing-on-oxen",
+      "target_language": "Swahili",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Swahili"
+    },
+    {
+      "painting": "arkhip-kuindzhi_ploughing-on-oxen",
+      "target_language": "Swahili",
+      "condition": "C_fixed_head",
+      "prompt_language": "Swahili",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "arkhip-kuindzhi_ploughing-on-oxen",
+      "target_language": "Swahili",
+      "condition": "D_crossed_head",
+      "prompt_language": "Swahili",
+      "head_language": "Tagalog"
+    },
+    {
+      "painting": "arkhip-kuindzhi_ploughing-on-oxen",
+      "target_language": "Yoruba",
+      "condition": "A_matching",
+      "prompt_language": "Yoruba",
+      "head_language": "Yoruba"
+    },
+    {
+      "painting": "arkhip-kuindzhi_ploughing-on-oxen",
+      "target_language": "Yoruba",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Yoruba"
+    },
+    {
+      "painting": "arkhip-kuindzhi_ploughing-on-oxen",
+      "target_language": "Yoruba",
+      "condition": "C_fixed_head",
+      "prompt_language": "Yoruba",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "arkhip-kuindzhi_ploughing-on-oxen",
+      "target_language": "Yoruba",
+      "condition": "D_crossed_head",
+      "prompt_language": "Yoruba",
+      "head_language": "Arabic"
+    },
+    {
+      "painting": "claude-monet_charing-cross-bridge-fog-on-the-themes",
+      "target_language": "Chinese",
+      "condition": "A_matching",
+      "prompt_language": "Chinese",
+      "head_language": "Chinese"
+    },
+    {
+      "painting": "claude-monet_charing-cross-bridge-fog-on-the-themes",
+      "target_language": "Chinese",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Chinese"
+    },
+    {
+      "painting": "claude-monet_charing-cross-bridge-fog-on-the-themes",
+      "target_language": "Chinese",
+      "condition": "C_fixed_head",
+      "prompt_language": "Chinese",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "claude-monet_charing-cross-bridge-fog-on-the-themes",
+      "target_language": "Chinese",
+      "condition": "D_crossed_head",
+      "prompt_language": "Chinese",
+      "head_language": "Darija"
+    },
+    {
+      "painting": "claude-monet_charing-cross-bridge-fog-on-the-themes",
+      "target_language": "English",
+      "condition": "A_matching",
+      "prompt_language": "English",
+      "head_language": "English"
+    },
+    {
+      "painting": "claude-monet_charing-cross-bridge-fog-on-the-themes",
+      "target_language": "English",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "English"
+    },
+    {
+      "painting": "claude-monet_charing-cross-bridge-fog-on-the-themes",
+      "target_language": "English",
+      "condition": "C_fixed_head",
+      "prompt_language": "English",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "claude-monet_charing-cross-bridge-fog-on-the-themes",
+      "target_language": "English",
+      "condition": "D_crossed_head",
+      "prompt_language": "English",
+      "head_language": "Hausa"
+    },
+    {
+      "painting": "claude-monet_charing-cross-bridge-fog-on-the-themes",
+      "target_language": "Igbo",
+      "condition": "A_matching",
+      "prompt_language": "Igbo",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "claude-monet_charing-cross-bridge-fog-on-the-themes",
+      "target_language": "Igbo",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "claude-monet_charing-cross-bridge-fog-on-the-themes",
+      "target_language": "Igbo",
+      "condition": "C_fixed_head",
+      "prompt_language": "Igbo",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "claude-monet_charing-cross-bridge-fog-on-the-themes",
+      "target_language": "Igbo",
+      "condition": "D_crossed_head",
+      "prompt_language": "Igbo",
+      "head_language": "Indonesian"
+    },
+    {
+      "painting": "claude-monet_charing-cross-bridge-fog-on-the-themes",
+      "target_language": "Malay",
+      "condition": "A_matching",
+      "prompt_language": "Malay",
+      "head_language": "Malay"
+    },
+    {
+      "painting": "claude-monet_charing-cross-bridge-fog-on-the-themes",
+      "target_language": "Malay",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Malay"
+    },
+    {
+      "painting": "claude-monet_charing-cross-bridge-fog-on-the-themes",
+      "target_language": "Malay",
+      "condition": "C_fixed_head",
+      "prompt_language": "Malay",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "claude-monet_charing-cross-bridge-fog-on-the-themes",
+      "target_language": "Malay",
+      "condition": "D_crossed_head",
+      "prompt_language": "Malay",
+      "head_language": "Setswana"
+    },
+    {
+      "painting": "claude-monet_charing-cross-bridge-fog-on-the-themes",
+      "target_language": "Vietnamese",
+      "condition": "A_matching",
+      "prompt_language": "Vietnamese",
+      "head_language": "Vietnamese"
+    },
+    {
+      "painting": "claude-monet_charing-cross-bridge-fog-on-the-themes",
+      "target_language": "Vietnamese",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Vietnamese"
+    },
+    {
+      "painting": "claude-monet_charing-cross-bridge-fog-on-the-themes",
+      "target_language": "Vietnamese",
+      "condition": "C_fixed_head",
+      "prompt_language": "Vietnamese",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "claude-monet_charing-cross-bridge-fog-on-the-themes",
+      "target_language": "Vietnamese",
+      "condition": "D_crossed_head",
+      "prompt_language": "Vietnamese",
+      "head_language": "Yoruba"
+    },
+    {
+      "painting": "dmitry-levitzky_portrait-of-ursula-mniszech-1782",
+      "target_language": "Hindi",
+      "condition": "A_matching",
+      "prompt_language": "Hindi",
+      "head_language": "Hindi"
+    },
+    {
+      "painting": "dmitry-levitzky_portrait-of-ursula-mniszech-1782",
+      "target_language": "Hindi",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Hindi"
+    },
+    {
+      "painting": "dmitry-levitzky_portrait-of-ursula-mniszech-1782",
+      "target_language": "Hindi",
+      "condition": "C_fixed_head",
+      "prompt_language": "Hindi",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "dmitry-levitzky_portrait-of-ursula-mniszech-1782",
+      "target_language": "Hindi",
+      "condition": "D_crossed_head",
+      "prompt_language": "Hindi",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "dmitry-levitzky_portrait-of-ursula-mniszech-1782",
+      "target_language": "Korean",
+      "condition": "A_matching",
+      "prompt_language": "Korean",
+      "head_language": "Korean"
+    },
+    {
+      "painting": "dmitry-levitzky_portrait-of-ursula-mniszech-1782",
+      "target_language": "Korean",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Korean"
+    },
+    {
+      "painting": "dmitry-levitzky_portrait-of-ursula-mniszech-1782",
+      "target_language": "Korean",
+      "condition": "C_fixed_head",
+      "prompt_language": "Korean",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "dmitry-levitzky_portrait-of-ursula-mniszech-1782",
+      "target_language": "Korean",
+      "condition": "D_crossed_head",
+      "prompt_language": "Korean",
+      "head_language": "Kyrgyz"
+    },
+    {
+      "painting": "dmitry-levitzky_portrait-of-ursula-mniszech-1782",
+      "target_language": "Uzbek",
+      "condition": "A_matching",
+      "prompt_language": "Uzbek",
+      "head_language": "Uzbek"
+    },
+    {
+      "painting": "dmitry-levitzky_portrait-of-ursula-mniszech-1782",
+      "target_language": "Uzbek",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Uzbek"
+    },
+    {
+      "painting": "dmitry-levitzky_portrait-of-ursula-mniszech-1782",
+      "target_language": "Uzbek",
+      "condition": "C_fixed_head",
+      "prompt_language": "Uzbek",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "dmitry-levitzky_portrait-of-ursula-mniszech-1782",
+      "target_language": "Uzbek",
+      "condition": "D_crossed_head",
+      "prompt_language": "Uzbek",
+      "head_language": "Vietnamese"
+    },
+    {
+      "painting": "dmitry-levitzky_portrait-of-ursula-mniszech-1782",
+      "target_language": "Yoruba",
+      "condition": "A_matching",
+      "prompt_language": "Yoruba",
+      "head_language": "Yoruba"
+    },
+    {
+      "painting": "dmitry-levitzky_portrait-of-ursula-mniszech-1782",
+      "target_language": "Yoruba",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Yoruba"
+    },
+    {
+      "painting": "dmitry-levitzky_portrait-of-ursula-mniszech-1782",
+      "target_language": "Yoruba",
+      "condition": "C_fixed_head",
+      "prompt_language": "Yoruba",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "dmitry-levitzky_portrait-of-ursula-mniszech-1782",
+      "target_language": "Yoruba",
+      "condition": "D_crossed_head",
+      "prompt_language": "Yoruba",
+      "head_language": "Arabic"
+    },
+    {
+      "painting": "edouard-cortes_theatre-du-vaudeville-3",
+      "target_language": "Arabic",
+      "condition": "A_matching",
+      "prompt_language": "Arabic",
+      "head_language": "Arabic"
+    },
+    {
+      "painting": "edouard-cortes_theatre-du-vaudeville-3",
+      "target_language": "Arabic",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Arabic"
+    },
+    {
+      "painting": "edouard-cortes_theatre-du-vaudeville-3",
+      "target_language": "Arabic",
+      "condition": "C_fixed_head",
+      "prompt_language": "Arabic",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "edouard-cortes_theatre-du-vaudeville-3",
+      "target_language": "Arabic",
+      "condition": "D_crossed_head",
+      "prompt_language": "Arabic",
+      "head_language": "Burmese"
+    },
+    {
+      "painting": "edouard-cortes_theatre-du-vaudeville-3",
+      "target_language": "Hausa",
+      "condition": "A_matching",
+      "prompt_language": "Hausa",
+      "head_language": "Hausa"
+    },
+    {
+      "painting": "edouard-cortes_theatre-du-vaudeville-3",
+      "target_language": "Hausa",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Hausa"
+    },
+    {
+      "painting": "edouard-cortes_theatre-du-vaudeville-3",
+      "target_language": "Hausa",
+      "condition": "C_fixed_head",
+      "prompt_language": "Hausa",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "edouard-cortes_theatre-du-vaudeville-3",
+      "target_language": "Hausa",
+      "condition": "D_crossed_head",
+      "prompt_language": "Hausa",
+      "head_language": "Hindi"
+    },
+    {
+      "painting": "edouard-cortes_theatre-du-vaudeville-3",
+      "target_language": "Igbo",
+      "condition": "A_matching",
+      "prompt_language": "Igbo",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "edouard-cortes_theatre-du-vaudeville-3",
+      "target_language": "Igbo",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "edouard-cortes_theatre-du-vaudeville-3",
+      "target_language": "Igbo",
+      "condition": "C_fixed_head",
+      "prompt_language": "Igbo",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "edouard-cortes_theatre-du-vaudeville-3",
+      "target_language": "Igbo",
+      "condition": "D_crossed_head",
+      "prompt_language": "Igbo",
+      "head_language": "Indonesian"
+    },
+    {
+      "painting": "edouard-cortes_theatre-du-vaudeville-3",
+      "target_language": "Korean",
+      "condition": "A_matching",
+      "prompt_language": "Korean",
+      "head_language": "Korean"
+    },
+    {
+      "painting": "edouard-cortes_theatre-du-vaudeville-3",
+      "target_language": "Korean",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Korean"
+    },
+    {
+      "painting": "edouard-cortes_theatre-du-vaudeville-3",
+      "target_language": "Korean",
+      "condition": "C_fixed_head",
+      "prompt_language": "Korean",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "edouard-cortes_theatre-du-vaudeville-3",
+      "target_language": "Korean",
+      "condition": "D_crossed_head",
+      "prompt_language": "Korean",
+      "head_language": "Kyrgyz"
+    },
+    {
+      "painting": "edouard-cortes_theatre-du-vaudeville-3",
+      "target_language": "Swahili",
+      "condition": "A_matching",
+      "prompt_language": "Swahili",
+      "head_language": "Swahili"
+    },
+    {
+      "painting": "edouard-cortes_theatre-du-vaudeville-3",
+      "target_language": "Swahili",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Swahili"
+    },
+    {
+      "painting": "edouard-cortes_theatre-du-vaudeville-3",
+      "target_language": "Swahili",
+      "condition": "C_fixed_head",
+      "prompt_language": "Swahili",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "edouard-cortes_theatre-du-vaudeville-3",
+      "target_language": "Swahili",
+      "condition": "D_crossed_head",
+      "prompt_language": "Swahili",
+      "head_language": "Tagalog"
+    },
+    {
+      "painting": "felix-vallotton_seated-nude-on-a-couch",
+      "target_language": "Chinese",
+      "condition": "A_matching",
+      "prompt_language": "Chinese",
+      "head_language": "Chinese"
+    },
+    {
+      "painting": "felix-vallotton_seated-nude-on-a-couch",
+      "target_language": "Chinese",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Chinese"
+    },
+    {
+      "painting": "felix-vallotton_seated-nude-on-a-couch",
+      "target_language": "Chinese",
+      "condition": "C_fixed_head",
+      "prompt_language": "Chinese",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "felix-vallotton_seated-nude-on-a-couch",
+      "target_language": "Chinese",
+      "condition": "D_crossed_head",
+      "prompt_language": "Chinese",
+      "head_language": "Darija"
+    },
+    {
+      "painting": "felix-vallotton_seated-nude-on-a-couch",
+      "target_language": "Hindi",
+      "condition": "A_matching",
+      "prompt_language": "Hindi",
+      "head_language": "Hindi"
+    },
+    {
+      "painting": "felix-vallotton_seated-nude-on-a-couch",
+      "target_language": "Hindi",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Hindi"
+    },
+    {
+      "painting": "felix-vallotton_seated-nude-on-a-couch",
+      "target_language": "Hindi",
+      "condition": "C_fixed_head",
+      "prompt_language": "Hindi",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "felix-vallotton_seated-nude-on-a-couch",
+      "target_language": "Hindi",
+      "condition": "D_crossed_head",
+      "prompt_language": "Hindi",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "felix-vallotton_seated-nude-on-a-couch",
+      "target_language": "IsiZulu",
+      "condition": "A_matching",
+      "prompt_language": "IsiZulu",
+      "head_language": "IsiZulu"
+    },
+    {
+      "painting": "felix-vallotton_seated-nude-on-a-couch",
+      "target_language": "IsiZulu",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "IsiZulu"
+    },
+    {
+      "painting": "felix-vallotton_seated-nude-on-a-couch",
+      "target_language": "IsiZulu",
+      "condition": "C_fixed_head",
+      "prompt_language": "IsiZulu",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "felix-vallotton_seated-nude-on-a-couch",
+      "target_language": "IsiZulu",
+      "condition": "D_crossed_head",
+      "prompt_language": "IsiZulu",
+      "head_language": "Kinyarwanda"
+    },
+    {
+      "painting": "felix-vallotton_seated-nude-on-a-couch",
+      "target_language": "Malay",
+      "condition": "A_matching",
+      "prompt_language": "Malay",
+      "head_language": "Malay"
+    },
+    {
+      "painting": "felix-vallotton_seated-nude-on-a-couch",
+      "target_language": "Malay",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Malay"
+    },
+    {
+      "painting": "felix-vallotton_seated-nude-on-a-couch",
+      "target_language": "Malay",
+      "condition": "C_fixed_head",
+      "prompt_language": "Malay",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "felix-vallotton_seated-nude-on-a-couch",
+      "target_language": "Malay",
+      "condition": "D_crossed_head",
+      "prompt_language": "Malay",
+      "head_language": "Setswana"
+    },
+    {
+      "painting": "felix-vallotton_seated-nude-on-a-couch",
+      "target_language": "Turkish",
+      "condition": "A_matching",
+      "prompt_language": "Turkish",
+      "head_language": "Turkish"
+    },
+    {
+      "painting": "felix-vallotton_seated-nude-on-a-couch",
+      "target_language": "Turkish",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Turkish"
+    },
+    {
+      "painting": "felix-vallotton_seated-nude-on-a-couch",
+      "target_language": "Turkish",
+      "condition": "C_fixed_head",
+      "prompt_language": "Turkish",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "felix-vallotton_seated-nude-on-a-couch",
+      "target_language": "Turkish",
+      "condition": "D_crossed_head",
+      "prompt_language": "Turkish",
+      "head_language": "Urdu"
+    },
+    {
+      "painting": "filippo-lippi_circumcision-1465",
+      "target_language": "Hindi",
+      "condition": "A_matching",
+      "prompt_language": "Hindi",
+      "head_language": "Hindi"
+    },
+    {
+      "painting": "filippo-lippi_circumcision-1465",
+      "target_language": "Hindi",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Hindi"
+    },
+    {
+      "painting": "filippo-lippi_circumcision-1465",
+      "target_language": "Hindi",
+      "condition": "C_fixed_head",
+      "prompt_language": "Hindi",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "filippo-lippi_circumcision-1465",
+      "target_language": "Hindi",
+      "condition": "D_crossed_head",
+      "prompt_language": "Hindi",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "filippo-lippi_circumcision-1465",
+      "target_language": "Igbo",
+      "condition": "A_matching",
+      "prompt_language": "Igbo",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "filippo-lippi_circumcision-1465",
+      "target_language": "Igbo",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "filippo-lippi_circumcision-1465",
+      "target_language": "Igbo",
+      "condition": "C_fixed_head",
+      "prompt_language": "Igbo",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "filippo-lippi_circumcision-1465",
+      "target_language": "Igbo",
+      "condition": "D_crossed_head",
+      "prompt_language": "Igbo",
+      "head_language": "Indonesian"
+    },
+    {
+      "painting": "filippo-lippi_circumcision-1465",
+      "target_language": "Kyrgyz",
+      "condition": "A_matching",
+      "prompt_language": "Kyrgyz",
+      "head_language": "Kyrgyz"
+    },
+    {
+      "painting": "filippo-lippi_circumcision-1465",
+      "target_language": "Kyrgyz",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Kyrgyz"
+    },
+    {
+      "painting": "filippo-lippi_circumcision-1465",
+      "target_language": "Kyrgyz",
+      "condition": "C_fixed_head",
+      "prompt_language": "Kyrgyz",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "filippo-lippi_circumcision-1465",
+      "target_language": "Kyrgyz",
+      "condition": "D_crossed_head",
+      "prompt_language": "Kyrgyz",
+      "head_language": "Malay"
+    },
+    {
+      "painting": "filippo-lippi_circumcision-1465",
+      "target_language": "Swahili",
+      "condition": "A_matching",
+      "prompt_language": "Swahili",
+      "head_language": "Swahili"
+    },
+    {
+      "painting": "filippo-lippi_circumcision-1465",
+      "target_language": "Swahili",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Swahili"
+    },
+    {
+      "painting": "filippo-lippi_circumcision-1465",
+      "target_language": "Swahili",
+      "condition": "C_fixed_head",
+      "prompt_language": "Swahili",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "filippo-lippi_circumcision-1465",
+      "target_language": "Swahili",
+      "condition": "D_crossed_head",
+      "prompt_language": "Swahili",
+      "head_language": "Tagalog"
+    },
+    {
+      "painting": "filippo-lippi_circumcision-1465",
+      "target_language": "Uzbek",
+      "condition": "A_matching",
+      "prompt_language": "Uzbek",
+      "head_language": "Uzbek"
+    },
+    {
+      "painting": "filippo-lippi_circumcision-1465",
+      "target_language": "Uzbek",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Uzbek"
+    },
+    {
+      "painting": "filippo-lippi_circumcision-1465",
+      "target_language": "Uzbek",
+      "condition": "C_fixed_head",
+      "prompt_language": "Uzbek",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "filippo-lippi_circumcision-1465",
+      "target_language": "Uzbek",
+      "condition": "D_crossed_head",
+      "prompt_language": "Uzbek",
+      "head_language": "Vietnamese"
+    },
+    {
+      "painting": "gerrit-dou_still-life-with-book-and-purse",
+      "target_language": "Arabic",
+      "condition": "A_matching",
+      "prompt_language": "Arabic",
+      "head_language": "Arabic"
+    },
+    {
+      "painting": "gerrit-dou_still-life-with-book-and-purse",
+      "target_language": "Arabic",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Arabic"
+    },
+    {
+      "painting": "gerrit-dou_still-life-with-book-and-purse",
+      "target_language": "Arabic",
+      "condition": "C_fixed_head",
+      "prompt_language": "Arabic",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "gerrit-dou_still-life-with-book-and-purse",
+      "target_language": "Arabic",
+      "condition": "D_crossed_head",
+      "prompt_language": "Arabic",
+      "head_language": "Burmese"
+    },
+    {
+      "painting": "gerrit-dou_still-life-with-book-and-purse",
+      "target_language": "Chinese",
+      "condition": "A_matching",
+      "prompt_language": "Chinese",
+      "head_language": "Chinese"
+    },
+    {
+      "painting": "gerrit-dou_still-life-with-book-and-purse",
+      "target_language": "Chinese",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Chinese"
+    },
+    {
+      "painting": "gerrit-dou_still-life-with-book-and-purse",
+      "target_language": "Chinese",
+      "condition": "C_fixed_head",
+      "prompt_language": "Chinese",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "gerrit-dou_still-life-with-book-and-purse",
+      "target_language": "Chinese",
+      "condition": "D_crossed_head",
+      "prompt_language": "Chinese",
+      "head_language": "Darija"
+    },
+    {
+      "painting": "gerrit-dou_still-life-with-book-and-purse",
+      "target_language": "Hindi",
+      "condition": "A_matching",
+      "prompt_language": "Hindi",
+      "head_language": "Hindi"
+    },
+    {
+      "painting": "gerrit-dou_still-life-with-book-and-purse",
+      "target_language": "Hindi",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Hindi"
+    },
+    {
+      "painting": "gerrit-dou_still-life-with-book-and-purse",
+      "target_language": "Hindi",
+      "condition": "C_fixed_head",
+      "prompt_language": "Hindi",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "gerrit-dou_still-life-with-book-and-purse",
+      "target_language": "Hindi",
+      "condition": "D_crossed_head",
+      "prompt_language": "Hindi",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "gerrit-dou_still-life-with-book-and-purse",
+      "target_language": "Yoruba",
+      "condition": "A_matching",
+      "prompt_language": "Yoruba",
+      "head_language": "Yoruba"
+    },
+    {
+      "painting": "gerrit-dou_still-life-with-book-and-purse",
+      "target_language": "Yoruba",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Yoruba"
+    },
+    {
+      "painting": "gerrit-dou_still-life-with-book-and-purse",
+      "target_language": "Yoruba",
+      "condition": "C_fixed_head",
+      "prompt_language": "Yoruba",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "gerrit-dou_still-life-with-book-and-purse",
+      "target_language": "Yoruba",
+      "condition": "D_crossed_head",
+      "prompt_language": "Yoruba",
+      "head_language": "Arabic"
+    },
+    {
+      "painting": "gino-severini_harlequin-1965",
+      "target_language": "Arabic",
+      "condition": "A_matching",
+      "prompt_language": "Arabic",
+      "head_language": "Arabic"
+    },
+    {
+      "painting": "gino-severini_harlequin-1965",
+      "target_language": "Arabic",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Arabic"
+    },
+    {
+      "painting": "gino-severini_harlequin-1965",
+      "target_language": "Arabic",
+      "condition": "C_fixed_head",
+      "prompt_language": "Arabic",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "gino-severini_harlequin-1965",
+      "target_language": "Arabic",
+      "condition": "D_crossed_head",
+      "prompt_language": "Arabic",
+      "head_language": "Burmese"
+    },
+    {
+      "painting": "gino-severini_harlequin-1965",
+      "target_language": "Chinese",
+      "condition": "A_matching",
+      "prompt_language": "Chinese",
+      "head_language": "Chinese"
+    },
+    {
+      "painting": "gino-severini_harlequin-1965",
+      "target_language": "Chinese",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Chinese"
+    },
+    {
+      "painting": "gino-severini_harlequin-1965",
+      "target_language": "Chinese",
+      "condition": "C_fixed_head",
+      "prompt_language": "Chinese",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "gino-severini_harlequin-1965",
+      "target_language": "Chinese",
+      "condition": "D_crossed_head",
+      "prompt_language": "Chinese",
+      "head_language": "Darija"
+    },
+    {
+      "painting": "gino-severini_harlequin-1965",
+      "target_language": "English",
+      "condition": "A_matching",
+      "prompt_language": "English",
+      "head_language": "English"
+    },
+    {
+      "painting": "gino-severini_harlequin-1965",
+      "target_language": "English",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "English"
+    },
+    {
+      "painting": "gino-severini_harlequin-1965",
+      "target_language": "English",
+      "condition": "C_fixed_head",
+      "prompt_language": "English",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "gino-severini_harlequin-1965",
+      "target_language": "English",
+      "condition": "D_crossed_head",
+      "prompt_language": "English",
+      "head_language": "Hausa"
+    },
+    {
+      "painting": "iosif-iser_tatar-family-1920",
+      "target_language": "Indonesian",
+      "condition": "A_matching",
+      "prompt_language": "Indonesian",
+      "head_language": "Indonesian"
+    },
+    {
+      "painting": "iosif-iser_tatar-family-1920",
+      "target_language": "Indonesian",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Indonesian"
+    },
+    {
+      "painting": "iosif-iser_tatar-family-1920",
+      "target_language": "Indonesian",
+      "condition": "C_fixed_head",
+      "prompt_language": "Indonesian",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "iosif-iser_tatar-family-1920",
+      "target_language": "Indonesian",
+      "condition": "D_crossed_head",
+      "prompt_language": "Indonesian",
+      "head_language": "IsiZulu"
+    },
+    {
+      "painting": "iosif-iser_tatar-family-1920",
+      "target_language": "Turkish",
+      "condition": "A_matching",
+      "prompt_language": "Turkish",
+      "head_language": "Turkish"
+    },
+    {
+      "painting": "iosif-iser_tatar-family-1920",
+      "target_language": "Turkish",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Turkish"
+    },
+    {
+      "painting": "iosif-iser_tatar-family-1920",
+      "target_language": "Turkish",
+      "condition": "C_fixed_head",
+      "prompt_language": "Turkish",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "iosif-iser_tatar-family-1920",
+      "target_language": "Turkish",
+      "condition": "D_crossed_head",
+      "prompt_language": "Turkish",
+      "head_language": "Urdu"
+    },
+    {
+      "painting": "iosif-iser_tatar-family-1920",
+      "target_language": "Uzbek",
+      "condition": "A_matching",
+      "prompt_language": "Uzbek",
+      "head_language": "Uzbek"
+    },
+    {
+      "painting": "iosif-iser_tatar-family-1920",
+      "target_language": "Uzbek",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Uzbek"
+    },
+    {
+      "painting": "iosif-iser_tatar-family-1920",
+      "target_language": "Uzbek",
+      "condition": "C_fixed_head",
+      "prompt_language": "Uzbek",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "iosif-iser_tatar-family-1920",
+      "target_language": "Uzbek",
+      "condition": "D_crossed_head",
+      "prompt_language": "Uzbek",
+      "head_language": "Vietnamese"
+    },
+    {
+      "painting": "iosif-iser_tatar-family-1920",
+      "target_language": "Vietnamese",
+      "condition": "A_matching",
+      "prompt_language": "Vietnamese",
+      "head_language": "Vietnamese"
+    },
+    {
+      "painting": "iosif-iser_tatar-family-1920",
+      "target_language": "Vietnamese",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Vietnamese"
+    },
+    {
+      "painting": "iosif-iser_tatar-family-1920",
+      "target_language": "Vietnamese",
+      "condition": "C_fixed_head",
+      "prompt_language": "Vietnamese",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "iosif-iser_tatar-family-1920",
+      "target_language": "Vietnamese",
+      "condition": "D_crossed_head",
+      "prompt_language": "Vietnamese",
+      "head_language": "Yoruba"
+    },
+    {
+      "painting": "iosif-iser_tatar-family-1920",
+      "target_language": "Yoruba",
+      "condition": "A_matching",
+      "prompt_language": "Yoruba",
+      "head_language": "Yoruba"
+    },
+    {
+      "painting": "iosif-iser_tatar-family-1920",
+      "target_language": "Yoruba",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Yoruba"
+    },
+    {
+      "painting": "iosif-iser_tatar-family-1920",
+      "target_language": "Yoruba",
+      "condition": "C_fixed_head",
+      "prompt_language": "Yoruba",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "iosif-iser_tatar-family-1920",
+      "target_language": "Yoruba",
+      "condition": "D_crossed_head",
+      "prompt_language": "Yoruba",
+      "head_language": "Arabic"
+    },
+    {
+      "painting": "jan-van-hemessen_san-girolamo-in-preghiera",
+      "target_language": "Chinese",
+      "condition": "A_matching",
+      "prompt_language": "Chinese",
+      "head_language": "Chinese"
+    },
+    {
+      "painting": "jan-van-hemessen_san-girolamo-in-preghiera",
+      "target_language": "Chinese",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Chinese"
+    },
+    {
+      "painting": "jan-van-hemessen_san-girolamo-in-preghiera",
+      "target_language": "Chinese",
+      "condition": "C_fixed_head",
+      "prompt_language": "Chinese",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "jan-van-hemessen_san-girolamo-in-preghiera",
+      "target_language": "Chinese",
+      "condition": "D_crossed_head",
+      "prompt_language": "Chinese",
+      "head_language": "Darija"
+    },
+    {
+      "painting": "jan-van-hemessen_san-girolamo-in-preghiera",
+      "target_language": "Tamil",
+      "condition": "A_matching",
+      "prompt_language": "Tamil",
+      "head_language": "Tamil"
+    },
+    {
+      "painting": "jan-van-hemessen_san-girolamo-in-preghiera",
+      "target_language": "Tamil",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Tamil"
+    },
+    {
+      "painting": "jan-van-hemessen_san-girolamo-in-preghiera",
+      "target_language": "Tamil",
+      "condition": "C_fixed_head",
+      "prompt_language": "Tamil",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "jan-van-hemessen_san-girolamo-in-preghiera",
+      "target_language": "Tamil",
+      "condition": "D_crossed_head",
+      "prompt_language": "Tamil",
+      "head_language": "Thai"
+    },
+    {
+      "painting": "jan-van-hemessen_san-girolamo-in-preghiera",
+      "target_language": "Uzbek",
+      "condition": "A_matching",
+      "prompt_language": "Uzbek",
+      "head_language": "Uzbek"
+    },
+    {
+      "painting": "jan-van-hemessen_san-girolamo-in-preghiera",
+      "target_language": "Uzbek",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Uzbek"
+    },
+    {
+      "painting": "jan-van-hemessen_san-girolamo-in-preghiera",
+      "target_language": "Uzbek",
+      "condition": "C_fixed_head",
+      "prompt_language": "Uzbek",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "jan-van-hemessen_san-girolamo-in-preghiera",
+      "target_language": "Uzbek",
+      "condition": "D_crossed_head",
+      "prompt_language": "Uzbek",
+      "head_language": "Vietnamese"
+    },
+    {
+      "painting": "lawren-harris_from-the-north-shore-lake-superior-1927",
+      "target_language": "Arabic",
+      "condition": "A_matching",
+      "prompt_language": "Arabic",
+      "head_language": "Arabic"
+    },
+    {
+      "painting": "lawren-harris_from-the-north-shore-lake-superior-1927",
+      "target_language": "Arabic",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Arabic"
+    },
+    {
+      "painting": "lawren-harris_from-the-north-shore-lake-superior-1927",
+      "target_language": "Arabic",
+      "condition": "C_fixed_head",
+      "prompt_language": "Arabic",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "lawren-harris_from-the-north-shore-lake-superior-1927",
+      "target_language": "Arabic",
+      "condition": "D_crossed_head",
+      "prompt_language": "Arabic",
+      "head_language": "Burmese"
+    },
+    {
+      "painting": "lawren-harris_from-the-north-shore-lake-superior-1927",
+      "target_language": "Chinese",
+      "condition": "A_matching",
+      "prompt_language": "Chinese",
+      "head_language": "Chinese"
+    },
+    {
+      "painting": "lawren-harris_from-the-north-shore-lake-superior-1927",
+      "target_language": "Chinese",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Chinese"
+    },
+    {
+      "painting": "lawren-harris_from-the-north-shore-lake-superior-1927",
+      "target_language": "Chinese",
+      "condition": "C_fixed_head",
+      "prompt_language": "Chinese",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "lawren-harris_from-the-north-shore-lake-superior-1927",
+      "target_language": "Chinese",
+      "condition": "D_crossed_head",
+      "prompt_language": "Chinese",
+      "head_language": "Darija"
+    },
+    {
+      "painting": "lawren-harris_from-the-north-shore-lake-superior-1927",
+      "target_language": "English",
+      "condition": "A_matching",
+      "prompt_language": "English",
+      "head_language": "English"
+    },
+    {
+      "painting": "lawren-harris_from-the-north-shore-lake-superior-1927",
+      "target_language": "English",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "English"
+    },
+    {
+      "painting": "lawren-harris_from-the-north-shore-lake-superior-1927",
+      "target_language": "English",
+      "condition": "C_fixed_head",
+      "prompt_language": "English",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "lawren-harris_from-the-north-shore-lake-superior-1927",
+      "target_language": "English",
+      "condition": "D_crossed_head",
+      "prompt_language": "English",
+      "head_language": "Hausa"
+    },
+    {
+      "painting": "lucian-freud_the-pearce-family",
+      "target_language": "Hindi",
+      "condition": "A_matching",
+      "prompt_language": "Hindi",
+      "head_language": "Hindi"
+    },
+    {
+      "painting": "lucian-freud_the-pearce-family",
+      "target_language": "Hindi",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Hindi"
+    },
+    {
+      "painting": "lucian-freud_the-pearce-family",
+      "target_language": "Hindi",
+      "condition": "C_fixed_head",
+      "prompt_language": "Hindi",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "lucian-freud_the-pearce-family",
+      "target_language": "Hindi",
+      "condition": "D_crossed_head",
+      "prompt_language": "Hindi",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "lucian-freud_the-pearce-family",
+      "target_language": "Igbo",
+      "condition": "A_matching",
+      "prompt_language": "Igbo",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "lucian-freud_the-pearce-family",
+      "target_language": "Igbo",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "lucian-freud_the-pearce-family",
+      "target_language": "Igbo",
+      "condition": "C_fixed_head",
+      "prompt_language": "Igbo",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "lucian-freud_the-pearce-family",
+      "target_language": "Igbo",
+      "condition": "D_crossed_head",
+      "prompt_language": "Igbo",
+      "head_language": "Indonesian"
+    },
+    {
+      "painting": "lucian-freud_the-pearce-family",
+      "target_language": "Kyrgyz",
+      "condition": "A_matching",
+      "prompt_language": "Kyrgyz",
+      "head_language": "Kyrgyz"
+    },
+    {
+      "painting": "lucian-freud_the-pearce-family",
+      "target_language": "Kyrgyz",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Kyrgyz"
+    },
+    {
+      "painting": "lucian-freud_the-pearce-family",
+      "target_language": "Kyrgyz",
+      "condition": "C_fixed_head",
+      "prompt_language": "Kyrgyz",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "lucian-freud_the-pearce-family",
+      "target_language": "Kyrgyz",
+      "condition": "D_crossed_head",
+      "prompt_language": "Kyrgyz",
+      "head_language": "Malay"
+    },
+    {
+      "painting": "lucian-freud_the-pearce-family",
+      "target_language": "Swahili",
+      "condition": "A_matching",
+      "prompt_language": "Swahili",
+      "head_language": "Swahili"
+    },
+    {
+      "painting": "lucian-freud_the-pearce-family",
+      "target_language": "Swahili",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Swahili"
+    },
+    {
+      "painting": "lucian-freud_the-pearce-family",
+      "target_language": "Swahili",
+      "condition": "C_fixed_head",
+      "prompt_language": "Swahili",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "lucian-freud_the-pearce-family",
+      "target_language": "Swahili",
+      "condition": "D_crossed_head",
+      "prompt_language": "Swahili",
+      "head_language": "Tagalog"
+    },
+    {
+      "painting": "lucian-freud_the-pearce-family",
+      "target_language": "Uzbek",
+      "condition": "A_matching",
+      "prompt_language": "Uzbek",
+      "head_language": "Uzbek"
+    },
+    {
+      "painting": "lucian-freud_the-pearce-family",
+      "target_language": "Uzbek",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Uzbek"
+    },
+    {
+      "painting": "lucian-freud_the-pearce-family",
+      "target_language": "Uzbek",
+      "condition": "C_fixed_head",
+      "prompt_language": "Uzbek",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "lucian-freud_the-pearce-family",
+      "target_language": "Uzbek",
+      "condition": "D_crossed_head",
+      "prompt_language": "Uzbek",
+      "head_language": "Vietnamese"
+    },
+    {
+      "painting": "marc-chagall_the-walk-1973",
+      "target_language": "Hindi",
+      "condition": "A_matching",
+      "prompt_language": "Hindi",
+      "head_language": "Hindi"
+    },
+    {
+      "painting": "marc-chagall_the-walk-1973",
+      "target_language": "Hindi",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Hindi"
+    },
+    {
+      "painting": "marc-chagall_the-walk-1973",
+      "target_language": "Hindi",
+      "condition": "C_fixed_head",
+      "prompt_language": "Hindi",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "marc-chagall_the-walk-1973",
+      "target_language": "Hindi",
+      "condition": "D_crossed_head",
+      "prompt_language": "Hindi",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "marc-chagall_the-walk-1973",
+      "target_language": "Igbo",
+      "condition": "A_matching",
+      "prompt_language": "Igbo",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "marc-chagall_the-walk-1973",
+      "target_language": "Igbo",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "marc-chagall_the-walk-1973",
+      "target_language": "Igbo",
+      "condition": "C_fixed_head",
+      "prompt_language": "Igbo",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "marc-chagall_the-walk-1973",
+      "target_language": "Igbo",
+      "condition": "D_crossed_head",
+      "prompt_language": "Igbo",
+      "head_language": "Indonesian"
+    },
+    {
+      "painting": "marc-chagall_the-walk-1973",
+      "target_language": "Korean",
+      "condition": "A_matching",
+      "prompt_language": "Korean",
+      "head_language": "Korean"
+    },
+    {
+      "painting": "marc-chagall_the-walk-1973",
+      "target_language": "Korean",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Korean"
+    },
+    {
+      "painting": "marc-chagall_the-walk-1973",
+      "target_language": "Korean",
+      "condition": "C_fixed_head",
+      "prompt_language": "Korean",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "marc-chagall_the-walk-1973",
+      "target_language": "Korean",
+      "condition": "D_crossed_head",
+      "prompt_language": "Korean",
+      "head_language": "Kyrgyz"
+    },
+    {
+      "painting": "marc-chagall_the-walk-1973",
+      "target_language": "Yoruba",
+      "condition": "A_matching",
+      "prompt_language": "Yoruba",
+      "head_language": "Yoruba"
+    },
+    {
+      "painting": "marc-chagall_the-walk-1973",
+      "target_language": "Yoruba",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Yoruba"
+    },
+    {
+      "painting": "marc-chagall_the-walk-1973",
+      "target_language": "Yoruba",
+      "condition": "C_fixed_head",
+      "prompt_language": "Yoruba",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "marc-chagall_the-walk-1973",
+      "target_language": "Yoruba",
+      "condition": "D_crossed_head",
+      "prompt_language": "Yoruba",
+      "head_language": "Arabic"
+    },
+    {
+      "painting": "marie-bracquemond_pierre-bracquemond-as-child-1878",
+      "target_language": "Chinese",
+      "condition": "A_matching",
+      "prompt_language": "Chinese",
+      "head_language": "Chinese"
+    },
+    {
+      "painting": "marie-bracquemond_pierre-bracquemond-as-child-1878",
+      "target_language": "Chinese",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Chinese"
+    },
+    {
+      "painting": "marie-bracquemond_pierre-bracquemond-as-child-1878",
+      "target_language": "Chinese",
+      "condition": "C_fixed_head",
+      "prompt_language": "Chinese",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "marie-bracquemond_pierre-bracquemond-as-child-1878",
+      "target_language": "Chinese",
+      "condition": "D_crossed_head",
+      "prompt_language": "Chinese",
+      "head_language": "Darija"
+    },
+    {
+      "painting": "marie-bracquemond_pierre-bracquemond-as-child-1878",
+      "target_language": "Hausa",
+      "condition": "A_matching",
+      "prompt_language": "Hausa",
+      "head_language": "Hausa"
+    },
+    {
+      "painting": "marie-bracquemond_pierre-bracquemond-as-child-1878",
+      "target_language": "Hausa",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Hausa"
+    },
+    {
+      "painting": "marie-bracquemond_pierre-bracquemond-as-child-1878",
+      "target_language": "Hausa",
+      "condition": "C_fixed_head",
+      "prompt_language": "Hausa",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "marie-bracquemond_pierre-bracquemond-as-child-1878",
+      "target_language": "Hausa",
+      "condition": "D_crossed_head",
+      "prompt_language": "Hausa",
+      "head_language": "Hindi"
+    },
+    {
+      "painting": "marie-bracquemond_pierre-bracquemond-as-child-1878",
+      "target_language": "Swahili",
+      "condition": "A_matching",
+      "prompt_language": "Swahili",
+      "head_language": "Swahili"
+    },
+    {
+      "painting": "marie-bracquemond_pierre-bracquemond-as-child-1878",
+      "target_language": "Swahili",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Swahili"
+    },
+    {
+      "painting": "marie-bracquemond_pierre-bracquemond-as-child-1878",
+      "target_language": "Swahili",
+      "condition": "C_fixed_head",
+      "prompt_language": "Swahili",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "marie-bracquemond_pierre-bracquemond-as-child-1878",
+      "target_language": "Swahili",
+      "condition": "D_crossed_head",
+      "prompt_language": "Swahili",
+      "head_language": "Tagalog"
+    },
+    {
+      "painting": "marie-bracquemond_pierre-bracquemond-as-child-1878",
+      "target_language": "Uzbek",
+      "condition": "A_matching",
+      "prompt_language": "Uzbek",
+      "head_language": "Uzbek"
+    },
+    {
+      "painting": "marie-bracquemond_pierre-bracquemond-as-child-1878",
+      "target_language": "Uzbek",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Uzbek"
+    },
+    {
+      "painting": "marie-bracquemond_pierre-bracquemond-as-child-1878",
+      "target_language": "Uzbek",
+      "condition": "C_fixed_head",
+      "prompt_language": "Uzbek",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "marie-bracquemond_pierre-bracquemond-as-child-1878",
+      "target_language": "Uzbek",
+      "condition": "D_crossed_head",
+      "prompt_language": "Uzbek",
+      "head_language": "Vietnamese"
+    },
+    {
+      "painting": "marie-bracquemond_pierre-bracquemond-as-child-1878",
+      "target_language": "Yoruba",
+      "condition": "A_matching",
+      "prompt_language": "Yoruba",
+      "head_language": "Yoruba"
+    },
+    {
+      "painting": "marie-bracquemond_pierre-bracquemond-as-child-1878",
+      "target_language": "Yoruba",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Yoruba"
+    },
+    {
+      "painting": "marie-bracquemond_pierre-bracquemond-as-child-1878",
+      "target_language": "Yoruba",
+      "condition": "C_fixed_head",
+      "prompt_language": "Yoruba",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "marie-bracquemond_pierre-bracquemond-as-child-1878",
+      "target_language": "Yoruba",
+      "condition": "D_crossed_head",
+      "prompt_language": "Yoruba",
+      "head_language": "Arabic"
+    },
+    {
+      "painting": "nicholas-roerich_gansu",
+      "target_language": "Chinese",
+      "condition": "A_matching",
+      "prompt_language": "Chinese",
+      "head_language": "Chinese"
+    },
+    {
+      "painting": "nicholas-roerich_gansu",
+      "target_language": "Chinese",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Chinese"
+    },
+    {
+      "painting": "nicholas-roerich_gansu",
+      "target_language": "Chinese",
+      "condition": "C_fixed_head",
+      "prompt_language": "Chinese",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "nicholas-roerich_gansu",
+      "target_language": "Chinese",
+      "condition": "D_crossed_head",
+      "prompt_language": "Chinese",
+      "head_language": "Darija"
+    },
+    {
+      "painting": "nicholas-roerich_gansu",
+      "target_language": "Igbo",
+      "condition": "A_matching",
+      "prompt_language": "Igbo",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "nicholas-roerich_gansu",
+      "target_language": "Igbo",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "nicholas-roerich_gansu",
+      "target_language": "Igbo",
+      "condition": "C_fixed_head",
+      "prompt_language": "Igbo",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "nicholas-roerich_gansu",
+      "target_language": "Igbo",
+      "condition": "D_crossed_head",
+      "prompt_language": "Igbo",
+      "head_language": "Indonesian"
+    },
+    {
+      "painting": "nicholas-roerich_gansu",
+      "target_language": "Korean",
+      "condition": "A_matching",
+      "prompt_language": "Korean",
+      "head_language": "Korean"
+    },
+    {
+      "painting": "nicholas-roerich_gansu",
+      "target_language": "Korean",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Korean"
+    },
+    {
+      "painting": "nicholas-roerich_gansu",
+      "target_language": "Korean",
+      "condition": "C_fixed_head",
+      "prompt_language": "Korean",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "nicholas-roerich_gansu",
+      "target_language": "Korean",
+      "condition": "D_crossed_head",
+      "prompt_language": "Korean",
+      "head_language": "Kyrgyz"
+    },
+    {
+      "painting": "nicholas-roerich_gansu",
+      "target_language": "Vietnamese",
+      "condition": "A_matching",
+      "prompt_language": "Vietnamese",
+      "head_language": "Vietnamese"
+    },
+    {
+      "painting": "nicholas-roerich_gansu",
+      "target_language": "Vietnamese",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Vietnamese"
+    },
+    {
+      "painting": "nicholas-roerich_gansu",
+      "target_language": "Vietnamese",
+      "condition": "C_fixed_head",
+      "prompt_language": "Vietnamese",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "nicholas-roerich_gansu",
+      "target_language": "Vietnamese",
+      "condition": "D_crossed_head",
+      "prompt_language": "Vietnamese",
+      "head_language": "Yoruba"
+    },
+    {
+      "painting": "nikolaos-gyzis_archangel-study-for-the-foundation-of-faith-1895",
+      "target_language": "Hindi",
+      "condition": "A_matching",
+      "prompt_language": "Hindi",
+      "head_language": "Hindi"
+    },
+    {
+      "painting": "nikolaos-gyzis_archangel-study-for-the-foundation-of-faith-1895",
+      "target_language": "Hindi",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Hindi"
+    },
+    {
+      "painting": "nikolaos-gyzis_archangel-study-for-the-foundation-of-faith-1895",
+      "target_language": "Hindi",
+      "condition": "C_fixed_head",
+      "prompt_language": "Hindi",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "nikolaos-gyzis_archangel-study-for-the-foundation-of-faith-1895",
+      "target_language": "Hindi",
+      "condition": "D_crossed_head",
+      "prompt_language": "Hindi",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "nikolaos-gyzis_archangel-study-for-the-foundation-of-faith-1895",
+      "target_language": "Igbo",
+      "condition": "A_matching",
+      "prompt_language": "Igbo",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "nikolaos-gyzis_archangel-study-for-the-foundation-of-faith-1895",
+      "target_language": "Igbo",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "nikolaos-gyzis_archangel-study-for-the-foundation-of-faith-1895",
+      "target_language": "Igbo",
+      "condition": "C_fixed_head",
+      "prompt_language": "Igbo",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "nikolaos-gyzis_archangel-study-for-the-foundation-of-faith-1895",
+      "target_language": "Igbo",
+      "condition": "D_crossed_head",
+      "prompt_language": "Igbo",
+      "head_language": "Indonesian"
+    },
+    {
+      "painting": "nikolaos-gyzis_archangel-study-for-the-foundation-of-faith-1895",
+      "target_language": "Korean",
+      "condition": "A_matching",
+      "prompt_language": "Korean",
+      "head_language": "Korean"
+    },
+    {
+      "painting": "nikolaos-gyzis_archangel-study-for-the-foundation-of-faith-1895",
+      "target_language": "Korean",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Korean"
+    },
+    {
+      "painting": "nikolaos-gyzis_archangel-study-for-the-foundation-of-faith-1895",
+      "target_language": "Korean",
+      "condition": "C_fixed_head",
+      "prompt_language": "Korean",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "nikolaos-gyzis_archangel-study-for-the-foundation-of-faith-1895",
+      "target_language": "Korean",
+      "condition": "D_crossed_head",
+      "prompt_language": "Korean",
+      "head_language": "Kyrgyz"
+    },
+    {
+      "painting": "nikolaos-gyzis_archangel-study-for-the-foundation-of-faith-1895",
+      "target_language": "Yoruba",
+      "condition": "A_matching",
+      "prompt_language": "Yoruba",
+      "head_language": "Yoruba"
+    },
+    {
+      "painting": "nikolaos-gyzis_archangel-study-for-the-foundation-of-faith-1895",
+      "target_language": "Yoruba",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Yoruba"
+    },
+    {
+      "painting": "nikolaos-gyzis_archangel-study-for-the-foundation-of-faith-1895",
+      "target_language": "Yoruba",
+      "condition": "C_fixed_head",
+      "prompt_language": "Yoruba",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "nikolaos-gyzis_archangel-study-for-the-foundation-of-faith-1895",
+      "target_language": "Yoruba",
+      "condition": "D_crossed_head",
+      "prompt_language": "Yoruba",
+      "head_language": "Arabic"
+    },
+    {
+      "painting": "pablo-picasso_niko-pirosmani-1972(1)",
+      "target_language": "Arabic",
+      "condition": "A_matching",
+      "prompt_language": "Arabic",
+      "head_language": "Arabic"
+    },
+    {
+      "painting": "pablo-picasso_niko-pirosmani-1972(1)",
+      "target_language": "Arabic",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Arabic"
+    },
+    {
+      "painting": "pablo-picasso_niko-pirosmani-1972(1)",
+      "target_language": "Arabic",
+      "condition": "C_fixed_head",
+      "prompt_language": "Arabic",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "pablo-picasso_niko-pirosmani-1972(1)",
+      "target_language": "Arabic",
+      "condition": "D_crossed_head",
+      "prompt_language": "Arabic",
+      "head_language": "Burmese"
+    },
+    {
+      "painting": "pablo-picasso_niko-pirosmani-1972(1)",
+      "target_language": "Chinese",
+      "condition": "A_matching",
+      "prompt_language": "Chinese",
+      "head_language": "Chinese"
+    },
+    {
+      "painting": "pablo-picasso_niko-pirosmani-1972(1)",
+      "target_language": "Chinese",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Chinese"
+    },
+    {
+      "painting": "pablo-picasso_niko-pirosmani-1972(1)",
+      "target_language": "Chinese",
+      "condition": "C_fixed_head",
+      "prompt_language": "Chinese",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "pablo-picasso_niko-pirosmani-1972(1)",
+      "target_language": "Chinese",
+      "condition": "D_crossed_head",
+      "prompt_language": "Chinese",
+      "head_language": "Darija"
+    },
+    {
+      "painting": "pablo-picasso_niko-pirosmani-1972(1)",
+      "target_language": "Hindi",
+      "condition": "A_matching",
+      "prompt_language": "Hindi",
+      "head_language": "Hindi"
+    },
+    {
+      "painting": "pablo-picasso_niko-pirosmani-1972(1)",
+      "target_language": "Hindi",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Hindi"
+    },
+    {
+      "painting": "pablo-picasso_niko-pirosmani-1972(1)",
+      "target_language": "Hindi",
+      "condition": "C_fixed_head",
+      "prompt_language": "Hindi",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "pablo-picasso_niko-pirosmani-1972(1)",
+      "target_language": "Hindi",
+      "condition": "D_crossed_head",
+      "prompt_language": "Hindi",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "pablo-picasso_niko-pirosmani-1972(1)",
+      "target_language": "Yoruba",
+      "condition": "A_matching",
+      "prompt_language": "Yoruba",
+      "head_language": "Yoruba"
+    },
+    {
+      "painting": "pablo-picasso_niko-pirosmani-1972(1)",
+      "target_language": "Yoruba",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Yoruba"
+    },
+    {
+      "painting": "pablo-picasso_niko-pirosmani-1972(1)",
+      "target_language": "Yoruba",
+      "condition": "C_fixed_head",
+      "prompt_language": "Yoruba",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "pablo-picasso_niko-pirosmani-1972(1)",
+      "target_language": "Yoruba",
+      "condition": "D_crossed_head",
+      "prompt_language": "Yoruba",
+      "head_language": "Arabic"
+    },
+    {
+      "painting": "paul-gauguin_two-sisters-1892(1)",
+      "target_language": "Chinese",
+      "condition": "A_matching",
+      "prompt_language": "Chinese",
+      "head_language": "Chinese"
+    },
+    {
+      "painting": "paul-gauguin_two-sisters-1892(1)",
+      "target_language": "Chinese",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Chinese"
+    },
+    {
+      "painting": "paul-gauguin_two-sisters-1892(1)",
+      "target_language": "Chinese",
+      "condition": "C_fixed_head",
+      "prompt_language": "Chinese",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "paul-gauguin_two-sisters-1892(1)",
+      "target_language": "Chinese",
+      "condition": "D_crossed_head",
+      "prompt_language": "Chinese",
+      "head_language": "Darija"
+    },
+    {
+      "painting": "paul-gauguin_two-sisters-1892(1)",
+      "target_language": "Hindi",
+      "condition": "A_matching",
+      "prompt_language": "Hindi",
+      "head_language": "Hindi"
+    },
+    {
+      "painting": "paul-gauguin_two-sisters-1892(1)",
+      "target_language": "Hindi",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Hindi"
+    },
+    {
+      "painting": "paul-gauguin_two-sisters-1892(1)",
+      "target_language": "Hindi",
+      "condition": "C_fixed_head",
+      "prompt_language": "Hindi",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "paul-gauguin_two-sisters-1892(1)",
+      "target_language": "Hindi",
+      "condition": "D_crossed_head",
+      "prompt_language": "Hindi",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "paul-gauguin_two-sisters-1892(1)",
+      "target_language": "IsiZulu",
+      "condition": "A_matching",
+      "prompt_language": "IsiZulu",
+      "head_language": "IsiZulu"
+    },
+    {
+      "painting": "paul-gauguin_two-sisters-1892(1)",
+      "target_language": "IsiZulu",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "IsiZulu"
+    },
+    {
+      "painting": "paul-gauguin_two-sisters-1892(1)",
+      "target_language": "IsiZulu",
+      "condition": "C_fixed_head",
+      "prompt_language": "IsiZulu",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "paul-gauguin_two-sisters-1892(1)",
+      "target_language": "IsiZulu",
+      "condition": "D_crossed_head",
+      "prompt_language": "IsiZulu",
+      "head_language": "Kinyarwanda"
+    },
+    {
+      "painting": "paul-gauguin_two-sisters-1892(1)",
+      "target_language": "Malay",
+      "condition": "A_matching",
+      "prompt_language": "Malay",
+      "head_language": "Malay"
+    },
+    {
+      "painting": "paul-gauguin_two-sisters-1892(1)",
+      "target_language": "Malay",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Malay"
+    },
+    {
+      "painting": "paul-gauguin_two-sisters-1892(1)",
+      "target_language": "Malay",
+      "condition": "C_fixed_head",
+      "prompt_language": "Malay",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "paul-gauguin_two-sisters-1892(1)",
+      "target_language": "Malay",
+      "condition": "D_crossed_head",
+      "prompt_language": "Malay",
+      "head_language": "Setswana"
+    },
+    {
+      "painting": "paul-gauguin_two-sisters-1892(1)",
+      "target_language": "Turkish",
+      "condition": "A_matching",
+      "prompt_language": "Turkish",
+      "head_language": "Turkish"
+    },
+    {
+      "painting": "paul-gauguin_two-sisters-1892(1)",
+      "target_language": "Turkish",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Turkish"
+    },
+    {
+      "painting": "paul-gauguin_two-sisters-1892(1)",
+      "target_language": "Turkish",
+      "condition": "C_fixed_head",
+      "prompt_language": "Turkish",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "paul-gauguin_two-sisters-1892(1)",
+      "target_language": "Turkish",
+      "condition": "D_crossed_head",
+      "prompt_language": "Turkish",
+      "head_language": "Urdu"
+    },
+    {
+      "painting": "pierre-auguste-renoir_cape-saint-jean-1910",
+      "target_language": "Arabic",
+      "condition": "A_matching",
+      "prompt_language": "Arabic",
+      "head_language": "Arabic"
+    },
+    {
+      "painting": "pierre-auguste-renoir_cape-saint-jean-1910",
+      "target_language": "Arabic",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Arabic"
+    },
+    {
+      "painting": "pierre-auguste-renoir_cape-saint-jean-1910",
+      "target_language": "Arabic",
+      "condition": "C_fixed_head",
+      "prompt_language": "Arabic",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "pierre-auguste-renoir_cape-saint-jean-1910",
+      "target_language": "Arabic",
+      "condition": "D_crossed_head",
+      "prompt_language": "Arabic",
+      "head_language": "Burmese"
+    },
+    {
+      "painting": "pierre-auguste-renoir_cape-saint-jean-1910",
+      "target_language": "Chinese",
+      "condition": "A_matching",
+      "prompt_language": "Chinese",
+      "head_language": "Chinese"
+    },
+    {
+      "painting": "pierre-auguste-renoir_cape-saint-jean-1910",
+      "target_language": "Chinese",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Chinese"
+    },
+    {
+      "painting": "pierre-auguste-renoir_cape-saint-jean-1910",
+      "target_language": "Chinese",
+      "condition": "C_fixed_head",
+      "prompt_language": "Chinese",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "pierre-auguste-renoir_cape-saint-jean-1910",
+      "target_language": "Chinese",
+      "condition": "D_crossed_head",
+      "prompt_language": "Chinese",
+      "head_language": "Darija"
+    },
+    {
+      "painting": "pierre-auguste-renoir_cape-saint-jean-1910",
+      "target_language": "English",
+      "condition": "A_matching",
+      "prompt_language": "English",
+      "head_language": "English"
+    },
+    {
+      "painting": "pierre-auguste-renoir_cape-saint-jean-1910",
+      "target_language": "English",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "English"
+    },
+    {
+      "painting": "pierre-auguste-renoir_cape-saint-jean-1910",
+      "target_language": "English",
+      "condition": "C_fixed_head",
+      "prompt_language": "English",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "pierre-auguste-renoir_cape-saint-jean-1910",
+      "target_language": "English",
+      "condition": "D_crossed_head",
+      "prompt_language": "English",
+      "head_language": "Hausa"
+    },
+    {
+      "painting": "pyotr-konchalovsky_veliky-novgorod-1926",
+      "target_language": "Hindi",
+      "condition": "A_matching",
+      "prompt_language": "Hindi",
+      "head_language": "Hindi"
+    },
+    {
+      "painting": "pyotr-konchalovsky_veliky-novgorod-1926",
+      "target_language": "Hindi",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Hindi"
+    },
+    {
+      "painting": "pyotr-konchalovsky_veliky-novgorod-1926",
+      "target_language": "Hindi",
+      "condition": "C_fixed_head",
+      "prompt_language": "Hindi",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "pyotr-konchalovsky_veliky-novgorod-1926",
+      "target_language": "Hindi",
+      "condition": "D_crossed_head",
+      "prompt_language": "Hindi",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "pyotr-konchalovsky_veliky-novgorod-1926",
+      "target_language": "Igbo",
+      "condition": "A_matching",
+      "prompt_language": "Igbo",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "pyotr-konchalovsky_veliky-novgorod-1926",
+      "target_language": "Igbo",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "pyotr-konchalovsky_veliky-novgorod-1926",
+      "target_language": "Igbo",
+      "condition": "C_fixed_head",
+      "prompt_language": "Igbo",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "pyotr-konchalovsky_veliky-novgorod-1926",
+      "target_language": "Igbo",
+      "condition": "D_crossed_head",
+      "prompt_language": "Igbo",
+      "head_language": "Indonesian"
+    },
+    {
+      "painting": "pyotr-konchalovsky_veliky-novgorod-1926",
+      "target_language": "Korean",
+      "condition": "A_matching",
+      "prompt_language": "Korean",
+      "head_language": "Korean"
+    },
+    {
+      "painting": "pyotr-konchalovsky_veliky-novgorod-1926",
+      "target_language": "Korean",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Korean"
+    },
+    {
+      "painting": "pyotr-konchalovsky_veliky-novgorod-1926",
+      "target_language": "Korean",
+      "condition": "C_fixed_head",
+      "prompt_language": "Korean",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "pyotr-konchalovsky_veliky-novgorod-1926",
+      "target_language": "Korean",
+      "condition": "D_crossed_head",
+      "prompt_language": "Korean",
+      "head_language": "Kyrgyz"
+    },
+    {
+      "painting": "pyotr-konchalovsky_veliky-novgorod-1926",
+      "target_language": "Yoruba",
+      "condition": "A_matching",
+      "prompt_language": "Yoruba",
+      "head_language": "Yoruba"
+    },
+    {
+      "painting": "pyotr-konchalovsky_veliky-novgorod-1926",
+      "target_language": "Yoruba",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Yoruba"
+    },
+    {
+      "painting": "pyotr-konchalovsky_veliky-novgorod-1926",
+      "target_language": "Yoruba",
+      "condition": "C_fixed_head",
+      "prompt_language": "Yoruba",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "pyotr-konchalovsky_veliky-novgorod-1926",
+      "target_language": "Yoruba",
+      "condition": "D_crossed_head",
+      "prompt_language": "Yoruba",
+      "head_language": "Arabic"
+    },
+    {
+      "painting": "raphael-kirchner_boys-and-girls-at-sea",
+      "target_language": "Chinese",
+      "condition": "A_matching",
+      "prompt_language": "Chinese",
+      "head_language": "Chinese"
+    },
+    {
+      "painting": "raphael-kirchner_boys-and-girls-at-sea",
+      "target_language": "Chinese",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Chinese"
+    },
+    {
+      "painting": "raphael-kirchner_boys-and-girls-at-sea",
+      "target_language": "Chinese",
+      "condition": "C_fixed_head",
+      "prompt_language": "Chinese",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "raphael-kirchner_boys-and-girls-at-sea",
+      "target_language": "Chinese",
+      "condition": "D_crossed_head",
+      "prompt_language": "Chinese",
+      "head_language": "Darija"
+    },
+    {
+      "painting": "raphael-kirchner_boys-and-girls-at-sea",
+      "target_language": "English",
+      "condition": "A_matching",
+      "prompt_language": "English",
+      "head_language": "English"
+    },
+    {
+      "painting": "raphael-kirchner_boys-and-girls-at-sea",
+      "target_language": "English",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "English"
+    },
+    {
+      "painting": "raphael-kirchner_boys-and-girls-at-sea",
+      "target_language": "English",
+      "condition": "C_fixed_head",
+      "prompt_language": "English",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "raphael-kirchner_boys-and-girls-at-sea",
+      "target_language": "English",
+      "condition": "D_crossed_head",
+      "prompt_language": "English",
+      "head_language": "Hausa"
+    },
+    {
+      "painting": "raphael-kirchner_boys-and-girls-at-sea",
+      "target_language": "Igbo",
+      "condition": "A_matching",
+      "prompt_language": "Igbo",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "raphael-kirchner_boys-and-girls-at-sea",
+      "target_language": "Igbo",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "raphael-kirchner_boys-and-girls-at-sea",
+      "target_language": "Igbo",
+      "condition": "C_fixed_head",
+      "prompt_language": "Igbo",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "raphael-kirchner_boys-and-girls-at-sea",
+      "target_language": "Igbo",
+      "condition": "D_crossed_head",
+      "prompt_language": "Igbo",
+      "head_language": "Indonesian"
+    },
+    {
+      "painting": "raphael-kirchner_boys-and-girls-at-sea",
+      "target_language": "Malay",
+      "condition": "A_matching",
+      "prompt_language": "Malay",
+      "head_language": "Malay"
+    },
+    {
+      "painting": "raphael-kirchner_boys-and-girls-at-sea",
+      "target_language": "Malay",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Malay"
+    },
+    {
+      "painting": "raphael-kirchner_boys-and-girls-at-sea",
+      "target_language": "Malay",
+      "condition": "C_fixed_head",
+      "prompt_language": "Malay",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "raphael-kirchner_boys-and-girls-at-sea",
+      "target_language": "Malay",
+      "condition": "D_crossed_head",
+      "prompt_language": "Malay",
+      "head_language": "Setswana"
+    },
+    {
+      "painting": "raphael-kirchner_boys-and-girls-at-sea",
+      "target_language": "Vietnamese",
+      "condition": "A_matching",
+      "prompt_language": "Vietnamese",
+      "head_language": "Vietnamese"
+    },
+    {
+      "painting": "raphael-kirchner_boys-and-girls-at-sea",
+      "target_language": "Vietnamese",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Vietnamese"
+    },
+    {
+      "painting": "raphael-kirchner_boys-and-girls-at-sea",
+      "target_language": "Vietnamese",
+      "condition": "C_fixed_head",
+      "prompt_language": "Vietnamese",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "raphael-kirchner_boys-and-girls-at-sea",
+      "target_language": "Vietnamese",
+      "condition": "D_crossed_head",
+      "prompt_language": "Vietnamese",
+      "head_language": "Yoruba"
+    },
+    {
+      "painting": "richard-parkes-bonington_sunset-in-the-pays-de-caux-1828",
+      "target_language": "Indonesian",
+      "condition": "A_matching",
+      "prompt_language": "Indonesian",
+      "head_language": "Indonesian"
+    },
+    {
+      "painting": "richard-parkes-bonington_sunset-in-the-pays-de-caux-1828",
+      "target_language": "Indonesian",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Indonesian"
+    },
+    {
+      "painting": "richard-parkes-bonington_sunset-in-the-pays-de-caux-1828",
+      "target_language": "Indonesian",
+      "condition": "C_fixed_head",
+      "prompt_language": "Indonesian",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "richard-parkes-bonington_sunset-in-the-pays-de-caux-1828",
+      "target_language": "Indonesian",
+      "condition": "D_crossed_head",
+      "prompt_language": "Indonesian",
+      "head_language": "IsiZulu"
+    },
+    {
+      "painting": "richard-parkes-bonington_sunset-in-the-pays-de-caux-1828",
+      "target_language": "Turkish",
+      "condition": "A_matching",
+      "prompt_language": "Turkish",
+      "head_language": "Turkish"
+    },
+    {
+      "painting": "richard-parkes-bonington_sunset-in-the-pays-de-caux-1828",
+      "target_language": "Turkish",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Turkish"
+    },
+    {
+      "painting": "richard-parkes-bonington_sunset-in-the-pays-de-caux-1828",
+      "target_language": "Turkish",
+      "condition": "C_fixed_head",
+      "prompt_language": "Turkish",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "richard-parkes-bonington_sunset-in-the-pays-de-caux-1828",
+      "target_language": "Turkish",
+      "condition": "D_crossed_head",
+      "prompt_language": "Turkish",
+      "head_language": "Urdu"
+    },
+    {
+      "painting": "richard-parkes-bonington_sunset-in-the-pays-de-caux-1828",
+      "target_language": "Uzbek",
+      "condition": "A_matching",
+      "prompt_language": "Uzbek",
+      "head_language": "Uzbek"
+    },
+    {
+      "painting": "richard-parkes-bonington_sunset-in-the-pays-de-caux-1828",
+      "target_language": "Uzbek",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Uzbek"
+    },
+    {
+      "painting": "richard-parkes-bonington_sunset-in-the-pays-de-caux-1828",
+      "target_language": "Uzbek",
+      "condition": "C_fixed_head",
+      "prompt_language": "Uzbek",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "richard-parkes-bonington_sunset-in-the-pays-de-caux-1828",
+      "target_language": "Uzbek",
+      "condition": "D_crossed_head",
+      "prompt_language": "Uzbek",
+      "head_language": "Vietnamese"
+    },
+    {
+      "painting": "richard-parkes-bonington_sunset-in-the-pays-de-caux-1828",
+      "target_language": "Vietnamese",
+      "condition": "A_matching",
+      "prompt_language": "Vietnamese",
+      "head_language": "Vietnamese"
+    },
+    {
+      "painting": "richard-parkes-bonington_sunset-in-the-pays-de-caux-1828",
+      "target_language": "Vietnamese",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Vietnamese"
+    },
+    {
+      "painting": "richard-parkes-bonington_sunset-in-the-pays-de-caux-1828",
+      "target_language": "Vietnamese",
+      "condition": "C_fixed_head",
+      "prompt_language": "Vietnamese",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "richard-parkes-bonington_sunset-in-the-pays-de-caux-1828",
+      "target_language": "Vietnamese",
+      "condition": "D_crossed_head",
+      "prompt_language": "Vietnamese",
+      "head_language": "Yoruba"
+    },
+    {
+      "painting": "richard-parkes-bonington_sunset-in-the-pays-de-caux-1828",
+      "target_language": "Yoruba",
+      "condition": "A_matching",
+      "prompt_language": "Yoruba",
+      "head_language": "Yoruba"
+    },
+    {
+      "painting": "richard-parkes-bonington_sunset-in-the-pays-de-caux-1828",
+      "target_language": "Yoruba",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Yoruba"
+    },
+    {
+      "painting": "richard-parkes-bonington_sunset-in-the-pays-de-caux-1828",
+      "target_language": "Yoruba",
+      "condition": "C_fixed_head",
+      "prompt_language": "Yoruba",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "richard-parkes-bonington_sunset-in-the-pays-de-caux-1828",
+      "target_language": "Yoruba",
+      "condition": "D_crossed_head",
+      "prompt_language": "Yoruba",
+      "head_language": "Arabic"
+    },
+    {
+      "painting": "sam-francis_composition-in-blue-and-white-1960",
+      "target_language": "Chinese",
+      "condition": "A_matching",
+      "prompt_language": "Chinese",
+      "head_language": "Chinese"
+    },
+    {
+      "painting": "sam-francis_composition-in-blue-and-white-1960",
+      "target_language": "Chinese",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Chinese"
+    },
+    {
+      "painting": "sam-francis_composition-in-blue-and-white-1960",
+      "target_language": "Chinese",
+      "condition": "C_fixed_head",
+      "prompt_language": "Chinese",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "sam-francis_composition-in-blue-and-white-1960",
+      "target_language": "Chinese",
+      "condition": "D_crossed_head",
+      "prompt_language": "Chinese",
+      "head_language": "Darija"
+    },
+    {
+      "painting": "sam-francis_composition-in-blue-and-white-1960",
+      "target_language": "Hausa",
+      "condition": "A_matching",
+      "prompt_language": "Hausa",
+      "head_language": "Hausa"
+    },
+    {
+      "painting": "sam-francis_composition-in-blue-and-white-1960",
+      "target_language": "Hausa",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Hausa"
+    },
+    {
+      "painting": "sam-francis_composition-in-blue-and-white-1960",
+      "target_language": "Hausa",
+      "condition": "C_fixed_head",
+      "prompt_language": "Hausa",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "sam-francis_composition-in-blue-and-white-1960",
+      "target_language": "Hausa",
+      "condition": "D_crossed_head",
+      "prompt_language": "Hausa",
+      "head_language": "Hindi"
+    },
+    {
+      "painting": "sam-francis_composition-in-blue-and-white-1960",
+      "target_language": "Korean",
+      "condition": "A_matching",
+      "prompt_language": "Korean",
+      "head_language": "Korean"
+    },
+    {
+      "painting": "sam-francis_composition-in-blue-and-white-1960",
+      "target_language": "Korean",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Korean"
+    },
+    {
+      "painting": "sam-francis_composition-in-blue-and-white-1960",
+      "target_language": "Korean",
+      "condition": "C_fixed_head",
+      "prompt_language": "Korean",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "sam-francis_composition-in-blue-and-white-1960",
+      "target_language": "Korean",
+      "condition": "D_crossed_head",
+      "prompt_language": "Korean",
+      "head_language": "Kyrgyz"
+    },
+    {
+      "painting": "sam-francis_composition-in-blue-and-white-1960",
+      "target_language": "Swahili",
+      "condition": "A_matching",
+      "prompt_language": "Swahili",
+      "head_language": "Swahili"
+    },
+    {
+      "painting": "sam-francis_composition-in-blue-and-white-1960",
+      "target_language": "Swahili",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Swahili"
+    },
+    {
+      "painting": "sam-francis_composition-in-blue-and-white-1960",
+      "target_language": "Swahili",
+      "condition": "C_fixed_head",
+      "prompt_language": "Swahili",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "sam-francis_composition-in-blue-and-white-1960",
+      "target_language": "Swahili",
+      "condition": "D_crossed_head",
+      "prompt_language": "Swahili",
+      "head_language": "Tagalog"
+    },
+    {
+      "painting": "sam-francis_composition-in-blue-and-white-1960",
+      "target_language": "Yoruba",
+      "condition": "A_matching",
+      "prompt_language": "Yoruba",
+      "head_language": "Yoruba"
+    },
+    {
+      "painting": "sam-francis_composition-in-blue-and-white-1960",
+      "target_language": "Yoruba",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Yoruba"
+    },
+    {
+      "painting": "sam-francis_composition-in-blue-and-white-1960",
+      "target_language": "Yoruba",
+      "condition": "C_fixed_head",
+      "prompt_language": "Yoruba",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "sam-francis_composition-in-blue-and-white-1960",
+      "target_language": "Yoruba",
+      "condition": "D_crossed_head",
+      "prompt_language": "Yoruba",
+      "head_language": "Arabic"
+    },
+    {
+      "painting": "sir-lawrence-alma-tadema_in-my-studio-1893",
+      "target_language": "Hindi",
+      "condition": "A_matching",
+      "prompt_language": "Hindi",
+      "head_language": "Hindi"
+    },
+    {
+      "painting": "sir-lawrence-alma-tadema_in-my-studio-1893",
+      "target_language": "Hindi",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Hindi"
+    },
+    {
+      "painting": "sir-lawrence-alma-tadema_in-my-studio-1893",
+      "target_language": "Hindi",
+      "condition": "C_fixed_head",
+      "prompt_language": "Hindi",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "sir-lawrence-alma-tadema_in-my-studio-1893",
+      "target_language": "Hindi",
+      "condition": "D_crossed_head",
+      "prompt_language": "Hindi",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "sir-lawrence-alma-tadema_in-my-studio-1893",
+      "target_language": "Korean",
+      "condition": "A_matching",
+      "prompt_language": "Korean",
+      "head_language": "Korean"
+    },
+    {
+      "painting": "sir-lawrence-alma-tadema_in-my-studio-1893",
+      "target_language": "Korean",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Korean"
+    },
+    {
+      "painting": "sir-lawrence-alma-tadema_in-my-studio-1893",
+      "target_language": "Korean",
+      "condition": "C_fixed_head",
+      "prompt_language": "Korean",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "sir-lawrence-alma-tadema_in-my-studio-1893",
+      "target_language": "Korean",
+      "condition": "D_crossed_head",
+      "prompt_language": "Korean",
+      "head_language": "Kyrgyz"
+    },
+    {
+      "painting": "sir-lawrence-alma-tadema_in-my-studio-1893",
+      "target_language": "Uzbek",
+      "condition": "A_matching",
+      "prompt_language": "Uzbek",
+      "head_language": "Uzbek"
+    },
+    {
+      "painting": "sir-lawrence-alma-tadema_in-my-studio-1893",
+      "target_language": "Uzbek",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Uzbek"
+    },
+    {
+      "painting": "sir-lawrence-alma-tadema_in-my-studio-1893",
+      "target_language": "Uzbek",
+      "condition": "C_fixed_head",
+      "prompt_language": "Uzbek",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "sir-lawrence-alma-tadema_in-my-studio-1893",
+      "target_language": "Uzbek",
+      "condition": "D_crossed_head",
+      "prompt_language": "Uzbek",
+      "head_language": "Vietnamese"
+    },
+    {
+      "painting": "sir-lawrence-alma-tadema_in-my-studio-1893",
+      "target_language": "Yoruba",
+      "condition": "A_matching",
+      "prompt_language": "Yoruba",
+      "head_language": "Yoruba"
+    },
+    {
+      "painting": "sir-lawrence-alma-tadema_in-my-studio-1893",
+      "target_language": "Yoruba",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Yoruba"
+    },
+    {
+      "painting": "sir-lawrence-alma-tadema_in-my-studio-1893",
+      "target_language": "Yoruba",
+      "condition": "C_fixed_head",
+      "prompt_language": "Yoruba",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "sir-lawrence-alma-tadema_in-my-studio-1893",
+      "target_language": "Yoruba",
+      "condition": "D_crossed_head",
+      "prompt_language": "Yoruba",
+      "head_language": "Arabic"
+    },
+    {
+      "painting": "thomas-cole_kaaterskill-falls-1826",
+      "target_language": "Tamil",
+      "condition": "A_matching",
+      "prompt_language": "Tamil",
+      "head_language": "Tamil"
+    },
+    {
+      "painting": "thomas-cole_kaaterskill-falls-1826",
+      "target_language": "Tamil",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Tamil"
+    },
+    {
+      "painting": "thomas-cole_kaaterskill-falls-1826",
+      "target_language": "Tamil",
+      "condition": "C_fixed_head",
+      "prompt_language": "Tamil",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "thomas-cole_kaaterskill-falls-1826",
+      "target_language": "Tamil",
+      "condition": "D_crossed_head",
+      "prompt_language": "Tamil",
+      "head_language": "Thai"
+    },
+    {
+      "painting": "thomas-cole_kaaterskill-falls-1826",
+      "target_language": "Uzbek",
+      "condition": "A_matching",
+      "prompt_language": "Uzbek",
+      "head_language": "Uzbek"
+    },
+    {
+      "painting": "thomas-cole_kaaterskill-falls-1826",
+      "target_language": "Uzbek",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Uzbek"
+    },
+    {
+      "painting": "thomas-cole_kaaterskill-falls-1826",
+      "target_language": "Uzbek",
+      "condition": "C_fixed_head",
+      "prompt_language": "Uzbek",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "thomas-cole_kaaterskill-falls-1826",
+      "target_language": "Uzbek",
+      "condition": "D_crossed_head",
+      "prompt_language": "Uzbek",
+      "head_language": "Vietnamese"
+    },
+    {
+      "painting": "thomas-cole_kaaterskill-falls-1826",
+      "target_language": "Yoruba",
+      "condition": "A_matching",
+      "prompt_language": "Yoruba",
+      "head_language": "Yoruba"
+    },
+    {
+      "painting": "thomas-cole_kaaterskill-falls-1826",
+      "target_language": "Yoruba",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Yoruba"
+    },
+    {
+      "painting": "thomas-cole_kaaterskill-falls-1826",
+      "target_language": "Yoruba",
+      "condition": "C_fixed_head",
+      "prompt_language": "Yoruba",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "thomas-cole_kaaterskill-falls-1826",
+      "target_language": "Yoruba",
+      "condition": "D_crossed_head",
+      "prompt_language": "Yoruba",
+      "head_language": "Arabic"
+    },
+    {
+      "painting": "vittore-carpaccio_the-miracle-of-st-tryphonius-1507",
+      "target_language": "Chinese",
+      "condition": "A_matching",
+      "prompt_language": "Chinese",
+      "head_language": "Chinese"
+    },
+    {
+      "painting": "vittore-carpaccio_the-miracle-of-st-tryphonius-1507",
+      "target_language": "Chinese",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Chinese"
+    },
+    {
+      "painting": "vittore-carpaccio_the-miracle-of-st-tryphonius-1507",
+      "target_language": "Chinese",
+      "condition": "C_fixed_head",
+      "prompt_language": "Chinese",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "vittore-carpaccio_the-miracle-of-st-tryphonius-1507",
+      "target_language": "Chinese",
+      "condition": "D_crossed_head",
+      "prompt_language": "Chinese",
+      "head_language": "Darija"
+    },
+    {
+      "painting": "vittore-carpaccio_the-miracle-of-st-tryphonius-1507",
+      "target_language": "Hausa",
+      "condition": "A_matching",
+      "prompt_language": "Hausa",
+      "head_language": "Hausa"
+    },
+    {
+      "painting": "vittore-carpaccio_the-miracle-of-st-tryphonius-1507",
+      "target_language": "Hausa",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Hausa"
+    },
+    {
+      "painting": "vittore-carpaccio_the-miracle-of-st-tryphonius-1507",
+      "target_language": "Hausa",
+      "condition": "C_fixed_head",
+      "prompt_language": "Hausa",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "vittore-carpaccio_the-miracle-of-st-tryphonius-1507",
+      "target_language": "Hausa",
+      "condition": "D_crossed_head",
+      "prompt_language": "Hausa",
+      "head_language": "Hindi"
+    },
+    {
+      "painting": "vittore-carpaccio_the-miracle-of-st-tryphonius-1507",
+      "target_language": "Swahili",
+      "condition": "A_matching",
+      "prompt_language": "Swahili",
+      "head_language": "Swahili"
+    },
+    {
+      "painting": "vittore-carpaccio_the-miracle-of-st-tryphonius-1507",
+      "target_language": "Swahili",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Swahili"
+    },
+    {
+      "painting": "vittore-carpaccio_the-miracle-of-st-tryphonius-1507",
+      "target_language": "Swahili",
+      "condition": "C_fixed_head",
+      "prompt_language": "Swahili",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "vittore-carpaccio_the-miracle-of-st-tryphonius-1507",
+      "target_language": "Swahili",
+      "condition": "D_crossed_head",
+      "prompt_language": "Swahili",
+      "head_language": "Tagalog"
+    },
+    {
+      "painting": "vittore-carpaccio_the-miracle-of-st-tryphonius-1507",
+      "target_language": "Uzbek",
+      "condition": "A_matching",
+      "prompt_language": "Uzbek",
+      "head_language": "Uzbek"
+    },
+    {
+      "painting": "vittore-carpaccio_the-miracle-of-st-tryphonius-1507",
+      "target_language": "Uzbek",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Uzbek"
+    },
+    {
+      "painting": "vittore-carpaccio_the-miracle-of-st-tryphonius-1507",
+      "target_language": "Uzbek",
+      "condition": "C_fixed_head",
+      "prompt_language": "Uzbek",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "vittore-carpaccio_the-miracle-of-st-tryphonius-1507",
+      "target_language": "Uzbek",
+      "condition": "D_crossed_head",
+      "prompt_language": "Uzbek",
+      "head_language": "Vietnamese"
+    },
+    {
+      "painting": "vittore-carpaccio_the-miracle-of-st-tryphonius-1507",
+      "target_language": "Yoruba",
+      "condition": "A_matching",
+      "prompt_language": "Yoruba",
+      "head_language": "Yoruba"
+    },
+    {
+      "painting": "vittore-carpaccio_the-miracle-of-st-tryphonius-1507",
+      "target_language": "Yoruba",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Yoruba"
+    },
+    {
+      "painting": "vittore-carpaccio_the-miracle-of-st-tryphonius-1507",
+      "target_language": "Yoruba",
+      "condition": "C_fixed_head",
+      "prompt_language": "Yoruba",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "vittore-carpaccio_the-miracle-of-st-tryphonius-1507",
+      "target_language": "Yoruba",
+      "condition": "D_crossed_head",
+      "prompt_language": "Yoruba",
+      "head_language": "Arabic"
+    },
+    {
+      "painting": "william-merritt-chase_the-open-air-breakfast",
+      "target_language": "Chinese",
+      "condition": "A_matching",
+      "prompt_language": "Chinese",
+      "head_language": "Chinese"
+    },
+    {
+      "painting": "william-merritt-chase_the-open-air-breakfast",
+      "target_language": "Chinese",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Chinese"
+    },
+    {
+      "painting": "william-merritt-chase_the-open-air-breakfast",
+      "target_language": "Chinese",
+      "condition": "C_fixed_head",
+      "prompt_language": "Chinese",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "william-merritt-chase_the-open-air-breakfast",
+      "target_language": "Chinese",
+      "condition": "D_crossed_head",
+      "prompt_language": "Chinese",
+      "head_language": "Darija"
+    },
+    {
+      "painting": "william-merritt-chase_the-open-air-breakfast",
+      "target_language": "Igbo",
+      "condition": "A_matching",
+      "prompt_language": "Igbo",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "william-merritt-chase_the-open-air-breakfast",
+      "target_language": "Igbo",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "william-merritt-chase_the-open-air-breakfast",
+      "target_language": "Igbo",
+      "condition": "C_fixed_head",
+      "prompt_language": "Igbo",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "william-merritt-chase_the-open-air-breakfast",
+      "target_language": "Igbo",
+      "condition": "D_crossed_head",
+      "prompt_language": "Igbo",
+      "head_language": "Indonesian"
+    },
+    {
+      "painting": "william-merritt-chase_the-open-air-breakfast",
+      "target_language": "Korean",
+      "condition": "A_matching",
+      "prompt_language": "Korean",
+      "head_language": "Korean"
+    },
+    {
+      "painting": "william-merritt-chase_the-open-air-breakfast",
+      "target_language": "Korean",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Korean"
+    },
+    {
+      "painting": "william-merritt-chase_the-open-air-breakfast",
+      "target_language": "Korean",
+      "condition": "C_fixed_head",
+      "prompt_language": "Korean",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "william-merritt-chase_the-open-air-breakfast",
+      "target_language": "Korean",
+      "condition": "D_crossed_head",
+      "prompt_language": "Korean",
+      "head_language": "Kyrgyz"
+    },
+    {
+      "painting": "william-merritt-chase_the-open-air-breakfast",
+      "target_language": "Vietnamese",
+      "condition": "A_matching",
+      "prompt_language": "Vietnamese",
+      "head_language": "Vietnamese"
+    },
+    {
+      "painting": "william-merritt-chase_the-open-air-breakfast",
+      "target_language": "Vietnamese",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Vietnamese"
+    },
+    {
+      "painting": "william-merritt-chase_the-open-air-breakfast",
+      "target_language": "Vietnamese",
+      "condition": "C_fixed_head",
+      "prompt_language": "Vietnamese",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "william-merritt-chase_the-open-air-breakfast",
+      "target_language": "Vietnamese",
+      "condition": "D_crossed_head",
+      "prompt_language": "Vietnamese",
+      "head_language": "Yoruba"
+    },
+    {
+      "painting": "winston-churchill_mells-somersetshire(1)",
+      "target_language": "Chinese",
+      "condition": "A_matching",
+      "prompt_language": "Chinese",
+      "head_language": "Chinese"
+    },
+    {
+      "painting": "winston-churchill_mells-somersetshire(1)",
+      "target_language": "Chinese",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Chinese"
+    },
+    {
+      "painting": "winston-churchill_mells-somersetshire(1)",
+      "target_language": "Chinese",
+      "condition": "C_fixed_head",
+      "prompt_language": "Chinese",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "winston-churchill_mells-somersetshire(1)",
+      "target_language": "Chinese",
+      "condition": "D_crossed_head",
+      "prompt_language": "Chinese",
+      "head_language": "Darija"
+    },
+    {
+      "painting": "winston-churchill_mells-somersetshire(1)",
+      "target_language": "Tamil",
+      "condition": "A_matching",
+      "prompt_language": "Tamil",
+      "head_language": "Tamil"
+    },
+    {
+      "painting": "winston-churchill_mells-somersetshire(1)",
+      "target_language": "Tamil",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Tamil"
+    },
+    {
+      "painting": "winston-churchill_mells-somersetshire(1)",
+      "target_language": "Tamil",
+      "condition": "C_fixed_head",
+      "prompt_language": "Tamil",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "winston-churchill_mells-somersetshire(1)",
+      "target_language": "Tamil",
+      "condition": "D_crossed_head",
+      "prompt_language": "Tamil",
+      "head_language": "Thai"
+    },
+    {
+      "painting": "winston-churchill_mells-somersetshire(1)",
+      "target_language": "Uzbek",
+      "condition": "A_matching",
+      "prompt_language": "Uzbek",
+      "head_language": "Uzbek"
+    },
+    {
+      "painting": "winston-churchill_mells-somersetshire(1)",
+      "target_language": "Uzbek",
+      "condition": "B_neutral_prompt",
+      "prompt_language": null,
+      "head_language": "Uzbek"
+    },
+    {
+      "painting": "winston-churchill_mells-somersetshire(1)",
+      "target_language": "Uzbek",
+      "condition": "C_fixed_head",
+      "prompt_language": "Uzbek",
+      "head_language": "Igbo"
+    },
+    {
+      "painting": "winston-churchill_mells-somersetshire(1)",
+      "target_language": "Uzbek",
+      "condition": "D_crossed_head",
+      "prompt_language": "Uzbek",
+      "head_language": "Vietnamese"
+    }
+  ],
+  "reference_head_language": "Igbo",
+  "head_permutation": {
+    "Arabic": "Burmese",
+    "Burmese": "Chinese",
+    "Chinese": "Darija",
+    "Darija": "Emakhuwa",
+    "Emakhuwa": "English",
+    "English": "Hausa",
+    "Hausa": "Hindi",
+    "Hindi": "Igbo",
+    "Igbo": "Indonesian",
+    "Indonesian": "IsiZulu",
+    "IsiZulu": "Kinyarwanda",
+    "Kinyarwanda": "Korean",
+    "Korean": "Kyrgyz",
+    "Kyrgyz": "Malay",
+    "Malay": "Setswana",
+    "Setswana": "Swahili",
+    "Swahili": "Tagalog",
+    "Tagalog": "Tamil",
+    "Tamil": "Thai",
+    "Thai": "Turkish",
+    "Turkish": "Urdu",
+    "Urdu": "Uzbek",
+    "Uzbek": "Vietnamese",
+    "Vietnamese": "Yoruba",
+    "Yoruba": "Arabic"
+  },
+  "targets_sha256": "2c49514fa5a59af0f85651da1f9453c115d5ac3c52c3d07486ecab15fc70243c",
+  "counts": {
+    "paintings": 32,
+    "rectangles": 48,
+    "unique_cells": 134,
+    "decoder_sequences": 996,
+    "decoder_batch_calls": 192,
+    "repeat_batch_calls": 6,
+    "repeat_decoder_sequences": 36,
+    "official_parity_decoder_calls": 2,
+    "vision_calls_if_cold": 34,
+    "logical_logits": 3216
+  }
+}
