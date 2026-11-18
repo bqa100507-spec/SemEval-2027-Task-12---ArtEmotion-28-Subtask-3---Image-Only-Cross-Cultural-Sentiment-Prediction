@@ -69,7 +69,9 @@ The native receipt distinguishes signals such as SIGSEGV, ordinary Python or
 test failures, launch failures and timeouts. The child logs include wheel
 tags, backend and effective thread limits. A failing receipt stops execution
 and is included in the existing checked Drive export. WSL2 Linux preflight
-and the relevant 61-test suite passed under the exact lock.
+and the relevant 70-test suite passed under the exact lock. Ubuntu 26.04's
+GitHub Actions Python catalog does not provide 3.12.10, so the separate CI native
+preflight installs that exact interpreter with uv, matching Colab's setup method.
 
 Open the notebook linked in PR #33, choose a fresh **CPU** runtime and use
 **Run all**. Watch for `NATIVE_PREFLIGHT` and the three zero exit codes in
