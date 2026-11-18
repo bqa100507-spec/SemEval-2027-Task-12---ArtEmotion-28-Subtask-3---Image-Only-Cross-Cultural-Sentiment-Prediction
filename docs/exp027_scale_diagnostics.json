@@ -1,0 +1,44 @@
+{
+  "status": "TRAINING_ONLY_CPU_DIAGNOSTIC",
+  "seed": 2711,
+  "outer_fold_excluded": 2,
+  "examined_fold1_excluded": true,
+  "paintings": 64,
+  "target_rows": 609,
+  "batches": 48,
+  "source_sha256": "841332ac9d9d9b1807b4086fd1ce02e21318d77e5c7427050d33886cbc1b7d92",
+  "protocol_base_sha256": "0e185be884cfd23c767dfc9c075ee91f1b3bca93e5054a86f8f3491f79aa09a8",
+  "training_pairs_sha256": "50798ddac6d9bda709c53b0ab7fc5ff2bfc6fbc33a4e581c1ab5c45f94d57534",
+  "median_unscaled_gradient_ratio": 73.34184265136719,
+  "p90_unscaled_gradient_ratio": 254.8801223754883,
+  "recommended_grid": [
+    0.0,
+    0.000682,
+    0.00196
+  ],
+  "historical_lambda_gradient_ratios": {
+    "0.01": {
+      "median": 0.7334184265136718,
+      "p90": 2.548801223754883
+    },
+    "0.05": {
+      "median": 3.6670921325683596,
+      "p90": 12.744006118774415
+    }
+  },
+  "boundary": "Real permitted training votes + synthetic label-independent logits. Not Qwen feature/parameter gradients or optimal-lambda evidence.",
+  "by_synthetic_logit_sigma": {
+    "0.001": {
+      "median_ratio": 226.3735809326172,
+      "batches": 16
+    },
+    "0.05": {
+      "median_ratio": 73.34184265136719,
+      "batches": 16
+    },
+    "0.2": {
+      "median_ratio": 16.96791362762451,
+      "batches": 16
+    }
+  }
+}

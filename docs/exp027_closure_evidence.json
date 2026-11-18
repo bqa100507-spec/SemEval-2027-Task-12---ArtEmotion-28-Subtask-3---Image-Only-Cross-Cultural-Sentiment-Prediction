@@ -1,0 +1,340 @@
+{
+  "status": "GPU_PILOT_COMPLETED / NO_GO_FOR_EXPANSION",
+  "verification": "Saved metrics/bootstrap/keys/checkpoint SHA/prediction vectors/selection/source identity PASS; encoder inference not replayed",
+  "metrics": {
+    "scope": "READ_ONLY_INNER_VALIDATION_NOT_FOR_SELECTION_OR_TUNING",
+    "metrics": {
+      "BCE": {
+        "mean_contrast": 0.1959522248855383,
+        "eligible_paintings": 47,
+        "macro_log_loss_bits": 0.9444564389784862,
+        "log_loss_eligible_languages": 15,
+        "log_loss_status": "AVAILABLE",
+        "descriptive_vote_weighted_BCE_nats_from_rounded_predictions": 0.642757507564847
+      },
+      "P_low": {
+        "mean_contrast": 0.18400899656799774,
+        "eligible_paintings": 47,
+        "macro_log_loss_bits": 0.945056063383748,
+        "log_loss_eligible_languages": 15,
+        "log_loss_status": "AVAILABLE",
+        "descriptive_vote_weighted_BCE_nats_from_rounded_predictions": 0.6433325884403753
+      },
+      "P_high": {
+        "mean_contrast": 0.18860668625201038,
+        "eligible_paintings": 47,
+        "macro_log_loss_bits": 0.9442687134826658,
+        "log_loss_eligible_languages": 15,
+        "log_loss_status": "AVAILABLE",
+        "descriptive_vote_weighted_BCE_nats_from_rounded_predictions": 0.6425742492097563
+      }
+    },
+    "paired_comparisons": {
+      "P_low": {
+        "mean_contrast_difference_vs_BCE": -0.011943228317540518,
+        "paired_eligible_paintings": 47,
+        "wins": 15,
+        "losses": 32,
+        "ties": 0,
+        "painting_paired_percentile_95_CI": [
+          -0.020683319387447503,
+          -0.0024347281357498464
+        ],
+        "bootstrap_replicates": 10000,
+        "bootstrap_seed": 27029
+      },
+      "P_high": {
+        "mean_contrast_difference_vs_BCE": -0.007345538633527872,
+        "paired_eligible_paintings": 47,
+        "wins": 16,
+        "losses": 31,
+        "ties": 0,
+        "painting_paired_percentile_95_CI": [
+          -0.01751562093045385,
+          0.003806065442451728
+        ],
+        "bootstrap_replicates": 10000,
+        "bootstrap_seed": 27029
+      }
+    },
+    "scorer": "Existing published-specification ST3 scorer; not an independently obtained hosted scorer",
+    "uncertainty_caveat": "Descriptive inner-validation interval after BCE checkpoint selection; not independent generalization evidence"
+  },
+  "offset_crossfit": {
+    "BCE": {
+      "held_out_explained_variance": 0.9792386248126987,
+      "median_profile_rank_agreement": 0.9835164835164836,
+      "mean_residual_gold_correlation": 0.02911616286300452,
+      "centered_SS": 1.927675339248605,
+      "profile_SS": 1.8976474698674661,
+      "residual_SS": 0.040021190957448605,
+      "cross_term": -0.009993321576309484,
+      "unseen_language_rows": 1,
+      "seed": 30027,
+      "boundary": "Prediction-only cross-fit; residual includes interaction, estimation error/noise and misspecification, not an identified causal component"
+    },
+    "P_low": {
+      "held_out_explained_variance": 0.9828074960322224,
+      "median_profile_rank_agreement": 0.9833333333333333,
+      "mean_residual_gold_correlation": 0.015259730791780925,
+      "centered_SS": 2.2061712305689403,
+      "profile_SS": 2.1780207647898187,
+      "residual_SS": 0.037929607635153344,
+      "cross_term": -0.009779141856032125,
+      "unseen_language_rows": 1,
+      "seed": 30027,
+      "boundary": "Prediction-only cross-fit; residual includes interaction, estimation error/noise and misspecification, not an identified causal component"
+    },
+    "P_high": {
+      "held_out_explained_variance": 0.982099805630695,
+      "median_profile_rank_agreement": 0.9833333333333333,
+      "mean_residual_gold_correlation": 0.011153663872279434,
+      "centered_SS": 2.3235101187361185,
+      "profile_SS": 2.293735918746965,
+      "residual_SS": 0.0415912827444236,
+      "cross_term": -0.011817082755270205,
+      "unseen_language_rows": 1,
+      "seed": 30027,
+      "boundary": "Prediction-only cross-fit; residual includes interaction, estimation error/noise and misspecification, not an identified causal component"
+    }
+  },
+  "effects": {
+    "P_low": {
+      "median_delta": -0.015577432087504173,
+      "trimmed_mean_drop_2_each_tail": -0.013110888052890995,
+      "negative_painting_fraction": 0.6808510638297872,
+      "mean_abs_probability_change": 0.00537660739257787,
+      "median_rank_agreement_vs_BCE": 0.989010989010989,
+      "parameter_difference_norms_vs_BCE": {
+        "head": 0.3862534908513148,
+        "adapters": 0.054642642263368985
+      },
+      "delta_vs_target_variance_rank_correlation": -0.09875115633672527,
+      "low_variance_quartile_mean_abs_delta": 0.020327562014746472,
+      "other_paintings_mean_abs_delta": 0.028833829753121824,
+      "lowest_order_agreement_examples": [
+        {
+          "painting": "pietro-perugino_birth-of-the-virgin-1473",
+          "order_agreement_vs_BCE": 0.9333333333333332,
+          "delta_contrast_vs_BCE": 0.03238617983743994
+        },
+        {
+          "painting": "jamie-wyeth_lattice-work-1967",
+          "order_agreement_vs_BCE": 0.9500000000000001,
+          "delta_contrast_vs_BCE": -0.017972625301477585
+        },
+        {
+          "painting": "kuzma-petrov-vodkin_arrangement-1918",
+          "order_agreement_vs_BCE": 0.9515151515151514,
+          "delta_contrast_vs_BCE": 0.007778816017452589
+        }
+      ],
+      "best_paintings": [
+        {
+          "painting": "john-constable_selfportrait",
+          "delta_contrast_vs_BCE": 0.12068463089183612
+        },
+        {
+          "painting": "lucas-cranach-the-elder_young-mother-with-child",
+          "delta_contrast_vs_BCE": 0.03596583769485727
+        },
+        {
+          "painting": "pietro-perugino_birth-of-the-virgin-1473",
+          "delta_contrast_vs_BCE": 0.03238617983743994
+        }
+      ],
+      "worst_paintings": [
+        {
+          "painting": "hercules-seghers_mountain-valley-with-fenced-fields",
+          "delta_contrast_vs_BCE": -0.08098318348154404
+        },
+        {
+          "painting": "nikolai-ge_death-of-virginia-study",
+          "delta_contrast_vs_BCE": -0.07323082975524092
+        },
+        {
+          "painting": "camille-corot_l-arbre-tordu-les-chenes-du-mont-usey-fontainebleau",
+          "delta_contrast_vs_BCE": -0.062198311876301426
+        }
+      ],
+      "high_target_variance_poor_correlation": [
+        "arkhip-kuindzhi_portrait-of-n-a-jaroshenko",
+        "ivan-aivazovsky_venice-1870",
+        "john-constable_selfportrait",
+        "luca-signorelli_tibullus-1502",
+        "pieter-wenning_landscape-bishops-court"
+      ],
+      "low_target_variance_bottom_quartile": [
+        "camille-pissarro_landscape-at-saint-charles",
+        "efim-volkov_near-the-monastery",
+        "fyodor-solntsev_st-george",
+        "jamie-wyeth_lattice-work-1967",
+        "kuzma-petrov-vodkin_arrangement-1918",
+        "leonardo-da-vinci_the-virgin-and-child-with-st-anne-1510",
+        "maurice-quentin-de-la-tour_study-of-the-portrait",
+        "nicholas-roerich_himalayas-1946-1",
+        "nicholas-roerich_sunrise-unfinished-1930",
+        "pietro-perugino_birth-of-the-virgin-1473",
+        "stefan-luchian_slums-mahalaua-dracului-1898",
+        "thomas-gainsborough_john-and-henry-trueman-villebois"
+      ]
+    },
+    "P_high": {
+      "median_delta": -0.012254396589292782,
+      "trimmed_mean_drop_2_each_tail": -0.00908636486892526,
+      "negative_painting_fraction": 0.6595744680851063,
+      "mean_abs_probability_change": 0.006767745147228657,
+      "median_rank_agreement_vs_BCE": 0.9860139860139862,
+      "parameter_difference_norms_vs_BCE": {
+        "head": 0.5748825467915356,
+        "adapters": 0.15295214871599264
+      },
+      "delta_vs_target_variance_rank_correlation": -0.0190795559666975,
+      "low_variance_quartile_mean_abs_delta": 0.025949917664185463,
+      "other_paintings_mean_abs_delta": 0.02751222397922093,
+      "lowest_order_agreement_examples": [
+        {
+          "painting": "ivan-bilibin_illustration-for-the-historical-revolutionary-almanac-of-publisher-rosehip-1906(1)",
+          "order_agreement_vs_BCE": 0.9285714285714287,
+          "delta_contrast_vs_BCE": -0.040247949446825415
+        },
+        {
+          "painting": "pietro-perugino_birth-of-the-virgin-1473",
+          "order_agreement_vs_BCE": 0.9333333333333332,
+          "delta_contrast_vs_BCE": 0.050096626904232805
+        },
+        {
+          "painting": "jamie-wyeth_lattice-work-1967",
+          "order_agreement_vs_BCE": 0.9500000000000001,
+          "delta_contrast_vs_BCE": -0.03471453493451904
+        }
+      ],
+      "best_paintings": [
+        {
+          "painting": "john-constable_selfportrait",
+          "delta_contrast_vs_BCE": 0.16262049737032414
+        },
+        {
+          "painting": "pietro-perugino_birth-of-the-virgin-1473",
+          "delta_contrast_vs_BCE": 0.050096626904232805
+        },
+        {
+          "painting": "karoly-ferenczy_portrait-of-p-l-szinyei-merse-1910",
+          "delta_contrast_vs_BCE": 0.03986064139952955
+        }
+      ],
+      "worst_paintings": [
+        {
+          "painting": "nikolai-ge_death-of-virginia-study",
+          "delta_contrast_vs_BCE": -0.09081933485091759
+        },
+        {
+          "painting": "camille-corot_l-arbre-tordu-les-chenes-du-mont-usey-fontainebleau",
+          "delta_contrast_vs_BCE": -0.07642441583566323
+        },
+        {
+          "painting": "fyodor-solntsev_st-george",
+          "delta_contrast_vs_BCE": -0.0601575082799774
+        }
+      ],
+      "high_target_variance_poor_correlation": [
+        "arkhip-kuindzhi_portrait-of-n-a-jaroshenko",
+        "ivan-aivazovsky_venice-1870",
+        "john-constable_selfportrait",
+        "luca-signorelli_tibullus-1502",
+        "pieter-wenning_landscape-bishops-court"
+      ],
+      "low_target_variance_bottom_quartile": [
+        "camille-pissarro_landscape-at-saint-charles",
+        "efim-volkov_near-the-monastery",
+        "fyodor-solntsev_st-george",
+        "jamie-wyeth_lattice-work-1967",
+        "kuzma-petrov-vodkin_arrangement-1918",
+        "leonardo-da-vinci_the-virgin-and-child-with-st-anne-1510",
+        "maurice-quentin-de-la-tour_study-of-the-portrait",
+        "nicholas-roerich_himalayas-1946-1",
+        "nicholas-roerich_sunrise-unfinished-1930",
+        "pietro-perugino_birth-of-the-virgin-1473",
+        "stefan-luchian_slums-mahalaua-dracului-1898",
+        "thomas-gainsborough_john-and-henry-trueman-villebois"
+      ]
+    }
+  },
+  "selected_checkpoints": {
+    "BCE": {
+      "epoch": 1,
+      "LoRA_update_norm": 1.02041118406196
+    },
+    "P_low": {
+      "epoch": 1,
+      "LoRA_update_norm": 1.01732428357626
+    },
+    "P_high": {
+      "epoch": 1,
+      "LoRA_update_norm": 1.0085726809531015
+    }
+  },
+  "engineering_report": {
+    "GPU": "NVIDIA L4",
+    "gradient_preflight": {
+      "status": "PASS",
+      "painting_languages": 6,
+      "microbatch": 2,
+      "max_abs_parameter_gradient_error": 0.0006270408630371094,
+      "boundary": "AMP tolerance audit; not bitwise floating-point equivalence. Two-pass same-chunk logits must match exactly.",
+      "optimizer_updates": 0,
+      "component_gradient_diagnostics": {
+        "head": {
+          "BCE_gradient_norm": 3.2887327671051025,
+          "scaled_aux_gradient_norm": 0.06032346934080124,
+          "auxiliary_to_BCE_ratio": 0.01834246702492237
+        },
+        "LoRA": {
+          "BCE_gradient_norm": 0.060077082365751266,
+          "scaled_aux_gradient_norm": 0.0017340092454105616,
+          "auxiliary_to_BCE_ratio": 0.028863074257969856
+        }
+      }
+    },
+    "elapsed_seconds": 2774.677059926,
+    "peak_allocated_bytes": 4304538624,
+    "peak_reserved_bytes": 4483710976
+  },
+  "files_sha256": {
+    "identity.json": "71347ddaaaf76e89724e7f6ab8d95fcc497deb7036f2017e14d7d44e3e599c9b",
+    "pilot_1794989073165300772.log": "adda4a7f8daa20fb1ec12e283d1338f5acd0b3a6ea24d6bb75a8e3d75d7df209",
+    "PILOT_COMPLETE.json": "be43fb7e07ec590ae229fae8171f1e59f2b349e95299f494a04c93f52b066632",
+    "pilot_report.json": "b06902551b842c1c5bc9dddc25030710e4fb1ecddd549fe12f83c63a5e91b0b7",
+    "inner_validation\\BCE.csv": "2f0dba78f00078936d31c3802f7c6bf8cbf173a29f80eb7c6f3d1fd6f248b65c",
+    "inner_validation\\metrics.json": "85acae45d6a136b482e4a6d005725b48f1f7f5b20d82bdf41cd045f13e98f6e0",
+    "inner_validation\\P_high.csv": "d45cbfa52ee38d4ef9375677bcd872f84f54fa467154917bddb48f78cc57ce81",
+    "inner_validation\\P_low.csv": "047538999553c127534186856706115fef018dfb287aa658ff54535349bdbafc",
+    "inner_validation\\receipt.json": "250d35d84cad38f5f2b994109b68f064e527c4a7bd0a5bd3b3ac85d4c8b6ce2c",
+    "inner_validation\\targets.csv": "ca8f026ed3cc3072bf66608706fd5d826bd4da43ef12ce55c38c3dc6f882762f",
+    "models\\BCE.pt": "201b44d8a2985bc8280d0bd15e28d0985e2fe36c5ce8acc0b4194f1f3b8096e2",
+    "models\\BCE.sha256.json": "c0871d34e9daefdbcbbf530f6b93a25da39cb4ca9b54b103ef767b59d9bcd986",
+    "models\\P_high.pt": "fb4914f5c14b0384d38bc0f41a31e589397160a6bd0f04b2e8eb0bfc265af93f",
+    "models\\P_high.sha256.json": "f4a675e01fc4e3af9f8234a5c51c4333213ee236144553cd6f2324d07daa9e41",
+    "models\\P_low.pt": "e32c3009ba763eeca92fc98edaebd3e11789f8c3a9114f0ea60f83d518cf5d2a",
+    "models\\P_low.sha256.json": "594f6a18409371395a5e0d863815610bd1cdf0a1d260efca26f31b7f33b820de"
+  },
+  "source_revision": "4bc703af144e9121e58ed4cb75c94306c318dff1",
+  "run_identity": "27c38a67b7f9ece313948591d9d240ea0f47983ade7f7b6efe577e7058506051",
+  "outer_labels_read": false,
+  "GPU_executed": false,
+  "original_validation_votes_checked": true,
+  "export_integrity": {
+    "status": "FULL_EXPORT_ZIP_INTEGRITY_PASS",
+    "sha256": "e2e478802d24b1a5969b0c9fc8e7515b59daf35eec40b1c8193bf88639c28d63",
+    "verified_manifest_files": 35
+  },
+  "analysis_script_sha256": "0c062ed3d57a7613fa407ff15c2b904f0dbdfc07f26b6f6a68b9ad592c2d5aa0",
+  "diagnostic_csv_sha256": {
+    "language_diagnostics.csv": "feda544721203a93ec3ea185ca273f1cd671e84737120ca0b09a7e644aa22c9b",
+    "language_offset_crossfit.csv": "3cb12734453ea9996a9878012068b38148f6466a8675f370af7504dd504eb137",
+    "language_profiles.csv": "16df319afd90315a69ab493cbb90a13fa6d1d474ecbc50c3c3ea62b28567fd19",
+    "painting_diagnostics.csv": "ecd2823735ebcb8f38d93dd7ef13fcb7e65cceb526c1954e1b20eb0c66c36c08",
+    "training_curves.csv": "4be89bde1d437ecc0793cf5444d2330548689aaed813709666d26bcc87674cff"
+  },
+  "readback_boundary": "Saved files/optional export bytes verified; CUDA gradient arrays and encoder inference not independently replayed"
+}

@@ -77,3 +77,16 @@ Before implementation, read **both** `docs/experiment_workflow_standard.md` (the
 - `EXP026 = EXPLORATORY_COMPLETED`; `PRODUCTION = E50+L`. Fold1 predictions/logs were checked and scores recomputed on the existing checksum-pinned released P2 training votes. L0 Contrast0.340691 /Macro Log Loss0.704087 vs same-fold E50+L0.433429 /0.666222; VLM fits961 paintings, refitted reference1068. No promotion or claim about a fully refitted VLM.
 - Preserve all original source, configs, notebooks, caches, checkpoints, predictions and logs. No further EXP-026 GPU run, longer-epoch rerun or five-fold training is an open action item. Earlier run commands are archival, not authorization. No Development or sealed confirmation annotations.
 - EXP-027 is proposal-only: test a within-painting objective with the existing VLM/LoRA architecture and a matched BCE control. Do not implement/train it without a new explicit task. Fold1 is already examined and cannot select that loss or lambda. Other P2 folds have also been reused historically; do not call them independent confirmation. A new held-out fold requires fresh pretrained/zero-LoRA initialization, never an EXP-026 fitted checkpoint containing its paintings.
+
+## TASK-029 — EXP-027 implementation authorization
+
+- TASK-029 explicitly authorizes EXP-027 implementation and synthetic/training-only CPU diagnostics, superseding the proposal-only implementation restriction above. It authorizes **no GPU training, outer evaluation, full CV, Development or confirmation access**. EXP-026 and production E50+L remain unchanged.
+- Follow `docs/exp027_protocol.md` and `configs/exp027.json`: native matched BCE control, complete-painting Pearson surrogate, fixed0/0.000682/0.00196 grid, common inner-BCE checkpoint selection, fresh pretrained/zero-output LoRA. No auxiliary architecture/ranking/distillation or fitted EXP-026 adapter.
+- Two-pass replay must preserve same-chunk logits/RNG/state and complete group gradients. Invalid replay, mutable buffers/parameters, zero/nonfinite gradients, bad provenance, OOM or budget stop cannot yield successful verification. Do not relax safeguards or scientific settings to force PASS.
+- The prepared Colab entry point is inner-only pilot, default GPU authorization OFF, max2 allocation-hours. `CPU_VALIDATED / GPU_READY` means implementation/checks ready for a separately authorized pilot, not actual CUDA, scientific improvement or competition eligibility.
+
+## TASK-030 — EXP-027 closed for expansion
+
+- `EXP027 = GPU_PILOT_COMPLETED / NO_GO_FOR_EXPANSION`; production stays E50+L. Three saved inner-validation models/metrics/bootstrap/checksum artifacts were independently audited on CPU. Both Pearson treatments worsen Contrast relative to matched BCE. Preserve all EXP-026/027 science, notebooks, caches, predictions, weights and logs.
+- No further training, lambda/epoch/rank search, outer evaluation, full CV, Development/confirmation access or automatic GPU execution is an open action item. Earlier readiness/run instructions are archival, not authorization.
+- Read `reports/exp027_final_closure.md` before related work. The failure is one selected inner-validation pilot, not proof that all Pearson losses or QLoRA fail. The proposed factorial conditioning probe is proposal-only; do not implement EXP-028 or run inference/training without a new explicit owner task.

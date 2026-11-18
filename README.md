@@ -156,4 +156,12 @@ EXP-025 is CLOSED / NO-GO for caption-based semantic fusion on the owner-reporte
 
 Preserve the original [pilot/scientific notebook](notebooks/EXP026_Colab.ipynb), [exploratory notebook](notebooks/EXP026_Exploratory_Colab.ipynb), source/config and all artifacts as history. Their run commands are archival; no further GPU run, longer-epoch retry or five-fold training is an open action item. E50+L production and the sealed confirmation/Development boundaries remain unchanged.
 
-[EXP-027 is proposal-only](reports/exp027_proposal.md): a within-painting objective for the same VLM/LoRA, with a matched BCE control and fresh fold-safe initialization. A new explicit owner task is required before implementation or execution.
+**EXP-027 = GPU_PILOT_COMPLETED / NO_GO_FOR_EXPANSION.** The completed L4 inner pilot scored BCE0.195952, P_low0.184009 and P_high0.188607 Contrast. CPU verification reproduces saved predictions/metrics/bootstrap, checkpoint selection/hashes and the full35-file export ZIP. Both Pearson treatments lose against matched BCE; no outer result or universal QLoRA failure is inferred. [Closure and detailed failure analysis](reports/exp027_final_closure.md).
+
+Original notebooks/configs/code and artifacts are preserved. Readiness/run instructions are archival; no training, lambda/epoch search, GPU inference, outer test or full CV is currently authorized. E50+L stays production. The proposed factorial conditioning probe is a future mechanism study only; EXP-028 is not implemented.
+
+Reproduce the CPU audit from downloaded run artifacts:
+
+```powershell
+.venv/Scripts/python.exe scripts/analyze_exp027.py --run-dir runs/task030/evidence --output runs/task030/new_analysis --inputs runs/exp023_budget_delivery/final/restore_check --export-zip runs/task030/export/outputs.zip
+```
