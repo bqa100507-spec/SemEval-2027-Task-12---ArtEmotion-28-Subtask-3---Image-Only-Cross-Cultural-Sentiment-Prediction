@@ -1,0 +1,48 @@
+{
+  "identity_sha256": "8f1e57257da52d7212b0d8662f0ee46fd82f9dcc64da8f0552498ba40ca5fb43",
+  "verified_vision_images": 499,
+  "verified_language_states": 5257,
+  "missing_vision_images": 836,
+  "missing_language_states": 8343,
+  "missing_vision_keys_sha256": "e35b2783037c032a4e59cf81fc2e658caa91d5dbdb96d8a736708bdd72a1287c",
+  "missing_language_keys_sha256": "d33de18d2316b26322af868dfb735856847e1194e57290e79c34fde1a5e1d9e6",
+  "invalid_entries": 0,
+  "errors": [],
+  "extra_arrays": {
+    "other_valid_prompt_arrays": 500
+  },
+  "bytes_verified": 542461320,
+  "remaining_forwards_relative_to_supplied_cache": {
+    "vision": 835,
+    "decoder_sequences": 8343,
+    "decoder_batches_max8_per_image": 1440
+  },
+  "complete": false,
+  "pixel_files_verified": 1335,
+  "status": "BLOCKED_VERIFICATION",
+  "scope": "Only the first Drive connector page; full Drive coverage and actual global missing keys unverified",
+  "exact_remote_missing_counts_available": false,
+  "drive_entries_returned": 1000,
+  "fetched_and_verified_npz_files": 999,
+  "decoder_npz_files": 500,
+  "vision_npz_files": 499,
+  "private_cache_audit_sha256": "c15dfaf74cab1eb37ffbd7d34c68b194f47f6847c2fd81215e8cb57c269c4d1a",
+  "private_missing_pairs_json_sha256": "b3f246b1cac1003b6d0ff1eda728e4ced07756855ffdc0ff2787350d31c6767a",
+  "pinned_asset_file_hashes_verified_locally": true,
+  "runtime": {
+    "python": "3.12.10",
+    "numpy": "2.2.6",
+    "pandas": "2.2.3",
+    "scipy": "1.15.3",
+    "sklearn": "1.6.1"
+  },
+  "synthetic_performance": {
+    "fits": 38,
+    "seconds": 1.1342857,
+    "max_iterations": 12,
+    "max_sampled_rss_bytes": 154259456,
+    "objective_parity_abs": 2.220446049250313e-16,
+    "actual_available_bytes": 899207168
+  },
+  "real_fold_scored": false
+}
