@@ -158,7 +158,7 @@ Preserve the original [pilot/scientific notebook](notebooks/EXP026_Colab.ipynb),
 
 **EXP-027 = GPU_PILOT_COMPLETED / NO_GO_FOR_EXPANSION.** The completed L4 inner pilot scored BCE0.195952, P_low0.184009 and P_high0.188607 Contrast. CPU verification reproduces saved predictions/metrics/bootstrap, checkpoint selection/hashes and the full35-file export ZIP. Both Pearson treatments lose against matched BCE; no outer result or universal QLoRA failure is inferred. [Closure and detailed failure analysis](reports/exp027_final_closure.md).
 
-Original notebooks/configs/code and artifacts are preserved. Readiness/run instructions are archival; no training, lambda/epoch search, GPU inference, outer test or full CV is currently authorized. E50+L stays production. The proposed factorial conditioning probe is a future mechanism study only; EXP-028 is not implemented.
+Original notebooks/configs/code and artifacts are preserved. Readiness/run instructions are archival; no training, lambda/epoch search, GPU inference, outer test or full CV is currently authorized. E50+L stays production. The factorial conditioning probe subsequently completed as TASK-031; EXP-028 remains design-only.
 
 Reproduce the CPU audit from downloaded run artifacts:
 
@@ -168,11 +168,20 @@ Reproduce the CPU audit from downloaded run artifacts:
 
 ### TASK-031: saved Qwen interaction mechanism probe
 
-CPU-validated implementation; no new GPU result. [Frozen protocol](docs/task031_protocol.md),
-[manifest](configs/task031_manifest.json) and [readiness/cost report](reports/task031_interaction_probe.md).
-The [inference-only Colab notebook](notebooks/TASK031_Colab.ipynb) defaults GPU authorization OFF;
-after separate owner authorization it reuses the original input ZIP and three saved EXP-027
-checkpoints, checks32 permitted inner-training paintings, persists raw keyed logits and exports
-verified descriptive analyses under a30-minute total limit. No training, outer scoring or promotion.
-Use `python scripts/verify_task031.py --run-dir <downloaded-run-directory>` for independent CPU
-integrity/analysis reconstruction. This does not replay the encoder. E50+L remains production.
+**TASK031 = CLOSED / MECHANISM_ANALYZED.** The owner-completed L4 inference export
+has been independently reconstructed on CPU:32 training paintings,48 rectangles,
+3,216 raw logits; all406 export hashes pass. Nonzero interactions depend strongly
+on prompt-conditioned states; label alignment remains limited/noisy and training-only.
+[Final scientific closure](reports/task031_final_closure.md), [CPU receipt](docs/task031_closure_receipt.json).
+Original protocol, manifest, notebook and readiness report remain archival and unchanged.
+Reproduce read-only with `python scripts/close_task031.py --export-zip <outputs.zip> --output <new-receipt.json>`.
+This does not rerun the encoder. E50+L remains production.
+
+### EXP-028: design only
+
+**DESIGN_PROPOSED / NOT_IMPLEMENTED.** [CLIP-guided Qwen proposal](reports/exp028_design_proposal.md):
+first test frozen-feature complementarity with matched/capacity-controlled heads;
+decoder injection is conditional future research. [Label-free cache inventory](docs/exp028_feature_inventory.json)
+confirms complete local P2 CLIP/SigLIP coverage; full compatible Drive Qwen payload
+coverage is still unverified. No extraction, fitting, outer scoring or GPU execution
+is authorized. Do not automatically reopen a closed experiment or promote a model.

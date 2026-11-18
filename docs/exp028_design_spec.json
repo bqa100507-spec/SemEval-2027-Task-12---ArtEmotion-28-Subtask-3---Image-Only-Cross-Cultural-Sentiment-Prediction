@@ -1,0 +1,27 @@
+{
+  "status": "DESIGN_PROPOSED / NOT_IMPLEMENTED",
+  "execution_authorized": false,
+  "production": "E50+L",
+  "population": {"P2_paintings": 1335, "pairs": 13600, "languages": 25, "outer_folds": [1,2,3,4,5], "first_exploratory_fold": 3},
+  "seeds": [2027,2028,2029],
+  "inner_split": {"early_stop_seed": 17029, "fraction": 0.1, "group": "painting/image_sha256"},
+  "features": {"visual_raw": 1536, "qwen_raw": 2048, "per_block_PCA": 256, "capacity_control_PCA": 512, "pair_key": ["painting","language"]},
+  "LR": {"C_grid": [0.1,0.3,1.0], "selection": "inner vote-weighted binary BCE; ties lower C", "solver": "lbfgs", "max_iter": 3000},
+  "LR_arms": [
+    {"name":"A_raw", "dimension":1536, "parameters_at_25_languages":39962},
+    {"name":"B_raw", "dimension":2048, "parameters_at_25_languages":53274},
+    {"name":"A256", "dimension":256, "parameters_at_25_languages":6682},
+    {"name":"B256", "dimension":256, "parameters_at_25_languages":6682},
+    {"name":"A512", "dimension":512, "parameters_at_25_languages":13338},
+    {"name":"B512", "dimension":512, "parameters_at_25_languages":13338},
+    {"name":"C512", "dimension":512, "parameters_at_25_languages":13338},
+    {"name":"C512_shuffled_Q_diagnostic", "dimension":512, "parameters_at_25_languages":13338}
+  ],
+  "gated": {"arms":["D_VV","D_QQ","D_VQ"], "input_block_width":256, "projected_width":64, "language_embedding_width":8,
+    "parameters_at_25_languages":34923, "learning_rate":0.001, "weight_decay":0.01, "dropout":0.2,
+    "optimizer":"AdamW", "max_epochs":50, "patience":5, "effective_painting_batch":4, "gradient_clip":1.0,
+    "selection":"earliest minimum inner vote-weighted binary BCE, fresh full-outer-training refit"},
+  "pilot_signal": {"candidate":"C512", "contrast_gain_over_matched_E50L":0.003, "gain_over_strongest_CLIP_only_control":0.002, "macro_loss_guardrail_bits":0.005, "claim":"exploratory signal only"},
+  "full_reused_CV_promotion_requirement": {"contrast_gain_over_E50L":0.003, "gain_over_strongest_matched_CLIP_only_control":0.002, "minimum_winning_folds":3, "fold_mean_macro_loss_guardrail_bits":0.005, "all_replays_required":true, "automatic_promotion":false},
+  "prohibited_now": ["EXP028 implementation", "feature extraction", "GPU inference", "head fitting", "decoder injection", "LoRA training", "outer scoring", "Development labels", "confirmation labels", "Codabench upload", "larger-model search"]
+}

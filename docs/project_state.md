@@ -1,5 +1,21 @@
 # Project state
 
+## Latest decision — TASK-032
+
+**TASK031 = CLOSED / MECHANISM_ANALYZED. EXP028 = DESIGN_PROPOSED / NOT_IMPLEMENTED.
+Production = E50+L.** Actual TASK-031 L4 artifacts (406 export hashes,192 sealed
+batches,3,216 logits) independently replay on CPU with original intervals and
+source/checkpoint/selected-target identity verified. Matching-path interactions
+are nonzero and prompt-sensitive; correctness/generalization remain unresolved.
+[Closure](../reports/task031_final_closure.md) · [receipt](task031_closure_receipt.json).
+
+The next proposal tests whether frozen Qwen adds complementary value beyond
+CLIP/SigLIP and matched head capacity, before conditional decoder guidance.
+[Design](../reports/exp028_design_proposal.md) · [cache inventory](exp028_feature_inventory.json).
+No EXP-028 code, head fitting, GPU work, outer scoring, confirmation/Development
+access or submission is authorized. EXP-026/027 remain closed for expansion;
+earlier readiness instructions below are historical, not execution authorization.
+
 
 ## Current decision — TASK-024 closure
 
