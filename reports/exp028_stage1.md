@@ -1,5 +1,9 @@
 # EXP-028 Stage 1 — frozen CLIP–Qwen fusion
 
+TASK-034 verified the subsequent complete Colab cache audit receipt. The counts
+below describe TASK-033’s historical partial download. Use the [Colab CPU runbook](exp028_stage1_cpu_colab.md)
+for the complete coverage evidence and one-click screen.
+
 **EXP028_STAGE1 = BLOCKED_VERIFICATION.** The CPU implementation and synthetic
 comparison are complete. The accessible original Qwen cache page has only
 5,257 of the 13,600 required target-language states. The Drive connector
