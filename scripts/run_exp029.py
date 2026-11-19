@@ -318,6 +318,11 @@ def fit_arm(name, decoder, train, val, vocab, vectors, budget, identity, model_d
     return preds, shuffled, stats
 
 
+def score_pilot(val, models):
+    gold = val[KEYS + ["k", "n"]]
+    return {name: score(gold, predictions) for name, predictions in models.items()}
+
+
 def run(args):
     start = time.perf_counter()
     if args.authorize != "RESEARCH_ONLY_L4":
@@ -372,7 +377,7 @@ def run(args):
         details[arm] = stats
         if shuffled is not None:
             models["projector_qlora_shuffled"] = probabilities(val, shuffled)
-    metrics = {name: score(val, predictions) for name, predictions in models.items()}
+    metrics = score_pilot(val, models)
     for name, pred in models.items():
         pred.to_csv(local / f"{name}.csv", index=False, float_format="%.6f")
     contrast = {k: v["cultural_contrast"] for k, v in metrics.items()}
