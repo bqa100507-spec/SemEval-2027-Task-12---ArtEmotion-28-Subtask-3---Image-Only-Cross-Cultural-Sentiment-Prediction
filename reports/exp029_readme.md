@@ -1,5 +1,7 @@
 # EXP-029 — CLIP-guided Qwen pilot
 
+> TASK-037 recovered the original pilot. Use the [recovery notebook](../notebooks/EXP029_Recovery_Colab.ipynb) and [verified results](exp029_recovery.md). The original training notebook and instructions below are archival.
+
 This research-only prototype adds four soft visual tokens to the pinned Qwen2.5-VL-3B decoder. Unit-normalized CLIP-L and SigLIP2-Base vectors form a unit-normalized 1,536-vector. A 1536 → 256 → 4 × 2048 GELU projector produces the prefix. The scalar head reads the final valid decoder token after a target-language instruction and outputs sigmoid(logit(p_E50L) + 0.1 × residual). The zero-initialized head starts at baseline. The native Qwen vision tower and vocabulary projection are bypassed.
 
 Transformers 4.51.3 accepts direct embeddings with a binary padding mask and explicit [3, batch, sequence] rotary positions. The learned prefix tokens have no image grid and occupy successive sequence positions on the same diagonal of all three rotary axes as text. CPU tests exercise the pinned decoder class with small random weights, including text-only parity and padded versus unpadded readout. The notebook separately checks the pretrained NF4 CUDA path. [Pinned decoder source](https://github.com/huggingface/transformers/blob/v4.51.3/src/transformers/models/qwen2_5_vl/modeling_qwen2_5_vl.py) · [Pinned Qwen checkpoint](https://huggingface.co/Qwen/Qwen2.5-VL-3B-Instruct/tree/66285546d2b821cf421d4f5eb2576359d3770cd3)
