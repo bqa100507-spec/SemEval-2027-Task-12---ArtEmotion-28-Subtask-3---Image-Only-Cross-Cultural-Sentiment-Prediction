@@ -1,5 +1,8 @@
 # TASK-035 — Colab CPU L-BFGS hotfix
 
+> TASK-036 verified that all three native checks, including the original failing regression,
+> passed in the hotfixed real Colab CPU run. The status below records TASK-035 delivery. See the [final closure](exp028_final_closure.md).
+
 **TASK035 = HOTFIX_READY / COLAB_REVALIDATION_PENDING.** EXP-028 has no
 verified fold-3 result from this task. E50+L remains production.
 

@@ -1,5 +1,8 @@
 # EXP-028 Stage 1 on Colab CPU
 
+> This TASK-034 runbook is archival. TASK-035 supplied the single-thread native hotfix,
+> and TASK-036 verified the completed owner Colab run and closed the screen. See the [final closure](exp028_final_closure.md).
+
 TASK-035 supersedes this delivery's runtime instructions with a one-thread
 native hotfix and preflight. Use the [hotfix report](task035_colab_lbfgs_hotfix.md)
 and its new immutable notebook link in PR #33. The original input receipts below

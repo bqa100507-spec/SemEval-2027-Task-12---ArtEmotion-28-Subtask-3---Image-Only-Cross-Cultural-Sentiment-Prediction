@@ -1,6 +1,15 @@
 # Project state
 
-## Latest decision — TASK-032
+## Latest decision — TASK-036
+
+**EXP028 = CLOSED / STAGE1 NO-GO. E50+L = UNCHANGED. NEXT_DIRECTION = AWAITING_INDEPENDENT_BRAINSTORM.**
+The real Colab CPU fold-3 run completed. The archive, predictions, score calculations,
+and exact historical fold-3 E50+L parity verify. C512 missed both Contrast gates and
+passed the Macro Log Loss guardrail. The original failing native test passed in Colab.
+Stage 2 and five-fold expansion remain closed. The 236 confirmation paintings remain sealed.
+[Final closure](../reports/exp028_final_closure.md) · [Research handoff](../reports/exp028_research_handoff.md).
+
+## Historical decision — TASK-032
 
 **TASK031 = CLOSED / MECHANISM_ANALYZED. EXP028 = DESIGN_PROPOSED / NOT_IMPLEMENTED.
 Production = E50+L.** Actual TASK-031 L4 artifacts (406 export hashes,192 sealed
