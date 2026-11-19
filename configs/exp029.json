@@ -1,0 +1,14 @@
+{
+  "seed": 2027,
+  "pilot_train_sha256": "7d57299f18dea370c458b3bbfcd29b1beb757a82bfcc6b48a8b51ea872adf668",
+  "pilot_validation_sha256": "27af01ffebe3f539af7e51b32d98d69ca786b4ee8af7e4e4d2dfaed06d6d1e6a",
+  "crossfit_folds": 4,
+  "projector_width": 256,
+  "visual_tokens": 4,
+  "residual_scale": 0.1,
+  "head_lr": 0.001,
+  "adapter_lr": 0.0001,
+  "epochs": 2,
+  "batch_pairs": 16,
+  "prompt": "Target language: {language}. Assess the artwork for positive versus negative sentiment in this language community."
+}
