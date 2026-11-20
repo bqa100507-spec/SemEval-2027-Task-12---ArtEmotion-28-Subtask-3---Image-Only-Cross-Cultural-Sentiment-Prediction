@@ -201,40 +201,34 @@ def validate(model, cache, val, budget):
     return pred, metrics, ce_total / val.n.sum(), bce_total / val.n.sum(), rank_total / paintings
 
 
+
 def preflight(model, cache, train, params, budget):
-    """Exercise the longest allowed vision grid, the real processor and an optimizer step."""
+    """Native parity and a largest-painting max-pixel gradient/update probe."""
     budget.check()
     torch.cuda.reset_peak_memory_stats()
     started = time.perf_counter()
-    # A large square image exercises the processor's pixel ceiling. Use real
-    # artwork for official-path parity and the gradient/update probe.
-    longest = train.language.drop_duplicates().tolist()
-    tokenizer = model.native.processor.tokenizer
-    longest.sort(key=lambda lang: len(tokenizer(model.native.text(lang)).input_ids), reverse=True)
-    images = train.drop_duplicates("image").head(4)
-    languages = longest[:CFG["microbatch_pairs"]]
-    name = images.iloc[0].image
-    with Image.open(cache.artwork / name) as image:
-        parity = model.native.parity(image.convert("RGB"), cache(name))
+    grouped = train.groupby("painting", sort=True)
+    largest_name = max(grouped.groups, key=lambda name: len(grouped.groups[name]))
+    group = grouped.get_group(largest_name).copy()
+    with Image.open(cache.artwork / group.iloc[0].image) as image:
+        parity = model.native.parity(image.convert("RGB"), cache(group.iloc[0].image))
     saved = {n: p.detach().cpu().clone() for n, p in params.items()}
     cpu_rng, cuda_rng = torch.get_rng_state(), torch.cuda.get_rng_state()
-    model.eval()
-    with torch.no_grad():
-        wide = model.native.vision(Image.new("RGB", (896, 896)))
-        probe = model([wide] * CFG["microbatch_pairs"], languages)
-        if not torch.isfinite(probe).all():
-            raise FloatingPointError("Nonfinite maximum-pixel forward")
-    # Backpropagate the capped grid with actual train vote counts, then step the
-    # same optimizer as training so its buffers are included in the VRAM probe.
     model.train()
     probe_optimizer = make_optimizer(model)
-    batch = images.iloc[:CFG["microbatch_pairs"]]
+    # Use a largest full painting and maximal image grid before the real run.
+    wide = model.native.vision(Image.new("RGB", (896, 896)))
     with torch.autocast("cuda", dtype=torch.bfloat16):
-        logits = model([wide] * len(batch), languages)
-    loss = loss_sums(logits, counts_for(batch))
-    if not torch.isfinite(torch.stack(loss)).all():
-        raise FloatingPointError("Nonfinite CUDA preflight objective")
-    ((loss[0] + CFG["binary_weight"] * loss[1]) / int(batch.n.sum())).backward()
+        log_probs, binary, interaction = model.forward_painting(
+            wide, group.language.tolist(), CFG["microbatch_pairs"])
+        ce, bce, rank, reg = grouped_objective(
+            log_probs, binary, interaction, counts_for(group), CFG)
+        loss = ((ce + CFG["binary_weight"] * bce) / int(group.n.sum())
+                + CFG["ranking_weight"] * rank
+                + CFG["interaction_regularization"] * reg)
+    if not torch.isfinite(loss):
+        raise FloatingPointError("Nonfinite complete-painting preflight objective")
+    loss.backward()
     adapters = adapter_parameters(model.decoder)
     if (not any(p.grad is not None and p.grad.norm() > 0 for p in adapters)
             or not any(p.grad is not None and p.grad.norm() > 0 for p in model.head.parameters())
@@ -242,25 +236,29 @@ def preflight(model, cache, train, params, budget):
         raise RuntimeError("Gradient preflight failed trainable/frozen separation")
     torch.nn.utils.clip_grad_norm_(list(params.values()), CFG["clip_norm"], error_if_nonfinite=True)
     probe_optimizer.step()
-    if not any(not torch.equal(p.detach().cpu(), saved[n]) for n, p in params.items() if n.startswith("decoder.")):
-        raise RuntimeError("Adapters did not update in the feasibility step")
+    if not any(not torch.equal(p.detach().cpu(), saved[n]) for n, p in params.items()
+               if n.startswith("decoder.")):
+        raise RuntimeError("Adapters did not update in preflight")
     torch.cuda.synchronize()
     free, total = torch.cuda.mem_get_info()
     allocated, reserved = torch.cuda.max_memory_allocated(), torch.cuda.max_memory_reserved()
-    result = {"gpu": torch.cuda.get_device_name(), "total_vram_bytes": total, "peak_allocated_bytes": allocated,
-              "peak_reserved_bytes": reserved, "free_after_probe_bytes": free,
-              "max_grid_vision_tokens_per_image": int(wide["tokens"].shape[0]),
-              "seconds": time.perf_counter() - started, "official_vision_path_parity": parity,
-              "adapter_gradient_and_update": True}
+    receipt = {"gpu": torch.cuda.get_device_name(), "total_vram_bytes": total,
+               "peak_allocated_bytes": allocated, "peak_reserved_bytes": reserved,
+               "free_after_probe_bytes": free, "max_grid_vision_tokens_per_image": int(wide["tokens"].shape[0]),
+               "largest_painting_languages": len(group),
+               "seconds": time.perf_counter() - started,
+               "official_vision_path_parity": parity, "adapter_gradient_and_update": True}
     if min(free, total - reserved) < 1024 ** 3:
-        raise RuntimeError(f"Less than 1 GiB remaining CUDA margin after feasibility check: {result}")
+        raise RuntimeError("Less than 1 GiB CUDA margin after complete-painting probe: " + str(receipt))
     with torch.no_grad():
         for name, p in params.items():
             p.copy_(saved[name])
     model.zero_grad(set_to_none=True)
+    del probe_optimizer
+    torch.cuda.empty_cache()
     torch.set_rng_state(cpu_rng)
     torch.cuda.set_rng_state(cuda_rng)
-    return result
+    return receipt
 
 
 def make_optimizer(model):
