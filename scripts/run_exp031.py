@@ -345,7 +345,12 @@ def run(args):
     budget.check()
     print("Verifying P2 data and matched E50+L", flush=True)
     train, val, baseline = prepare(args.handoff, args.work)
+    languages, priors = training_priors(train, pseudocount=CFG["prior_pseudocount"])
+    if not set(val.language).issubset(set(languages)):
+        raise ValueError("Val contains an unseen language")
     write_json(args.output / "reference.json", baseline)
+    write_json(args.output / "fitting_priors.json",
+               {"languages": languages, "prior_logits": priors.tolist()})
     if not torch.cuda.is_available() or not torch.cuda.is_bf16_supported(including_emulation=False):
         raise RuntimeError("A CUDA GPU with native BF16 is required")
     device = torch.cuda.get_device_properties(0)
@@ -379,7 +384,7 @@ def run(args):
     import shutil
     if shutil.disk_usage(args.work).free < 18_000_000_000:
         raise RuntimeError("Need at least 18 GB free in local runtime storage for 7B shards")
-    model, targets = load_model(args.work)
+    model, targets = load_model(args.work, languages, priors)
     params = {k: p for k, p in model.named_parameters() if p.requires_grad}
     expected_ids = {id(p) for p in [*model.head.parameters(), *adapter_parameters(model.decoder)]}
     if {id(p) for p in params.values()} != expected_ids:
@@ -405,29 +410,38 @@ def run(args):
             torch.cuda.reset_peak_memory_stats()
             tick = time.perf_counter()
             model.train()
-            order = ordered_indices(train, epoch)
-            ce = bce = votes = seen = 0
-            for start in range(0, len(train), CFG["accumulation_pairs"]):
+
+            ce = bce = ranking = regularizer = votes = seen = npaintings = 0
+            updates = painting_batches(train, seed=CFG["seed"], epoch=epoch,
+                                       max_pairs=CFG["accumulation_pairs"])
+            for step, groups in enumerate(updates, 1):
                 budget.check()
-                frame = train.iloc[order[start:start + CFG["accumulation_pairs"]]]
-                a, b, n, _ = update(model, cache, frame, optimizer)
+                a, b, r, g, n, npain, _ = update(model, cache, groups, optimizer)
                 ce += a
                 bce += b
+                ranking += r
+                regularizer += g
                 votes += n
-                seen += len(frame)
-                if start in (CFG["accumulation_pairs"] * 7, CFG["accumulation_pairs"] * 31) or seen % 1024 == 0:
+                npaintings += npain
+                seen += sum(len(group) for group in groups)
+                if step in (8, 32) or step % 64 == 0 or seen == len(train):
                     rate = seen / (time.perf_counter() - tick)
                     print(f"Epoch {epoch} {seen}/{len(train)} at {rate:.2f} pairs/s. "
                           f"Train-only projection {len(train)/rate/3600:.2f}h; "
                           f"remaining budget {budget.remaining()/3600:.2f}h.", flush=True)
-                    if start == CFG["accumulation_pairs"] * 7:
+                    if step == 8:
                         write_json(args.output / "initial_throughput.json",
                                    {"epoch": epoch, "pairs": seen, "pairs_per_second": rate,
                                     "projected_training_only_epoch_hours": len(train)/rate/3600})
-            pred, metrics, val_ce, val_bce = validate(model, cache, val, budget)
-            row = {"epoch": epoch, "train_loss_nats": (ce + CFG["binary_weight"] * bce) / votes,
+            pred, metrics, val_ce, val_bce, val_ranking = validate(model, cache, val, budget)
+            row = {"epoch": epoch, "train_loss_nats": (ce + CFG["binary_weight"] * bce) / votes
+                   + CFG["ranking_weight"] * ranking / npaintings
+                   + CFG["interaction_regularization"] * regularizer / npaintings,
                    "train_emotion_ce_nats": ce / votes, "train_bce_nats": bce / votes,
+                   "train_rank_nats": ranking / npaintings,
+                   "train_interaction_regularizer": regularizer / npaintings,
                    "validation_emotion_ce_nats": val_ce, "validation_bce_nats": val_bce,
+                   "validation_rank_nats": val_ranking,
                    "contrast": metrics["cultural_contrast"], "macro_log_loss_bits": metrics["log_loss"],
                    "seconds": time.perf_counter() - tick, "peak_vram_allocated_bytes": torch.cuda.max_memory_allocated(),
                    "peak_vram_reserved_bytes": torch.cuda.max_memory_reserved()}
