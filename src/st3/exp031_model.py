@@ -1,10 +1,4 @@
-"""EXP-031: image-level sentiment and low-rank culture adjustments.
-
-A neutral native-Qwen visual-language state represents an image regardless of
-which target languages happen to be requested. Culture interaction acts on that
-state, not on held-out batch composition. Language-specific hidden states still
-supervise the conditional eight-emotion distribution.
-"""
+"""Native Qwen states with separable binary and conditional emotion heads."""
 import math
 
 import torch
@@ -17,32 +11,33 @@ from .exp030_model import NativeStates
 class HierarchicalHead(nn.Module):
     def __init__(self, hidden_size, prior_logits, rank):
         super().__init__()
-        languages = len(prior_logits)
-        if languages == 0 or rank < 1:
-            raise ValueError("Empty language prior or invalid low rank")
         self.shared = nn.Sequential(nn.LayerNorm(hidden_size), nn.Linear(hidden_size, 1))
-        self.cultural = nn.Sequential(nn.LayerNorm(hidden_size), nn.Linear(hidden_size, rank))
-        self.language = nn.Embedding(languages, rank)
+        self.visual = nn.Linear(hidden_size, rank, bias=False)
+        self.language = nn.Embedding(len(prior_logits), rank)
         self.emotions = nn.Sequential(nn.LayerNorm(hidden_size), nn.Linear(hidden_size, 8))
+        nn.init.zeros_(self.shared[-1].weight)
+        nn.init.zeros_(self.shared[-1].bias)
         nn.init.zeros_(self.language.weight)
         self.scale = math.sqrt(rank)
-        self.register_buffer("prior_logits", prior_logits.detach().clone().float(), persistent=True)
+        self.register_buffer("prior_logits", prior_logits.detach().clone().float())
+        self.register_buffer("anchor", torch.zeros(hidden_size), persistent=False)
 
-    def forward(self, neutral_state, language_states, language_ids):
-        if language_states.shape[0] != language_ids.numel():
-            raise ValueError("Language states/IDs mismatch")
-        image = neutral_state.float().reshape(1, -1)
-        shared = self.shared(image).reshape(())
-        visual = self.cultural(image).reshape(-1)
-        # Centering gives the shared painting offset and interaction identifiable roles.
-        centered_languages = self.language.weight - self.language.weight.mean(dim=0)
-        interaction = (centered_languages[language_ids] * visual).sum(dim=-1) / self.scale
-        binary = self.prior_logits[language_ids] + shared + interaction
+    def normalize(self, state):
+        return F.layer_norm(state.float(), self.anchor.shape)
 
-        emotion_logits = self.emotions(language_states.float())
-        positive = F.logsigmoid(binary).unsqueeze(1) + F.log_softmax(emotion_logits[:, :4], dim=1)
-        negative = F.logsigmoid(-binary).unsqueeze(1) + F.log_softmax(emotion_logits[:, 4:], dim=1)
-        return torch.cat([positive, negative], dim=1), binary, interaction
+    def binary(self, state, ids):
+        shared = self.shared(state.float()).squeeze(-1)
+        visual = self.visual(self.normalize(state) - self.anchor)
+        languages = self.language.weight - self.language.weight.mean(dim=0)
+        interaction = languages @ visual / self.scale
+        return self.prior_logits[ids] + shared + interaction[ids], interaction
+
+    def conditionals(self, states):
+        return self.emotions(states.float())
+
+    def distribution(self, binary, conditional_logits):
+        return torch.cat([F.logsigmoid(sign * binary)[:, None] + F.log_softmax(conditional_logits[:, part], dim=1)
+                          for sign, part in ((1, slice(0, 4)), (-1, slice(4, 8)))], dim=1)
 
 
 class CulturalEmotionModel(nn.Module):
@@ -51,7 +46,7 @@ class CulturalEmotionModel(nn.Module):
         self.native = NativeStates(pretrained, processor, config)
         self.decoder = pretrained.model
         self.languages = tuple(languages)
-        self._lookup = {name: i for i, name in enumerate(languages)}
+        self.lookup = {name: i for i, name in enumerate(languages)}
         self.head = HierarchicalHead(pretrained.config.hidden_size, priors, config["cultural_rank"]).to(self.native.device)
 
     def train(self, mode=True):
@@ -59,17 +54,17 @@ class CulturalEmotionModel(nn.Module):
         self.native.model.visual.eval()
         return self
 
-    def forward_painting(self, vision, languages, microbatch_pairs):
-        if not languages or len(set(languages)) != len(languages):
-            raise ValueError("Require distinct target languages from one painting")
-        if any(name not in self._lookup for name in languages):
-            raise ValueError("Validation has an unseen language; no held-out prior may be fit")
-        device = self.native.device
-        ids = torch.tensor([self._lookup[name] for name in languages], device=device)
-        neutral = self.native.hidden([vision], ["unspecified"], train=self.training).squeeze(0)
-        states = []
-        for start in range(0, len(languages), microbatch_pairs):
-            subset = languages[start:start + microbatch_pairs]
-            states.append(self.native.hidden([vision] * len(subset), subset, train=self.training))
-        conditioned = torch.cat(states, dim=0)
-        return self.head(neutral, conditioned, ids)
+    def state(self, vision, languages):
+        with torch.autocast("cuda", dtype=torch.bfloat16, enabled=self.native.device.type == "cuda"):
+            return self.native.hidden([vision] * len(languages), languages, train=self.training)
+
+    def binary(self, vision, languages):
+        ids = torch.tensor([self.lookup[name] for name in languages], device=self.native.device)
+        return self.head.binary(self.state(vision, [None])[0], ids)
+
+    def conditionals(self, vision, languages):
+        return self.head.conditionals(self.state(vision, languages))
+
+    @torch.no_grad()
+    def set_anchor(self, vision):
+        self.head.anchor.copy_(self.head.normalize(self.state(vision, [None])[0]))

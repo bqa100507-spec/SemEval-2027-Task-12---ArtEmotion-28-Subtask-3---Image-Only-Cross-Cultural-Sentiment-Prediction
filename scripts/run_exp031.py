@@ -30,8 +30,8 @@ import torch
 from PIL import Image
 from st3.data import ANNOTATIONS, KEYS
 from st3.exp028_cache import read_protocol
-from st3.exp030 import EMOTIONS, best_epoch, count_votes, fold3, loss_sums, matched_reference
-from st3.exp031 import grouped_objective, painting_batches, training_priors
+from st3.exp030 import EMOTIONS, best_epoch, count_votes, fold3, matched_reference
+from st3.exp031 import binary_terms, conditional_ce, painting_batches, training_priors
 from st3.exp031_model import CulturalEmotionModel
 from st3.experiment_workflow import Budget, StopRun, fingerprint, publish_model, sha256, verify_model, write_json
 from st3.metrics import score
@@ -139,120 +139,159 @@ class VisionCache:
 
 
 
-def logits_for(model, cache, frame):
-    if frame.painting.nunique() != 1 or frame.image.nunique() != 1:
-        raise ValueError("EXP031 logits require one complete painting")
-    vision = cache(frame.iloc[0].image)
-    with torch.autocast("cuda", dtype=torch.bfloat16):
-        return model.forward_painting(vision, frame.language.tolist(), CFG["microbatch_pairs"])
+def backward_painting(model, vision, languages, counts, votes, paintings, config, *, diagnose=False):
+    """Each decoder graph is backpropagated before the next forward.
+
+    Joint CE = binary BCE + the two conditional NLL sums. Ranking only
+    needs the neutral state and never touches the language-conditioned graph.
+    """
+    binary, interaction = model.binary(vision, languages)
+    bce, rank, reg = binary_terms(binary, interaction, counts, config)
+    sentiment = (1 + config["binary_weight"]) * bce / votes
+    ranking = config["ranking_weight"] * rank / paintings
+    diagnostic = None
+    if diagnose:
+        # Compare the two signals at the exact point they meet, including
+        # their actual optimizer-update denominators and weights.
+        grad_bce = torch.autograd.grad(sentiment, binary, retain_graph=True)[0]
+        grad_rank = torch.autograd.grad(ranking, binary, retain_graph=True)[0]
+        diagnostic = {"weighted_binary_logit_norm": float(grad_bce.norm()),
+                      "weighted_rank_logit_norm": float(grad_rank.norm()),
+                      "rank_to_binary_ratio": float(grad_rank.norm() / grad_bce.norm().clamp_min(1e-12))}
+    loss = sentiment + ranking + config["interaction_regularization"] * reg / paintings
+    if not torch.isfinite(loss):
+        raise FloatingPointError("Nonfinite binary/ranking objective")
+    loss.backward()
+    del loss, sentiment, ranking, binary, interaction
+    conditional = 0.
+    width = config["microbatch_pairs"]
+    for start in range(0, len(languages), width):
+        part = slice(start, start + width)
+        term = conditional_ce(model.conditionals(vision, languages[part]), counts[part])
+        if not torch.isfinite(term):
+            raise FloatingPointError("Nonfinite conditional emotion objective")
+        (term / votes).backward()
+        conditional += float(term.detach())
+        del term
+    return conditional + float(bce.detach()), float(bce.detach()), float(rank.detach()), float(reg.detach()), diagnostic
 
 
 def counts_for(frame):
     return torch.as_tensor(frame[list(EMOTIONS)].to_numpy(), device="cuda", dtype=torch.float32)
 
 
-
-def update(model, cache, groups, optimizer):
-    """Backprop each complete painting; accumulate gradients before one update."""
+def update(model, cache, groups, optimizer, *, diagnose=False):
     optimizer.zero_grad(set_to_none=True)
     denominator = sum(int(group.n.sum()) for group in groups)
-    ce_total = bce_total = rank_total = regularizer_total = 0.
+    totals = np.zeros(4)
+    diagnostics = []
     for group in groups:
-        log_probs, binary, interaction = logits_for(model, cache, group)
-        ce, bce, rank, reg = grouped_objective(log_probs, binary, interaction, counts_for(group), CFG)
-        objective = ((ce + CFG["binary_weight"] * bce) / denominator
-                     + CFG["ranking_weight"] * rank / len(groups)
-                     + CFG["interaction_regularization"] * reg / len(groups))
-        if not torch.isfinite(objective):
-            raise FloatingPointError("Nonfinite hierarchical objective")
-        objective.backward()
-        ce_total += float(ce.detach())
-        bce_total += float(bce.detach())
-        rank_total += float(rank.detach())
-        regularizer_total += float(reg.detach())
+        result = backward_painting(model, cache(group.iloc[0].image), group.language.tolist(),
+                                   counts_for(group), denominator, len(groups), CFG, diagnose=diagnose)
+        totals += result[:4]
+        if result[4] is not None:
+            diagnostics.append(result[4])
     grad = torch.nn.utils.clip_grad_norm_(
-        [p for p in model.parameters() if p.requires_grad],
-        CFG["clip_norm"], error_if_nonfinite=True)
+        [p for p in model.parameters() if p.requires_grad], CFG["clip_norm"], error_if_nonfinite=True)
     optimizer.step()
-    return ce_total, bce_total, rank_total, regularizer_total, denominator, len(groups), float(grad)
+    return (*totals.tolist(), denominator, len(groups), float(grad), diagnostics)
 
 
 @torch.no_grad()
 def validate(model, cache, val, budget):
     model.eval()
-    predictions, ce_total, bce_total, rank_total, paintings = [], 0., 0., 0., 0
-    for groups in painting_batches(val, seed=CFG["seed"], epoch=None,
-                                   max_pairs=CFG["accumulation_pairs"]):
-        for painting in groups:
+    predictions, totals = [], np.zeros(4)
+    paintings = 0
+    for groups in painting_batches(val, seed=CFG["seed"], epoch=None, max_pairs=CFG["accumulation_pairs"]):
+        for frame in groups:
             budget.check()
-            log_probs, binary, interaction = logits_for(model, cache, painting)
-            ce, bce, rank, _ = grouped_objective(
-                log_probs, binary, interaction, counts_for(painting), CFG)
-            ce_total += float(ce)
-            bce_total += float(bce)
-            rank_total += float(rank)
+            vision = cache(frame.iloc[0].image)
+            languages = frame.language.tolist()
+            counts = counts_for(frame)
+            binary, interaction = model.binary(vision, languages)
+            bce, rank, reg = binary_terms(binary, interaction, counts, CFG)
+            conditional = 0.
+            for start in range(0, len(frame), CFG["microbatch_pairs"]):
+                part = slice(start, start + CFG["microbatch_pairs"])
+                conditional += float(conditional_ce(model.conditionals(vision, languages[part]), counts[part]))
+            totals += [conditional + float(bce), float(bce), float(rank), float(reg)]
             paintings += 1
-            predictions.append(painting[KEYS].assign(
-                p_positive=torch.sigmoid(binary).cpu().tolist()))
+            predictions.append(frame[KEYS].assign(p_positive=binary.sigmoid().cpu().tolist()))
     pred = pd.concat(predictions, ignore_index=True)
     metrics = score(val[KEYS + ["k", "n"]], pred)
-    if not np.isfinite([ce_total, bce_total, rank_total]).all():
-        raise FloatingPointError("Nonfinite held-out losses")
-    return pred, metrics, ce_total / val.n.sum(), bce_total / val.n.sum(), rank_total / paintings
+    if not np.isfinite(totals).all() or metrics["cultural_contrast"] is None or metrics["log_loss"] is None:
+        raise FloatingPointError("Invalid held-out losses or coverage")
+    return pred, metrics, *(totals / [val.n.sum(), val.n.sum(), paintings, paintings]).tolist()
 
 
+@torch.no_grad()
+def verify_prediction_replay(model, cache, val, expected, budget):
+    model.eval()
+    chunks = []
+    for _, frame in val.groupby("painting", sort=True):
+        budget.check()
+        binary, _ = model.binary(cache(frame.iloc[0].image), frame.language.tolist())
+        chunks.append(frame[KEYS].assign(p_positive=binary.sigmoid().cpu().tolist()))
+    actual = pd.concat(chunks, ignore_index=True)
+    matched = expected.merge(actual, on=KEYS, validate="one_to_one", suffixes=("_saved", "_actual"))
+    if len(matched) != len(expected) or len(actual) != len(expected):
+        raise ValueError("Resume checkpoint prediction coverage differs")
+    np.testing.assert_allclose(matched.p_positive_actual, matched.p_positive_saved, atol=1e-6, rtol=0)
 
-def preflight(model, cache, train, params, budget):
-    """Native parity and a largest-painting max-pixel gradient/update probe."""
+
+def preflight(model, cache, train, params, budget, optimizer=None):
+    """Check native parity and the real sequential backward path at the image cap."""
     budget.check()
     torch.cuda.reset_peak_memory_stats()
     started = time.perf_counter()
+    # Use the largest painting group and the processor's maximum image grid.
     grouped = train.groupby("painting", sort=True)
-    largest_name = max(grouped.groups, key=lambda name: len(grouped.groups[name]))
-    group = grouped.get_group(largest_name).copy()
+    name = grouped.size().idxmax()
+    group = grouped.get_group(name)
     with Image.open(cache.artwork / group.iloc[0].image) as image:
         parity = model.native.parity(image.convert("RGB"), cache(group.iloc[0].image))
-    saved = {n: p.detach().cpu().clone() for n, p in params.items()}
+    saved = {n: p.detach().cpu().clone() for n, p in params.items()} if optimizer is None else {}
     cpu_rng, cuda_rng = torch.get_rng_state(), torch.cuda.get_rng_state()
-    model.train()
-    probe_optimizer = make_optimizer(model)
-    # Use a largest full painting and maximal image grid before the real run.
     wide = model.native.vision(Image.new("RGB", (896, 896)))
-    with torch.autocast("cuda", dtype=torch.bfloat16):
-        log_probs, binary, interaction = model.forward_painting(
-            wide, group.language.tolist(), CFG["microbatch_pairs"])
-        ce, bce, rank, reg = grouped_objective(
-            log_probs, binary, interaction, counts_for(group), CFG)
-        loss = ((ce + CFG["binary_weight"] * bce) / int(group.n.sum())
-                + CFG["ranking_weight"] * rank
-                + CFG["interaction_regularization"] * reg)
-    if not torch.isfinite(loss):
-        raise FloatingPointError("Nonfinite complete-painting preflight objective")
-    loss.backward()
-    adapters = adapter_parameters(model.decoder)
-    if (not any(p.grad is not None and p.grad.norm() > 0 for p in adapters)
-            or not any(p.grad is not None and p.grad.norm() > 0 for p in model.head.parameters())
-            or any(p.grad is not None for p in model.native.model.parameters() if not p.requires_grad)):
-        raise RuntimeError("Gradient preflight failed trainable/frozen separation")
-    torch.nn.utils.clip_grad_norm_(list(params.values()), CFG["clip_norm"], error_if_nonfinite=True)
-    probe_optimizer.step()
-    if not any(not torch.equal(p.detach().cpu(), saved[n]) for n, p in params.items()
-               if n.startswith("decoder.")):
+    model.train()
+    probe_optimizer = make_optimizer(model) if optimizer is None else None
+    # Restored Adam buffers are resident during the resume probe; leave them untouched.
+    steps = 2 if optimizer is None else 1
+    for step in range(steps):
+        budget.check()
+        model.zero_grad(set_to_none=True)
+        result = backward_painting(model, wide, group.language.tolist(), counts_for(group),
+                                   int(group.n.sum()), 1, CFG, diagnose=True)
+        norms = {name: float(sum(float(p.grad.detach().norm().square()) for p in values if p.grad is not None) ** .5)
+                 for name, values in (("adapters", adapter_parameters(model.decoder)),
+                                      ("interaction_embedding", model.head.language.parameters()),
+                                      ("interaction_visual", model.head.visual.parameters()),
+                                      ("shared", model.head.shared.parameters()),
+                                      ("emotion", model.head.emotions.parameters()))}
+        required = set(norms) - ({"interaction_visual"} if step == 0 and optimizer is None else set())
+        if (any(not np.isfinite(norms[key]) or norms[key] <= 0 for key in required)
+                or any(p.grad is not None for p in model.native.model.parameters() if not p.requires_grad)):
+            raise RuntimeError(f"Gradient preflight failed trainable/frozen separation: {norms}")
+        torch.nn.utils.clip_grad_norm_(list(params.values()), CFG["clip_norm"], error_if_nonfinite=True)
+        if probe_optimizer is not None:
+            probe_optimizer.step()
+    if optimizer is None and not any(not torch.equal(p.detach().cpu(), saved[n]) for n, p in params.items()
+                                     if n.startswith("decoder.")):
         raise RuntimeError("Adapters did not update in preflight")
     torch.cuda.synchronize()
     free, total = torch.cuda.mem_get_info()
-    allocated, reserved = torch.cuda.max_memory_allocated(), torch.cuda.max_memory_reserved()
     receipt = {"gpu": torch.cuda.get_device_name(), "total_vram_bytes": total,
-               "peak_allocated_bytes": allocated, "peak_reserved_bytes": reserved,
+               "peak_allocated_bytes": torch.cuda.max_memory_allocated(),
+               "peak_reserved_bytes": torch.cuda.max_memory_reserved(),
                "free_after_probe_bytes": free, "max_grid_vision_tokens_per_image": int(wide["tokens"].shape[0]),
-               "largest_painting_languages": len(group),
-               "seconds": time.perf_counter() - started,
-               "official_vision_path_parity": parity, "adapter_gradient_and_update": True}
-    if min(free, total - reserved) < 1024 ** 3:
-        raise RuntimeError("Less than 1 GiB CUDA margin after complete-painting probe: " + str(receipt))
+               "probe_languages": len(group), "seconds": time.perf_counter() - started,
+               "official_vision_path_parity": parity, "grad_norms": norms, "binary_rank_balance": result[4],
+               "fresh_optimizer_probe_steps": steps if optimizer is None else 0}
+    if min(free, total - receipt["peak_reserved_bytes"]) < 1024 ** 3:
+        raise RuntimeError("Less than 1 GiB CUDA margin: " + str(receipt))
     with torch.no_grad():
-        for name, p in params.items():
-            p.copy_(saved[name])
+        for key, value in saved.items():
+            params[key].copy_(value)
     model.zero_grad(set_to_none=True)
     del probe_optimizer
     torch.cuda.empty_cache()
@@ -269,10 +308,15 @@ def make_optimizer(model):
 
 
 def publish_epoch(directory, identity, model_state, predictions, summary):
+    if directory.exists():
+        raise FileExistsError(f"Epoch already published: {directory}")
     def writer(path):
         torch.save(model_state, path / "resume.pt")
         predictions.to_csv(path / "predictions.csv", index=False, float_format="%.17g")
         write_json(path / "epoch.json", summary)
+        for name in ("resume.pt", "predictions.csv", "epoch.json"):
+            with (path / name).open("r+b") as stream:
+                os.fsync(stream.fileno())
 
     publish_model(directory, identity, writer)
 
@@ -300,7 +344,7 @@ def completed_epochs(root, identity, val):
     return history
 
 
-def restore(directory, params, optimizer, epoch):
+def restore(directory, params, optimizer, epoch, anchor):
     state = torch.load(directory / "resume.pt", weights_only=True, map_location="cpu")
     if state["weights"].keys() != params.keys() or state["epoch"] != epoch:
         raise ValueError("Checkpoint does not match trainable parameters or completed epoch")
@@ -309,6 +353,8 @@ def restore(directory, params, optimizer, epoch):
             if value.shape != params[key].shape or value.dtype != params[key].dtype or not torch.isfinite(value).all():
                 raise ValueError(f"Invalid checkpoint tensor {key}")
             params[key].copy_(value)
+    if not torch.equal(state["anchor"], anchor.detach().cpu()):
+        raise ValueError("Pretrained interaction anchor differs from sealed checkpoint")
     optimizer.load_state_dict(state["optimizer"])
     torch.set_rng_state(state["cpu_rng"])
     if torch.cuda.is_available():
@@ -369,6 +415,9 @@ def run(args):
     driver = subprocess.check_output(["nvidia-smi", "--query-gpu=driver_version", "--format=csv,noheader"],
                                      text=True).splitlines()[0].strip()
     identity = {"source": source, "train_config": CFG, "input_sha256": ZIP_SHA256,
+                "fitting_priors": fingerprint([languages, priors.tolist()]),
+                "fold_manifest_sha256": sha256(ROOT / "configs/exp028_fold3_manifest.json"),
+                "protocol_input_sha256": MANIFEST_SHA256,
                 "runtime": actual, "gpu": device.name, "driver": driver, "cuda": torch.version.cuda,
                 "cudnn": torch.backends.cudnn.version(),
                 "lock_sha256": sha256(ROOT / "requirements-exp026.lock.txt")}
@@ -390,17 +439,24 @@ def run(args):
     if {id(p) for p in params.values()} != expected_ids:
         raise ValueError("Unexpected trainable parameters")
     cache = VisionCache(model.native, args.work / "artwork/images", cache_bytes)
+    model.eval()
+    model.set_anchor(model.native.vision(Image.new("RGB", (448, 448), (128, 128, 128))))
+    optimizer = make_optimizer(model)
+    if history:
+        last = directory / f"epoch-{len(history):02d}"
+        restore(last, params, optimizer, len(history), model.head.anchor)
+        expected = pd.read_csv(last / "predictions.csv", float_precision="round_trip")
+        verify_prediction_replay(model, cache, val, expected, budget)
+        write_json(args.output / "resume_replay.json", {"epoch": len(history), "pairs": len(expected),
+                   "status": "PASS", "prediction_tolerance": 1e-6})
     print("Running CUDA parity and feasibility checks", flush=True)
     try:
-        receipt = preflight(model, cache, train, params, budget)
+        receipt = preflight(model, cache, train, params, budget, optimizer if history else None)
     except torch.OutOfMemoryError as exc:
         raise RuntimeError("Pretrained CUDA feasibility failed: use A100 or release other GPU memory") from exc
     write_json(args.output / "preflight.json", receipt | {"targets": targets,
                "trainable_parameters": sum(p.numel() for p in params.values()), "cpu_cache_limit_bytes": cache_bytes})
     print(json.dumps(receipt), flush=True)
-    optimizer = make_optimizer(model)
-    if history:
-        restore(directory / f"epoch-{len(history):02d}", params, optimizer, len(history))
     try:
         for epoch in range(len(history) + 1, CFG["epochs"] + 1):
             budget.check()
@@ -412,11 +468,18 @@ def run(args):
             model.train()
 
             ce = bce = ranking = regularizer = votes = seen = npaintings = 0
+            grad_sum = clipped = 0
+            diagnostics = []
             updates = painting_batches(train, seed=CFG["seed"], epoch=epoch,
                                        max_pairs=CFG["accumulation_pairs"])
             for step, groups in enumerate(updates, 1):
                 budget.check()
-                a, b, r, g, n, npain, _ = update(model, cache, groups, optimizer)
+                a, b, r, g, n, npain, grad, sample = update(
+                    model, cache, groups, optimizer, diagnose=step in (1, 8, 32) or step % 128 == 0)
+                grad_sum += grad
+                clipped += grad > CFG["clip_norm"]
+                if sample:
+                    diagnostics.append({"step": step, "paintings": sample})
                 ce += a
                 bce += b
                 ranking += r
@@ -433,7 +496,8 @@ def run(args):
                         write_json(args.output / "initial_throughput.json",
                                    {"epoch": epoch, "pairs": seen, "pairs_per_second": rate,
                                     "projected_training_only_epoch_hours": len(train)/rate/3600})
-            pred, metrics, val_ce, val_bce, val_ranking = validate(model, cache, val, budget)
+            train_seconds = time.perf_counter() - tick
+            pred, metrics, val_ce, val_bce, val_ranking, val_reg = validate(model, cache, val, budget)
             row = {"epoch": epoch, "train_loss_nats": (ce + CFG["binary_weight"] * bce) / votes
                    + CFG["ranking_weight"] * ranking / npaintings
                    + CFG["interaction_regularization"] * regularizer / npaintings,
@@ -441,14 +505,20 @@ def run(args):
                    "train_rank_nats": ranking / npaintings,
                    "train_interaction_regularizer": regularizer / npaintings,
                    "validation_emotion_ce_nats": val_ce, "validation_bce_nats": val_bce,
-                   "validation_rank_nats": val_ranking,
+                   "validation_rank_nats": val_ranking, "validation_interaction_regularizer": val_reg,
+                   "training_pairs_per_second": seen / train_seconds, "training_seconds": train_seconds,
+                   "optimizer_steps": step, "mean_preclip_gradient_norm": grad_sum / step,
+                   "clip_fraction": clipped / step, "sampled_binary_rank_gradients": diagnostics,
                    "contrast": metrics["cultural_contrast"], "macro_log_loss_bits": metrics["log_loss"],
                    "seconds": time.perf_counter() - tick, "peak_vram_allocated_bytes": torch.cuda.max_memory_allocated(),
                    "peak_vram_reserved_bytes": torch.cuda.max_memory_reserved()}
             state = {"epoch": epoch, "weights": {name: p.detach().cpu() for name, p in params.items()},
-                     "optimizer": optimizer.state_dict(), "cpu_rng": torch.get_rng_state(),
+                     "anchor": model.head.anchor.detach().cpu(), "optimizer": optimizer.state_dict(), "cpu_rng": torch.get_rng_state(),
                      "cuda_rng": torch.cuda.get_rng_state()}
+            publication_started = time.perf_counter()
             publish_epoch(directory / f"epoch-{epoch:02d}", identity | {"epoch": epoch}, state, pred, row)
+            print(f"Epoch {epoch} checkpoint published in {time.perf_counter() - publication_started:.1f}s",
+                  flush=True)
             del state
             history.append(row)
             print(json.dumps(row), flush=True)
