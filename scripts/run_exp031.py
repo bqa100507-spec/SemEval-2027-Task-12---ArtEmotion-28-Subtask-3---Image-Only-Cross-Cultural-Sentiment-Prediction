@@ -138,58 +138,68 @@ class VisionCache:
         return values
 
 
-def ordered_indices(frame, epoch):
-    groups = list(frame.groupby("painting", sort=True).indices.values())
-    rng = np.random.default_rng(CFG["seed"] + epoch)
-    return np.concatenate([groups[i] for i in rng.permutation(len(groups))])
-
 
 def logits_for(model, cache, frame):
-    visions = [cache(image) for image in frame.image]
+    if frame.painting.nunique() != 1 or frame.image.nunique() != 1:
+        raise ValueError("EXP031 logits require one complete painting")
+    vision = cache(frame.iloc[0].image)
     with torch.autocast("cuda", dtype=torch.bfloat16):
-        return model(visions, frame.language.tolist())
+        return model.forward_painting(vision, frame.language.tolist(), CFG["microbatch_pairs"])
 
 
 def counts_for(frame):
     return torch.as_tensor(frame[list(EMOTIONS)].to_numpy(), device="cuda", dtype=torch.float32)
 
 
-def update(model, cache, frame, optimizer):
+
+def update(model, cache, groups, optimizer):
+    """Backprop each complete painting; accumulate gradients before one update."""
     optimizer.zero_grad(set_to_none=True)
-    total_votes = int(frame.n.sum())
-    ce_total = bce_total = 0.
-    for start in range(0, len(frame), CFG["microbatch_pairs"]):
-        batch = frame.iloc[start:start + CFG["microbatch_pairs"]]
-        ce, bce = loss_sums(logits_for(model, cache, batch), counts_for(batch))
-        loss = (ce + CFG["binary_weight"] * bce) / total_votes
-        if not torch.isfinite(loss):
-            raise FloatingPointError("Nonfinite training objective")
-        loss.backward()
+    denominator = sum(int(group.n.sum()) for group in groups)
+    ce_total = bce_total = rank_total = regularizer_total = 0.
+    for group in groups:
+        log_probs, binary, interaction = logits_for(model, cache, group)
+        ce, bce, rank, reg = grouped_objective(log_probs, binary, interaction, counts_for(group), CFG)
+        objective = ((ce + CFG["binary_weight"] * bce) / denominator
+                     + CFG["ranking_weight"] * rank / len(groups)
+                     + CFG["interaction_regularization"] * reg / len(groups))
+        if not torch.isfinite(objective):
+            raise FloatingPointError("Nonfinite hierarchical objective")
+        objective.backward()
         ce_total += float(ce.detach())
         bce_total += float(bce.detach())
-    grad = torch.nn.utils.clip_grad_norm_([p for p in model.parameters() if p.requires_grad],
-                                           CFG["clip_norm"], error_if_nonfinite=True)
+        rank_total += float(rank.detach())
+        regularizer_total += float(reg.detach())
+    grad = torch.nn.utils.clip_grad_norm_(
+        [p for p in model.parameters() if p.requires_grad],
+        CFG["clip_norm"], error_if_nonfinite=True)
     optimizer.step()
-    return ce_total, bce_total, total_votes, float(grad)
+    return ce_total, bce_total, rank_total, regularizer_total, denominator, len(groups), float(grad)
 
 
 @torch.no_grad()
 def validate(model, cache, val, budget):
     model.eval()
-    probs, ce, bce = [], 0., 0.
-    for start in range(0, len(val), CFG["microbatch_pairs"]):
-        budget.check()
-        batch = val.iloc[start:start + CFG["microbatch_pairs"]]
-        logits = logits_for(model, cache, batch)
-        a, b = loss_sums(logits, counts_for(batch))
-        ce += float(a)
-        bce += float(b)
-        probs.extend(positive_probability(logits).cpu().tolist())
-    pred = val[KEYS].assign(p_positive=probs)
+    predictions, ce_total, bce_total, rank_total, paintings = [], 0., 0., 0., 0
+    for groups in painting_batches(val, seed=CFG["seed"], epoch=None,
+                                   max_pairs=CFG["accumulation_pairs"]):
+        for painting in groups:
+            budget.check()
+            log_probs, binary, interaction = logits_for(model, cache, painting)
+            ce, bce, rank, _ = grouped_objective(
+                log_probs, binary, interaction, counts_for(painting), CFG)
+            ce_total += float(ce)
+            bce_total += float(bce)
+            rank_total += float(rank)
+            paintings += 1
+            predictions.append(painting[KEYS].assign(
+                p_positive=torch.sigmoid(binary).cpu().tolist()))
+    pred = pd.concat(predictions, ignore_index=True)
     metrics = score(val[KEYS + ["k", "n"]], pred)
-    if not np.isfinite([ce, bce]).all():
-        raise FloatingPointError("Nonfinite held-out loss")
-    return pred, metrics, ce / val.n.sum(), bce / val.n.sum()
+    if not np.isfinite([ce_total, bce_total, rank_total]).all():
+        raise FloatingPointError("Nonfinite held-out losses")
+    return pred, metrics, ce_total / val.n.sum(), bce_total / val.n.sum(), rank_total / paintings
+
 
 def preflight(model, cache, train, params, budget):
     """Exercise the longest allowed vision grid, the real processor and an optimizer step."""
