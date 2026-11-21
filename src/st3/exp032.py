@@ -216,7 +216,7 @@ def estimate_graph(panel, residuals, shared, spec):
         centered = delta - np.average(delta, weights=weight)
         dispersion = float(weight @ centered**2 / (weight.sum() - (weight @ weight) / weight.sum()))
         edge.update(
-            supported=True, dispersion=dispersion, paired_association=association(a, b, weight, shared),
+            supported=True, dispersion=dispersion, paired_association=association(a, b, weight, shared[both]),
             confidence=effective / (effective + spec["overlap_shrinkage"]),
         )
     valid = [e for e in edges.values() if e["supported"]]

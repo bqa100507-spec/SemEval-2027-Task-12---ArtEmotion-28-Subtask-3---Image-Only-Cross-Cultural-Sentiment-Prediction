@@ -81,6 +81,7 @@ def test_synthetic_graph_recovery_and_unsupported_node():
     residuals += rng.normal(0, 0.13, size=residuals.shape)
     n = np.full(residuals.shape, 5.)
     n[6:, 4] = 0
+    n[::7, 1] = 0  # Well-supported edges may still have missing paintings.
     panel = Panel(tuple(map(str, range(len(n)))), tuple("abcde"), n / 2, n)
     full = estimate_graph(panel, residuals, shared, GRAPH)
     left = estimate_graph(panel.subset(np.arange(len(n)) % 2 == 0), residuals[::2], shared[::2], GRAPH)
