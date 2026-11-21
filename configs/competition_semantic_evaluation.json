@@ -1,0 +1,10 @@
+{
+  "gpu_name_fragment": "RTX 4060 Laptop",
+  "max_gpu_wall_seconds": 12600,
+  "batch_size": 6,
+  "batch_six_sha256": "f1677c4c1c88839bc1d4e02b8d64a20403e36121496086f74d05daa739c79b91",
+  "recovery_config_sha256": "fc6dd53947a0ba0d25c84515d741f162d9580a02a106efe046d6494210260127",
+  "base_config_sha256": "e4cab8829876c795437f510aa035929740868b141d98e634308966efe81ae15f",
+  "recovery_source_sha256": "52a79d528a72ec84dd5a881d4ba65024ad1453825b53e87936bc78271cce86c5",
+  "invalid_description": "retain_raw_and_use_zero_semantic_vector"
+}

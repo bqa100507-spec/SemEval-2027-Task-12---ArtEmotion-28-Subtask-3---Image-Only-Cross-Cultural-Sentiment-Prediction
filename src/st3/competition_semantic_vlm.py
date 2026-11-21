@@ -128,12 +128,12 @@ def evaluate(frame, config, excluded):
     return report
 
 
-def run_cv(args, config, track1):
+def run_cv(args, config, track1, *, descriptions_loader=sealed_descriptions):
     start = time.perf_counter()
     destination = args.run_dir / "cv"
     if destination.exists():
         raise ValueError(f"Frozen CV output already exists: {destination}")
-    descriptions, extraction_sha = sealed_descriptions(args, config, track1)
+    descriptions, extraction_sha = descriptions_loader(args, config, track1)
     gold, features, _ = load_p2(args.inputs, track1)
     reference = exact_reference(gold, args.reference_dir, config)
     visual = pd.concat([features[encoder] for encoder in ENCODERS], axis=1, ignore_index=True) / np.sqrt(3)
