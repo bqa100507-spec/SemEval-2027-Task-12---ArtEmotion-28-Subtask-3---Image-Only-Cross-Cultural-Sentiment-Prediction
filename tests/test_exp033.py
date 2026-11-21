@@ -175,3 +175,38 @@ def test_five_fold_evaluation_emits_separate_scopes_and_gate():
     assert result["status"] == "EXPLORATORY_D_GO"
     assert result["paired"]["standalone"]["D-C"]["gain"] == pytest.approx(2)
     assert result["paired"]["fusion"]["probe-B"]["fold_wins"] == 5
+
+
+def test_complete_fold_checks_all_four_conditions_and_independent_probe(tmp_path):
+    import runpy
+    api = runpy.run_path(str(Path(__file__).resolve().parents[1] / "scripts/run_exp033.py"))
+    rule, vision, bank, _, _ = fixture()
+    rule = rule | {"warmup_epochs": 1, "checkpoints": [2], "step_images": 16}
+    n = 110
+    bank = Bank({k: v[np.arange(n) % len(v)] for k, v in bank.arrays.items()}, "cpu")
+    keys = {f"p{i:03}": i for i in range(n)}
+    data = pd.DataFrame([(name, language, k, 5, 2 if i < 100 else 1)
+                         for name, i in keys.items() for language, k in zip("abc", (0, 2, 4))],
+                        columns=["painting", "language", "k", "n", "fold"])
+    api["complete_fold"](tmp_path, 1, {"test": "tiny"}, data, bank, keys, vision, rule, 4, float("inf"))
+    result = json.loads((tmp_path / "fold_1/outer_seal.json").read_text())
+    assert result["epoch"] == 2
+    assert set(result["prediction_sha256"]) == {"A", "B", "C", "D", "probe"}
+    assert all(len(pd.read_csv(tmp_path / "fold_1" / f"{name}.csv")) == 30
+               for name in result["prediction_sha256"])
+    d = json.loads((tmp_path / "fold_1/outer/D/curves.json").read_text())
+    assert d["shared_warmup_epochs"] == 1
+    assert d["epochs"]["2"]["trainable_parameters"]["adapter"] == 96
+
+
+def test_notebook_configuration_has_no_implicit_gpu_execution():
+    ipynb = Path(__file__).resolve().parents[1] / "notebooks/EXP033_Kaggle.ipynb"
+    if not ipynb.exists():
+        pytest.skip("Pinned notebook is delivered in a separate packaging commit")
+    state = {}
+    content = json.loads(ipynb.read_text(encoding="utf-8"))
+    for cell in content["cells"]:
+        if cell["cell_type"] == "code":
+            exec(compile("".join(cell["source"]), str(ipynb), "exec"), state)
+    assert not state["AUTHORIZE_STAGE"]
+    assert not state["AUTHORIZE_FULL_CV"]
