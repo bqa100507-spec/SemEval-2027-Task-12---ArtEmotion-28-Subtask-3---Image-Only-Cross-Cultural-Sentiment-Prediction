@@ -2,6 +2,7 @@
 
 import time
 from dataclasses import dataclass
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -137,6 +138,7 @@ def run(args):
     config, track1 = read_json(CONFIG), read_json(TRACK1_CONFIG)
     if (args.run_dir / "results").exists():
         raise ValueError("Completed neighborhood results already exist")
+    source_sha256 = file_sha256(Path(__file__))
     start = time.perf_counter()
     check_hash(TRACK1_CONFIG, config["track1_config_sha256"])
     for name, digest in config["track1_files_sha256"].items():
@@ -178,7 +180,7 @@ def run(args):
         for key in ("cultural_contrast", "log_loss"):
             if abs(metrics[scope]["pooled"]["ridge"][key] - incumbent[scope]["systems"]["fixed"]["pooled"][key]) > 1e-12:
                 raise ValueError("Fixed ridge reference scores changed")
-    metrics |= {"protocol": config, "config_sha256": file_sha256(CONFIG), "source_sha256": file_sha256(__file__),
+    metrics |= {"protocol": config, "config_sha256": file_sha256(CONFIG), "source_sha256": source_sha256,
                 "fold_receipts": receipts, "threads": track1["threads"], "cpu_wall_seconds": time.perf_counter() - start,
                 "peak_rss_bytes": peak_memory_bytes()}
     with new_output(args.run_dir / "results") as stage:
