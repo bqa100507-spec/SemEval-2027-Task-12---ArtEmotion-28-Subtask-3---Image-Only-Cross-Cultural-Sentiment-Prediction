@@ -1,0 +1,81 @@
+{
+  "experiment": "EXP-032",
+  "strategy_commit": "01bf9bd93b3c7417eb4a76413f3dd15f041a155a",
+  "input_sha256": {
+    "training/pairs.csv": "50798ddac6d9bda709c53b0ab7fc5ff2bfc6fbc33a4e581c1ab5c45f94d57534",
+    "training/protocol.csv": "869b2fe227fb614d83827d8124a80bd02c5f7677482bf64ae7098856b9c70eed",
+    "history/exp022_R0.csv": "7cc728cd8b50ef828afa5cbaa8ef73c095ec5465664e54c7899d2cbc88039161",
+    "visual/features.npz": "17374581aa7b65dd9a24542b18e0a8449388b6b04262fc18d4da235d9ce68896",
+    "visual/provenance.json": "0782ff838dd1ee0af795979d2fdcaafd9f336da518b71613d400de28153065f4",
+    "visual/image_hashes.json": "4574c178e2e67e8e2d8c85117625195a6c7acf454280e979b99cb859023afa7e"
+  },
+  "p2": {
+    "fold_pair_counts": [
+      2764,
+      2724,
+      2721,
+      2692,
+      2699
+    ],
+    "paintings_per_fold": 267,
+    "sealed_paintings": 236,
+    "languages": 25
+  },
+  "features": {
+    "clip": 512,
+    "siglip": 768,
+    "large": 768
+  },
+  "fusion_weights": {
+    "clip": 0.25,
+    "siglip": 0.25,
+    "large": 0.5
+  },
+  "threads": 2,
+  "seed": 2032,
+  "optimizer": {
+    "reference_c": 0.3,
+    "gtol": 1e-8,
+    "ftol": 1e-13,
+    "maxiter": 1600,
+    "max_final_gradient": 5e-7
+  },
+  "graph": {
+    "nuisance_splits": 3,
+    "minimum_overlap": 30,
+    "vote_weight_cap": 10,
+    "overlap_shrinkage": 50,
+    "minimum_common_edges": 15,
+    "minimum_common_languages": 6,
+    "minimum_similarity_rank_correlation": 0.25,
+    "minimum_replicated_association": 0.03,
+    "minimum_overlap_only_distance": 0.08,
+    "minimum_isotropic_distance": 0.1
+  },
+  "selection": {
+    "deviation_ridge_ratios": [
+      0.5,
+      1,
+      2
+    ],
+    "trace_neutral_graph_fractions": [
+      0.25,
+      0.5
+    ],
+    "log_loss_guardrail_bits": 0.005
+  },
+  "decision": {
+    "minimum_pooled_contrast_gain_vs_both": 0.001,
+    "maximum_pooled_log_loss_regression_vs_both": 0.005,
+    "minimum_winning_folds_vs_both": 3,
+    "require_positive_paired_ci_lower_bound": true,
+    "bootstrap_replicates": 10000,
+    "bootstrap_seed": 203204,
+    "support_bin_edges": [
+      1,
+      50,
+      200
+    ],
+    "calibration_bins": 10
+  }
+}
