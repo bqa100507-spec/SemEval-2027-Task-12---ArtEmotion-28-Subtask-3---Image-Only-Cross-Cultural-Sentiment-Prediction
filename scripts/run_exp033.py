@@ -156,17 +156,17 @@ def technical_preflight(out, identity, vision, processor, root, frame, images, c
     return timings
 
 
-def verify_publication(folder, identity, expected_receipt):
+def verify_preflight(folder, identity, expected_receipt):
     path = folder / "preflight.json"
     if sha256(path) != expected_receipt:
-        raise ValueError("Published preflight receipt SHA-256 mismatch")
+        raise ValueError("Local preflight receipt SHA-256 mismatch")
     receipt = read_json(path)
     if receipt["identity"] != identity or receipt["status"] != "PASS":
-        raise ValueError("Published preflight must come from the same source, input, runtime, and GPU type")
+        raise ValueError("Local preflight must come from the same source, input, runtime, and GPU type")
     checkpoint = read_checkpoint(folder / "persistence_canary", identity)
     if (sha256(folder / "persistence_canary/state.pt") != receipt["canary_sha256"]
             or not checkpoint["optimizer"]["state"] or not checkpoint["scaler"]):
-        raise ValueError("Published canary lost optimizer or scaler state")
+        raise ValueError("Local canary lost optimizer or scaler state")
     return receipt
 
 
@@ -293,25 +293,90 @@ def evaluate_all(out, identity, frame, refs, side, config):
     return report(frame, solo, ensemble | refs, config)
 
 
+def run_five_folds(out, identity, population, images, refs, side, vision, processor,
+                   inputs, config, device, receipt, deadline, cache_dir):
+    mb = receipt["microbatch"]
+    indices = {name: i for i, name in enumerate(images.painting)}
+    # The frozen bank is scoped to input, vision, source and runtime, never to an adapted fold.
+    cache_root = cache_dir / ("frozen_" + hashlib.sha256(canonical(identity).encode()).hexdigest()[:16])
+    arrays = build_cache(cache_root, identity, [inputs / p for p in images.image],
+                         vision, processor, config, device, mb, deadline)
+    started = monotonic()
+    for fold in range(1, 6):
+        folder = out / f"fold_{fold}"
+        if (folder / "outer_seal.json").exists():
+            seal = read_json(folder / "outer_seal.json")
+            if seal["identity"] != identity or set(seal["prediction_sha256"]) != set(ARMS) | {"probe"}:
+                raise ValueError(f"Incompatible outer fold seal: {fold}")
+            for name, digest in seal["prediction_sha256"].items():
+                if sha256(folder / f"{name}.csv") != digest:
+                    raise ValueError(f"Corrupt sealed outer prediction: fold {fold}, arm {name}")
+            print(f"EXP-033 P2 fold {fold} reused verified predictions", flush=True)
+            continue
+        print(f"EXP-033 P2 fold {fold} started", flush=True)
+        complete_fold(out, fold, identity, population, Bank(arrays, device), indices, vision, config, mb, deadline)
+    result = evaluate_all(out, identity, population, refs, side, config)
+    result["attempt_wall_seconds"] = monotonic() - started
+    result["peak_allocated"] = torch.cuda.max_memory_allocated(device)
+    result["peak_reserved"] = torch.cuda.max_memory_reserved(device)
+    return result
+
+
+def resume_plan(out, identity, preflight_microbatch):
+    path = out / "run_plan.json"
+    if path.exists():
+        stored = read_json(path)
+        if stored["identity"] != identity or stored["microbatch"] > preflight_microbatch:
+            raise ValueError("Resume requires the original run identity and a safe original microbatch")
+        return stored["microbatch"]
+    save_json(path, {"identity": identity, "microbatch": preflight_microbatch})
+    return preflight_microbatch
+
+
+def run_session(out, identity, population, images, refs, side, inputs, config, device,
+                model_dir, deadline, cache_dir, preflight_only=False):
+    attempt = Path(tempfile.mkdtemp(prefix="preflight-", dir=out))
+    save_json(out / "decision.json", {"status": "RUNNING", "stage": "preflight", "attempt": attempt.name})
+    stage = "preflight"
+    try:
+        vision, processor = load_model(config, model_dir, device)
+        technical_preflight(attempt, identity, vision, processor, inputs, population, images, config, device, deadline)
+        receipt = verify_preflight(attempt, identity, sha256(attempt / "preflight.json"))
+        print(json.dumps(receipt, indent=2), flush=True)
+        if preflight_only:
+            result = receipt
+        else:
+            stage = "cv"
+            receipt = receipt | {"microbatch": resume_plan(out, identity, receipt["microbatch"])}
+            save_json(out / "decision.json", {"status": "RUNNING", "stage": stage, "attempt": attempt.name})
+            result = run_five_folds(out, identity, population, images, refs, side, vision, processor,
+                                    inputs, config, device, receipt, deadline, cache_dir)
+        save_json(out / "decision.json", result)
+        print(json.dumps({"status": result["status"]}), flush=True)
+        return result
+    except (Exception, KeyboardInterrupt) as error:
+        save_json(out / "decision.json", {"status": "STOPPED", "stage": stage, "reason": str(error),
+                                         "attempt": attempt.name})
+        raise
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("stage", choices=("validate", "preflight", "verify-publication", "cv"))
+    parser.add_argument("stage", choices=("validate", "preflight", "run"))
     for arg in ("input-zip", "inputs", "output"):
         parser.add_argument("--" + arg, required=True, type=Path)
     parser.add_argument("--zip-sha", required=True)
     parser.add_argument("--manifest-sha", required=True)
     parser.add_argument("--model-dir", type=Path)
-    parser.add_argument("--published", type=Path)
-    parser.add_argument("--published-sha")
+    parser.add_argument("--cache-dir", type=Path)
     parser.add_argument("--device", default="cuda:0")
-    parser.add_argument("--folds", nargs="+", type=int, default=list(range(1, 6)), choices=range(1, 6))
     parser.add_argument("--max-seconds", type=int, default=1800)
-    parser.add_argument("--authorize-cv", action="store_true")
+    parser.add_argument("--authorize", action="store_true")
     args = parser.parse_args()
     out = args.output.resolve()
     config = read_json(CONFIG)
-    if args.stage == "cv" and not args.authorize_cv:
-        parser.error("CV requires owner authorization and externally published preflight")
+    if args.stage == "run" and not args.authorize:
+        parser.error("The complete run requires owner authorization")
     if args.max_seconds <= 0:
         parser.error("A positive finite budget is required")
     deadline = monotonic() + args.max_seconds
@@ -329,50 +394,10 @@ def main():
     torch.use_deterministic_algorithms(True)
     enforce_lock()
     identity = source_identity(args.manifest_sha, device)
-    try:
-        if args.stage in ("verify-publication", "cv"):
-            if args.published is None or not args.published_sha or out == args.published.resolve():
-                raise ValueError("Use a separate published artifact root and its receipt SHA")
-            receipt = verify_publication(args.published, identity, args.published_sha)
-            save_json(out / "publication_verified.json", {"preflight_sha256": args.published_sha,
-                                                          "canary_sha256": receipt["canary_sha256"]})
-            if args.stage == "verify-publication":
-                print("Published pretrained CUDA canary and optimizer state verified")
-                return
-        vision, processor = load_model(config, args.model_dir, device)
-        if args.stage == "preflight":
-            result = technical_preflight(out, identity, vision, processor, args.inputs, population, images,
-                                         config, device, deadline)
-        else:
-            mb = receipt["microbatch"]
-            indices = {name: i for i, name in enumerate(images.painting)}
-            # The frozen bank is scoped to input, vision, source and runtime, never to an adapted fold.
-            cache_root = out.parent / ("frozen_" + hashlib.sha256(canonical(identity).encode()).hexdigest()[:16])
-            arrays = build_cache(cache_root, identity, [args.inputs / p for p in images.image],
-                                 vision, processor, config, device, mb, deadline)
-            started = monotonic()
-            for fold in sorted(set(args.folds)):
-                folder = out / f"fold_{fold}"
-                if (folder / "outer_seal.json").exists():
-                    seal = read_json(folder / "outer_seal.json")
-                    if seal["identity"] != identity or set(seal["prediction_sha256"]) != set(ARMS) | {"probe"}:
-                        raise ValueError(f"Incompatible outer fold seal: {fold}")
-                    for name, digest in seal["prediction_sha256"].items():
-                        if sha256(folder / f"{name}.csv") != digest:
-                            raise ValueError(f"Corrupt sealed outer prediction: fold {fold}, arm {name}")
-                    print(f"EXP-033 P2 fold {fold} reused verified predictions", flush=True)
-                    continue
-                print(f"EXP-033 P2 fold {fold} started", flush=True)
-                complete_fold(out, fold, identity, population, Bank(arrays, device), indices, vision, config, mb, deadline)
-            result = evaluate_all(out, identity, population, refs, side, config)
-            result["attempt_wall_seconds"] = monotonic() - started
-            result["peak_allocated"] = torch.cuda.max_memory_allocated(device)
-            result["peak_reserved"] = torch.cuda.max_memory_reserved(device)
-        save_json(out / "decision.json", result)
-        print(json.dumps({k: result.get(k) for k in ("status", "gpu", "projected_suffix_gpu_hours")}), flush=True)
-    except (Exception, KeyboardInterrupt) as error:
-        save_json(out / "decision.json", {"status": "STOPPED", "stage": args.stage, "reason": str(error)})
-        raise
+    cache_dir = (args.cache_dir or out.parent).resolve()
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    run_session(out, identity, population, images, refs, side, args.inputs, config, device,
+                args.model_dir, deadline, cache_dir, preflight_only=args.stage == "preflight")
 
 
 if __name__ == "__main__":

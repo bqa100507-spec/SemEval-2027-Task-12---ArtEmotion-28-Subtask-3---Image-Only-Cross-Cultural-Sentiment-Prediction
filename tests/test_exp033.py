@@ -208,5 +208,45 @@ def test_notebook_configuration_has_no_implicit_gpu_execution():
     for cell in content["cells"]:
         if cell["cell_type"] == "code":
             exec(compile("".join(cell["source"]), str(ipynb), "exec"), state)
-    assert not state["AUTHORIZE_STAGE"]
-    assert not state["AUTHORIZE_FULL_CV"]
+    assert not state["AUTHORIZE_RUN"]
+
+
+@pytest.mark.parametrize("failure", [None, "preflight", "canary"])
+def test_one_run_requires_local_preflight_but_no_publication(tmp_path, failure):
+    import runpy
+    api = runpy.run_path(str(Path(__file__).resolve().parents[1] / "scripts/run_exp033.py"))
+    session = api["run_session"]
+    calls = []
+    session.__globals__["load_model"] = lambda *args: (object(), object())
+
+    def preflight(out, *args):
+        calls.append("preflight")
+        if failure == "preflight":
+            raise RuntimeError("Test preflight failure")
+        (out / "preflight.json").write_text("{}")
+
+    def verify(*args):
+        calls.append("canary")
+        if failure == "canary":
+            raise RuntimeError("Test canary failure")
+        return {"microbatch": 4}
+
+    def cv(*args):
+        calls.append("cv")
+        return {"status": "NO_GO_OOF"}
+
+    for key, fn in (("technical_preflight", preflight), ("verify_preflight", verify), ("run_five_folds", cv)):
+        session.__globals__[key] = fn
+    args = (tmp_path, {}, None, None, None, None, tmp_path, {}, "cpu", None, float("inf"), tmp_path)
+    if failure:
+        with pytest.raises(RuntimeError, match="Test"):
+            session(*args)
+        assert calls == (["preflight"] if failure == "preflight" else ["preflight", "canary"])
+        assert json.loads((tmp_path / "decision.json").read_text())["status"] == "STOPPED"
+        assert not (tmp_path / "run_plan.json").exists()
+    else:
+        assert session(*args)["status"] == "NO_GO_OOF"
+        assert calls == ["preflight", "canary", "cv"]
+        assert api["resume_plan"](tmp_path, {}, 4) == 4
+        with pytest.raises(ValueError, match="original"):
+            api["resume_plan"](tmp_path, {}, 2)
