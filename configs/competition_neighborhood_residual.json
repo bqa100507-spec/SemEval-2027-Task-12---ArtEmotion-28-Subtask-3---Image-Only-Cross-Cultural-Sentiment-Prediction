@@ -1,0 +1,32 @@
+{
+  "reference_revision": "12d0dc3ead09349402643eb166a7a882f4d590a1",
+  "track1_config_sha256": "838e04aa6f3810af66f3b0b13ea2747cf28346d4dcaf24f888c1911e380f4adc",
+  "track1_files_sha256": {
+    "results/metrics.json": "1aa52db94f65d5173bc46d6818e9ed1bcadebfcac0d218288c41462d09c62c45",
+    "results/oof.csv": "d57d56b83cb3fb68caccea2ed5762dd5938a0db024580085f86f72ccfea2930d",
+    "results/seal.json": "e2f39f9066239bed807c77b33a7af6da24bc74a98c6e9d819b915a9fb310fcad",
+    "january_bundle/manifest.json": "1d211fc70c27d5ababaf6b7f05afa75c498854c4201b6039e333891d5016185a",
+    "january_bundle/heads.npz": "9105a0623867916c046dfd3ec4e1fa9fb6854c2d69068570c3b169bf47c89e76",
+    "fold_1/fit.json": "18d3d85ef96e72bd253e0f6beb9f7b8f98a55e86e8f93e7bfc3be9ef908d620d",
+    "fold_2/fit.json": "6a36e82a492d6c696aa10d17c939ca4f403750dcbc9906e5360ace051898a4e1",
+    "fold_3/fit.json": "abc1f334e740f785362c152267650d4ceb1a1f9d35030052d39c4242c94f7bb2",
+    "fold_4/fit.json": "0733921c3f12727a3b7f52aa9fb7e327defc6765189581826ab01c78c346914d",
+    "fold_5/fit.json": "ab28d27e47dca9ae8498b08d9cf9f2013d64eb722d5aee743e606403eee62f30"
+  },
+  "similarity_features": [
+    "siglip2",
+    "clip_large"
+  ],
+  "neighbors": 64,
+  "kernel_temperature": 0.1,
+  "zero_residual_pseudovotes": 20,
+  "minimum_bank_languages": 2,
+  "decision": {
+    "minimum_filtered_gain": 0.002,
+    "minimum_fold_wins": 3,
+    "maximum_log_loss_delta": 0.005,
+    "bootstrap_seed": 203204,
+    "bootstrap_draws": 10000,
+    "trim_fraction": 0.05
+  }
+}
