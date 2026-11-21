@@ -3,7 +3,7 @@ import copy
 import hashlib
 import math
 import random
-from time import monotonic
+from time import monotonic, perf_counter
 
 import numpy as np
 import torch
@@ -109,7 +109,7 @@ class Trainer:
         nll = drift = 0.
         if self.cuda:
             torch.cuda.synchronize(self.device)
-        start = monotonic()
+        start = perf_counter()
         for offset in range(0, len(order), step):
             if monotonic() >= deadline:
                 raise TimeoutError("Session budget reached, restore the last published epoch")
@@ -147,7 +147,7 @@ class Trainer:
             count += 1
         if self.cuda:
             torch.cuda.synchronize(self.device)
-        duration = monotonic() - start
+        duration = max(perf_counter() - start, 1e-9)
         return {"train_vote_nll": nll / total_votes, "drift": drift / len(panel.names),
                 "mean_module_gradient_norms": {k: v / max(count - skipped, 1) for k, v in sums.items()},
                 "clips": clipped, "steps": count, "skips": skipped,
