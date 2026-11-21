@@ -1,0 +1,60 @@
+{
+  "experiment": "EXP-033",
+  "strategy": "7c97e203f8e043dc7e20e08288fdb5d65bf9cb3d",
+  "model": "google/siglip2-base-patch16-naflex",
+  "revision": "b53b807d3a2d5e2b3911292f2d69e5341cdc064c",
+  "assets": {
+    "config.json": "c0b8c2e7f0527b0bea1b1d9abe0381c0f294352df92439c54590b8420e539118",
+    "preprocessor_config.json": "1125703e5446d5b6ff4d5893a33bac128cdd21dc12e3dad2469a648fb0ae3bf7",
+    "model.safetensors": "ac5f28bbdf92c0c1696ccbd3ce716426049cd67ad8045b66d0d938b0f9c8bbec"
+  },
+  "patches": 256,
+  "width": 768,
+  "layers": 12,
+  "tail_blocks": 2,
+  "adapter_width": 32,
+  "query_width": 64,
+  "seed": 2033,
+  "warmup_epochs": 3,
+  "checkpoints": [
+    6,
+    9,
+    12
+  ],
+  "inner_fraction": 0.2,
+  "step_images": 16,
+  "microbatch_options": [
+    4,
+    2,
+    1
+  ],
+  "head_lr": 0.001,
+  "adapter_lr": 0.0001,
+  "adapter_decay": 0.01,
+  "anchor": 0.1,
+  "reference_c": 0.3,
+  "deviation_ratio": 0.5,
+  "pool_radius": 0.3,
+  "clip_norm": 5,
+  "max_clip_fraction": 0.8,
+  "max_scaler_skip_fraction": 0.05,
+  "preflight_images": 128,
+  "reserve_gib": 2,
+  "guardrail": 0.005,
+  "minimum_reference_gain": 0.002,
+  "minimum_increment": 0.001,
+  "bootstrap": 10000,
+  "bootstrap_seed": 203304,
+  "fold_pairs": [
+    2764,
+    2724,
+    2721,
+    2692,
+    2699
+  ],
+  "fold_paintings": 267,
+  "reference_sha256": {
+    "E50+L": "c85673f83a36022414292cf915a3dcab6a2502cf861f444d2fbf6a041128e874",
+    "ridge": "226d2d4b6079548c98a0b6d6540457aacc715905ad7b623787dbe885d08a476c"
+  }
+}

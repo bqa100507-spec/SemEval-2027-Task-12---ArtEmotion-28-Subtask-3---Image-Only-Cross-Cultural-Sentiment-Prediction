@@ -1,0 +1,17 @@
+# Python 3.12.10. Install torch==2.7.1+cu126 separately from the PyTorch cu126 index.
+transformers==4.55.4
+tokenizers==0.21.4
+huggingface-hub==0.34.4
+safetensors==0.8.0
+numpy==2.2.6
+scipy==1.15.3
+pandas==2.2.3
+Pillow==11.2.1
+filelock==4.2.9
+requests==2.34.2
+tqdm==4.70.1
+regex==2026.11.9
+pyyaml==6.0.3
+packaging==26.3
+fsspec==2026.9.0
+typing_extensions==4.16.0
