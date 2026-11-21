@@ -250,3 +250,59 @@ def test_one_run_requires_local_preflight_but_no_publication(tmp_path, failure):
         assert api["resume_plan"](tmp_path, {}, 4) == 4
         with pytest.raises(ValueError, match="original"):
             api["resume_plan"](tmp_path, {}, 2)
+
+
+
+def test_kaggle_recursively_extracted_dataset_without_zip(tmp_path):
+    from st3.exp033_io import restore_inputs, sha256
+
+    notebook = Path(__file__).resolve().parents[1] / "notebooks/EXP033_Kaggle.ipynb"
+    state = {}
+    for cell in json.loads(notebook.read_text(encoding="utf8"))["cells"]:
+        if cell["cell_type"] == "code":
+            exec("".join(cell["source"]), state)
+
+    mount = tmp_path / "kaggle/input"
+    nested = mount / "datasets" / "owner" / "private-exp033" / "upload"
+    runtime = nested / "exp033_runtime_oneclick"
+    inputs = nested / "exp033_inputs"
+    sample_runtime = ["configs/exp033.json", "scripts/run_exp033.py", "src/st3/exp033_io.py",
+                      "requirements-exp033.lock.txt"]
+    sample_inputs = ["images/0000.jpg", "pairs.csv", "oof_E50_L.csv",
+                     "oof_no_graph.csv", "ridge_side_heads.csv"]
+
+    def put(root, names):
+        for name in names:
+            path = root / name
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_bytes(name.encode())
+        return {name: sha256(root / name) for name in names}
+
+    state["RUNTIME_FILES"] = put(runtime, sample_runtime)
+    files = put(inputs, sample_inputs)
+    manifest = inputs / "manifest.json"
+    manifest.write_text(json.dumps({"files": files}), encoding="utf8")
+    pin = sha256(manifest)
+    state["KAGGLE_INPUT"] = mount
+    assert not list(mount.rglob("*.zip"))
+    assert state["attached"]("", "exp033_runtime_oneclick") == runtime
+    assert state["attached"]("", "exp033_inputs") == inputs
+    assert state["attached"](str(inputs), "exp033_inputs") == inputs
+
+    repo = tmp_path / "working" / "source"
+    (runtime / "untrusted.py").write_text("raise SystemExit")
+    state["materialize_runtime"](runtime, repo)
+    assert {path.relative_to(repo).as_posix(): sha256(path)
+            for path in repo.rglob("*") if path.is_file()} == state["RUNTIME_FILES"]
+    _, unused_archive, _, existing = state["input_arguments"](inputs, tmp_path)
+    assert existing == inputs and not unused_archive.exists()
+    assert restore_inputs(unused_archive, existing, "unused", pin)["files"] == files
+
+    (runtime / "scripts/run_exp033.py").write_bytes(b"changed")
+    with pytest.raises(ValueError, match="runtime file hash mismatch"):
+        state["materialize_runtime"](runtime, tmp_path / "other")
+    (inputs / "pairs.csv").write_bytes(b"changed")
+    with pytest.raises(ValueError, match="Input checksum mismatch"):
+        restore_inputs(unused_archive, existing, "unused", pin)
+    with pytest.raises(ValueError, match="manifest SHA-256 mismatch"):
+        restore_inputs(unused_archive, existing, "unused", "0" * 64)

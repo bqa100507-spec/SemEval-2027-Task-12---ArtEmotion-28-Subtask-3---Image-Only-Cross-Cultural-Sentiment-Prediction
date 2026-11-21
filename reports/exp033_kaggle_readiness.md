@@ -22,7 +22,7 @@ The measured RTX 4060 rates project about **0.48 GPU-hours for suffix work** and
 
 ## Owner run
 
-1. Attach both private ZIPs to [EXP033_Kaggle.ipynb](../notebooks/EXP033_Kaggle.ipynb), select T4 and enable Internet. The notebook finds the ZIPs by exact filename. Provide a path override only if needed.
+1. Attach the existing private dataset to [EXP033_Kaggle.ipynb](../notebooks/EXP033_Kaggle.ipynb), select T4 and enable Internet. The notebook finds Kaggle's recursively extracted exp033_inputs and exp033_runtime_oneclick directories, or the original ZIPs when present. It verifies the pinned manifest and runtime files. Provide a path override only if needed.
 2. Set `AUTHORIZE_RUN = True` and click **Run all** once. The worker checks the pretrained model on the selected T4 and verifies the local sealed optimizer/scaler checkpoint. On PASS it runs all five folds immediately. A failed preflight ends the run and exports diagnostics.
 3. Sealed epochs and logs are written to Kaggle Working as the run proceeds. The final verified ZIP and SHA-256 receipt are created automatically on success or handled failure. Save or download the archive before ending the session.
 
