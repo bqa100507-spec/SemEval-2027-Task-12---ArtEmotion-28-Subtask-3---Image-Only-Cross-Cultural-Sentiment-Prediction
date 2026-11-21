@@ -1,13 +1,13 @@
 # ST3 research index and production decision
 
-**Current decision: EXP-028 CLOSED / STAGE1 NO-GO. E50+L unchanged. Next direction awaits independent brainstorming.** [Closure](../reports/exp028_final_closure.md) · [Research handoff](../reports/exp028_research_handoff.md).
+**Current decision · EXP-031 COMPLETE (6/6) / NO-GO FOR PRODUCTION.** E50+L remains the released system. EXP-032 is a research design awaiting owner review. [EXP-031 closure](../reports/exp031_final_report.md) · [History audit](../reports/research_history_audit.md) · [Strategy](../reports/exp032_research_strategy.md).
 
 Production remains the released default `predict --mode e50l`, with E50/CLIP explicit fallbacks. E50+L's frozen 849-row reference SHA is `162875b641407efea3bf28d1d147c2d9a3dd3dc2faed8863f9438bee517199a3`; owner-reported hosted Contrast is 0.4643 (#1046158). EL8's valid archived submission #1053827 scored 0.4537 according to the owner, so engineering success did not justify replacement.
 
 ## Protocols must not be mixed
 
 - **P1:** EXP-002 original folds, 1,571 paintings / 16,019 pairs; used by most EXP-003–015 comparisons.
-- **P2:** EXP-017's new grouped protocol, 1,335 paintings / 13,600 pairs plus 236 sealed training-confirmation paintings; used through EXP-022. M0/R0 equals 0.447097707 Contrast. Closure checked exact P2 fold/key/probability identity between EXP-017 and EXP-022.
+- **P2:** EXP-017's new grouped protocol, 1,335 paintings / 13,600 pairs plus 236 sealed training-confirmation paintings; reused by later experiments in full or as selected folds. M0/R0 equals 0.447097707 Contrast. Closure checked exact P2 fold/key/probability identity between EXP-017 and EXP-022.
 - **Development:** separate official 849 input pairs / 85 paintings, distinct from P1/P2 OOF populations. Hosted scores below are owner-reported where marked. This closure did not read Development gold or recompute those scores.
 
 Numerical gains on different populations are not directly interchangeable. Stored paired intervals condition on the observed paintings and adaptive reuse; they are not independent confirmations.
@@ -44,10 +44,13 @@ Reports for EXP-001–015 are retained at [archive `cd321f1`](https://github.com
 | TASK-024 | Research closure, archives and next hypothesis | Read-only evidence verification; documentation only | No new model execution |
 | **EXP-023** | Painting-centered caption targets | Owner-reported final Colab pipeline result; persistent scientific artifacts incomplete | **CLOSED / NO-GO**, no verified complete score asserted; [short closure](../reports/exp023_closure.md) |
 | **EXP-024** | Standalone culture-conditioned visual retrieval | P2 centered0.426703 /0.778935 bits vs E50+L0.447098 /0.710554; loses5/5 folds | Discard competition candidate; [method/results](../reports/exp024_visual_retrieval.md) |
-| **EXP-025** | Caption-based VLM semantic fusion | Owner-reported final P2: A0.447073 /B0.396442 /C0.428974 /D0.446692; E50+L0.447098 | **CLOSED / NO-GO** for caption fusion; preserve1335-image FP16 cache; [result](../reports/exp025_vlm_clip_probe.md) |
+| **EXP-025** | Caption-based VLM semantic fusion | Final P2 rescored from saved predictions. Best fused arm D 0.446692 / 0.714754 bits vs E50+L 0.447098 / 0.710554 | **CLOSED / NO-GO** for caption fusion; preserve1335-image FP16 cache; [result](../reports/exp025_vlm_clip_probe.md) |
 | **EXP-026** | Direct multimodal hidden-state supervised sentiment, frozen versus decoder QLoRA | Fold1 L0 0.340691 /0.704087 vs E50+L0.433429 /0.666222; CPU prediction/scorer audit PASS | **EXPLORATORY_COMPLETED / NOT PROMOTED**; unequal fitting data; [verified results](../reports/exp026_exploratory.md); no further GPU/full CV |
 | **EXP-027** | Matched BCE vs BCE+within-painting Pearson decoder QLoRA | Verified inner pilot Contrast BCE0.195952 /P_low0.184009 /P_high0.188607; no outer test | **GPU_PILOT_COMPLETED / NO_GO_FOR_EXPANSION**; [closure/error analysis](../reports/exp027_final_closure.md); no further GPU/full CV |
 | TASK-031 | Factorial raw-logit prompt/head mechanism probe on saved EXP-027 states | Actual L4 export independently reconstructed on CPU:3216 logits; matching mean abs(D)0.06738/0.06543/0.07361; prompt-sensitive, limited/noisy training alignment | **CLOSED / MECHANISM_ANALYZED**; [closure](../reports/task031_final_closure.md), [receipt](task031_closure_receipt.json); no further inference/training |
 | EXP-028 Stage 1 | Frozen CLIP–Qwen LR fusion and matched E50+L on preregistered P2 fold 3 | Verified Colab CPU screen. C512 0.435013 / 0.711273 bits vs E50+L 0.433536 / 0.713192 and A_raw 0.435618 / 0.720019. C512 exceeds shuffled-Q, misses both Contrast gates | **CLOSED / STAGE1 NO-GO**. [Final closure](../reports/exp028_final_closure.md), [original design](../reports/exp028_design_proposal.md), [implementation](../reports/exp028_stage1.md) and [archived runbook](../reports/exp028_stage1_cpu_colab.md) |
+| EXP-029 | Qwen 3B soft visual prefixes, projector and QLoRA | Recovered inner pilot 0.415210 / 0.784559 and 0.410691 / 0.786886 bits vs matched E50+L 0.417755 / 0.781648 | Exploratory, no full fold. [Recovery](../reports/exp029_recovery.md) |
+| EXP-030 | Native Qwen 7B vision and decoder adapters | Fold 3 best epoch 3 at 0.419801 / 0.733054 bits vs matched E50+L 0.433536 / 0.713192 | Below reference. [Analysis](../reports/exp030_error_analysis.md) |
+| EXP-031 | Hierarchical Qwen 7B with a noise-weighted cultural ranking loss | Fold 3 best epoch 3 at 0.410688 / 0.729746 bits vs matched E50+L 0.433536 / 0.713192 | **COMPLETE / NO-GO**. Verified all six checkpoint seals and re-scored predictions. [Closure](../reports/exp031_final_report.md) |
 
 Never promote a candidate merely because it has a valid ZIP or clears a reused-CV threshold. The future workflow requires frozen controls, verification and conditional independent confirmation before any manual hosted comparison. Its [one-click contract](experiment_workflow_standard.md) includes verified Drive export, optional browser-download attempts and runtime release; it is not retrofitted into the closed EXP-022 notebooks.
