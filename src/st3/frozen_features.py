@@ -88,11 +88,15 @@ def extract_frozen(root, names, cache_dir, config, requested_device, *, prefix, 
         print(f"Reused {len(names)} checksum-validated {prefix} features from {location}", flush=True)
         return vectors, manifest
 
-    from huggingface_hub import hf_hub_download
     from transformers import AutoImageProcessor
 
-    assets = {name: Path(hf_hub_download(identity["model"], name, revision=identity["revision"]))
-              for name in ("config.json", "preprocessor_config.json", "model.safetensors")}
+    filenames = ("config.json", "preprocessor_config.json", "model.safetensors")
+    if config.get("local_checkpoint") is not None:
+        assets = {name: Path(config["local_checkpoint"]) / name for name in filenames}
+    else:
+        from huggingface_hub import hf_hub_download
+
+        assets = {name: Path(hf_hub_download(identity["model"], name, revision=identity["revision"])) for name in filenames}
     asset_hashes = {name: file_sha256(file) for name, file in assets.items()}
     verify_asset_hashes(asset_hashes, config)
     checkpoint = assets["model.safetensors"].parent
