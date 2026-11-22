@@ -47,6 +47,16 @@ def test_partitioning_is_grouped_and_checkpoint_selection_is_inner_only():
     assert row["epoch"] == 3 and ok
 
 
+def test_corrected_ridge_offsets_reject_query_leakage_before_fitting():
+    from st3.exp035_protocol import corrected_offsets
+
+    frame = pd.DataFrame({"painting": ["a", "b"], "language": ["x", "x"], "k": [1, 3], "n": [5, 5]})
+    with pytest.raises(ValueError, match="disjoint"):
+        corrected_offsets(frame, frame[["painting", "language"]], {}, {}, {}, 1)
+    with pytest.raises(ValueError, match="disjoint"):
+        corrected_offsets(frame.iloc[:1], frame.iloc[1:], {}, {}, {}, 1)
+
+
 def test_real_module_layout_and_delayed_merger_gradients_on_tiny_qwen():
     qwen = pytest.importorskip("transformers.models.qwen3_vl.modeling_qwen3_vl")
     text = {"hidden_size": 32, "intermediate_size": 64, "num_attention_heads": 2, "num_key_value_heads": 1,
