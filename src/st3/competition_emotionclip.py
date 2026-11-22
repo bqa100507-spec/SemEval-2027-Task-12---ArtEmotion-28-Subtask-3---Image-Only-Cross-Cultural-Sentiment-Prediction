@@ -26,7 +26,7 @@ BRANCHES = ("clip_b", "emotion_scores", "emotion_embedding")
 
 def evaluate(gold, predictions, track, config):
     require_same_pairs(gold, predictions)
-    data = gold.merge(predictions, on=KEYS, validate="one_to_one").assign(y=lambda f: f.k / f.n)
+    data = gold.merge(predictions, on=KEYS, validate="one_to_one").assign(p=lambda f: f.k / f.n)
     candidates = ("emotion_scores", "emotion_embedding", "blend")
     systems = ("fixed_ridge", "corrected_ridge", *BRANCHES, "blend")
     contrasts = [*((name, "corrected_ridge") for name in (*BRANCHES, "blend")),
@@ -41,8 +41,12 @@ def evaluate(gold, predictions, track, config):
         folds = {int(f): scores(rows) for f, rows in block.groupby("fold")}
         paintings = pd.DataFrame({name: painting_scores(block, name).set_index("painting").contrast
                                   for name in systems})
-        if paintings.empty or paintings.isna().any().any():
+        missing = paintings.isna()
+        if (missing.any(axis=1) != missing.all(axis=1)).any():
             raise ValueError("Systems must share the same Contrast-eligible paintings")
+        paintings = paintings.dropna()
+        if paintings.empty:
+            raise ValueError("No Contrast-eligible paintings")
         painting_rows.append(paintings.reset_index().assign(scope=scope))
         paired = {}
         for lhs, rhs in contrasts:
@@ -55,14 +59,14 @@ def evaluate(gold, predictions, track, config):
                 "drop_top_wins": float(diff.sort_values(ascending=False).iloc[top:].mean()),
             }
         eligible = block[block.painting.isin(paintings.index)]
-        columns = ["y", "corrected_ridge", *BRANCHES]
+        columns = ["p", "corrected_ridge", *BRANCHES]
         grouped = eligible.groupby("painting")
         centered = eligible[columns] - grouped[columns].transform("mean")
-        weights = 1 / grouped.y.transform("size")
-        residual = centered.y - centered.corrected_ridge
+        weights = 1 / grouped.p.transform("size")
+        residual = centered.p - centered.corrected_ridge
         correlations = {}
         for name in BRANCHES:
-            branch = centered.y - centered[name]
+            branch = centered.p - centered[name]
             scale = np.sqrt(np.average(residual**2, weights=weights) * np.average(branch**2, weights=weights))
             correlations[name] = float(np.average(residual * branch, weights=weights) / scale) if scale else None
         result[scope] = {"pooled": pooled, "folds": folds, "paired": paired, "pairs": len(block),
