@@ -8,8 +8,9 @@ from torch import nn
 from torch.nn import functional as F
 
 from st3.e50_heads import read_json
-from st3.exp035 import ResidualHead, add_merger_lora, image_hidden, objective, odds_update, select_languages, update
-from st3.exp035_protocol import select_epoch, split_groups
+from st3.exp035 import (ResidualHead, add_merger_lora, frozen_feature, image_hidden, objective,
+                       odds_update, select_languages, update)
+from st3.exp035_protocol import paired_epoch_curves, select_epoch, split_groups
 
 CONFIG = read_json(Path(__file__).resolve().parents[1] / "configs/exp035.json")
 
@@ -55,6 +56,41 @@ def test_corrected_ridge_offsets_reject_query_leakage_before_fitting():
         corrected_offsets(frame, frame[["painting", "language"]], {}, {}, {}, 1)
     with pytest.raises(ValueError, match="disjoint"):
         corrected_offsets(frame.iloc[:1], frame.iloc[1:], {}, {}, {}, 1)
+
+
+def test_frozen_features_preserve_dtype_values_and_head_gradients():
+    cache, calls = {}, []
+    state = torch.rand(1, 8, dtype=torch.float16, requires_grad=True)
+
+    def live():
+        calls.append(1)
+        return state
+
+    cached = frozen_feature(cache, "a", live, "cpu")
+    assert torch.equal(cached, state) and cached.dtype == state.dtype
+    assert not cached.requires_grad
+    assert torch.equal(frozen_feature(cache, "a", live, "cpu"), state)
+    assert len(calls) == 1
+    head = ResidualHead(8, 3, CONFIG)
+    from_live = torch.autograd.grad(head(state.detach()).sum(), tuple(head.parameters()))
+    from_cache = torch.autograd.grad(head(cached).sum(), tuple(head.parameters()))
+    assert all(torch.equal(a, b) for a, b in zip(from_live, from_cache, strict=True))
+
+
+def test_paired_epoch_curves_report_signed_deltas_and_check_reference():
+    a = {"cultural_contrast": .4, "log_loss": .8}
+    b = {"cultural_contrast": .5, "log_loss": .7}
+    c = {"cultural_contrast": .3, "log_loss": .9}
+    arms = {name: {"history": [{"epoch": 1, "inner": {scope: {"prior": a, "candidate": candidate}
+                                                    for scope in ("full", "test_like")}}]}
+            for name, candidate in (("frozen", b), ("merger", c))}
+    result = paired_epoch_curves(arms)[0]["inner"]["full"]
+    assert result["cultural_contrast_delta"] == pytest.approx(
+        {"B_minus_A": .1, "C_minus_A": -.1, "C_minus_B": -.2})
+    assert result["log_loss_delta"]["C_minus_B"] == pytest.approx(.2)
+    arms["merger"]["history"][0]["inner"]["full"]["prior"] = b
+    with pytest.raises(ValueError, match="identical Ridge"):
+        paired_epoch_curves(arms)
 
 
 def test_real_module_layout_and_delayed_merger_gradients_on_tiny_qwen():

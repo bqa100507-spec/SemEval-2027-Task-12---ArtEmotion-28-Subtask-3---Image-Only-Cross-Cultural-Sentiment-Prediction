@@ -81,12 +81,36 @@ def select_epoch(history, margin):
     return min(history, key=lambda r: (r["inner"]["test_like"]["candidate"]["log_loss"], r["epoch"])), False
 
 
+def metric_deltas(a, b, c):
+    """Signed, matched changes. Positive Log Loss deltas are regressions."""
+    return {f"{name}_delta": {label: lhs[name] - rhs[name] for label, lhs, rhs in
+                            (("B_minus_A", b, a), ("C_minus_A", c, a), ("C_minus_B", c, b))}
+            for name in ("cultural_contrast", "log_loss")}
+
+
+def paired_epoch_curves(arms):
+    b, c = (arms[x]["history"] for x in ("frozen", "merger"))
+    results = []
+    for left, right in zip(b, c, strict=True):
+        if left["epoch"] != right["epoch"]:
+            raise ValueError("Inner curves have mismatched epochs")
+        scopes = {}
+        for scope, values in left["inner"].items():
+            other = right["inner"][scope]
+            if values["prior"] != other["prior"]:
+                raise ValueError("Inner curves do not share an identical Ridge reference")
+            scopes[scope] = metric_deltas(values["prior"], values["candidate"], other["candidate"])
+        results.append({"epoch": left["epoch"], "inner": scopes})
+    return results
+
+
 def held_metrics(frame, track):
     report = scores(frame, ("prior", "frozen", "merger"), track["test_like_excluded"])
     for name, rows in (("full", frame), ("test_like", frame[~frame.language.isin(track["test_like_excluded"])])):
         rows = rows.assign(p=rows.k / rows.n)
         contrasts = {n: painting_scores(rows, n).set_index("painting").contrast.dropna()
                      for n in ("prior", "frozen", "merger")}
+        report[name].update(metric_deltas(*(report[name][key] for key in ("prior", "frozen", "merger"))))
         report[name]["paired_contrast"] = {f"{a}_minus_{b}": compare(contrasts[a] - contrasts[b], track["decision"])
                                            for a, b in (("frozen", "prior"), ("merger", "prior"), ("merger", "frozen"))}
     return report

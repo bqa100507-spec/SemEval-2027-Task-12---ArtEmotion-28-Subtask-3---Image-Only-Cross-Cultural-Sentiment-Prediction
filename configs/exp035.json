@@ -15,7 +15,7 @@
   "prompt": "Inspect this artwork.",
   "preflight_artworks": 24,
   "preflight_seconds": 300,
-  "cumulative_gpu_seconds": 3300,
+  "cumulative_gpu_seconds": 5400,
   "runtime_margin": 1.35,
   "memory_margin_mib": 512,
   "inner_log_loss_margin": 0.005

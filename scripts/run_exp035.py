@@ -26,9 +26,12 @@ from st3.contrast_study import new_output
 from st3.data import KEYS
 from st3.e50_heads import read_json
 from st3.e50_inference import safe_image_path
-from st3.exp035_protocol import held_metrics, prepare_frames, scores, select_epoch
+from st3.exp035_protocol import held_metrics, paired_epoch_curves, prepare_frames, scores, select_epoch
 
 RULE = ROOT / "configs/exp035.json"
+PILOT = ROOT / "runs/exp035_fold3_pilot"
+HISTORICAL = ROOT / "runs/exp035_cultural_residual"
+HISTORICAL_BUDGET_SHA = "d4a1b62879e051dc04405b21836aa4e2a5ce75a0c9e28f114f89ddc30d42a5fa"
 PARTITIONS = ("fit", "inner", "outer")
 SOURCE_FILES = (RULE, Path(__file__), ROOT / "src/st3/exp035.py", ROOT / "src/st3/exp035_protocol.py",
                 BASE, CORRECTION, TRACK1, ROOT / "src/st3/competition_challenger.py",
@@ -75,10 +78,11 @@ def prepare(args):
 def worker(args, deadline):
     import torch
     from st3.competition_semantic_recovery import load_model
-    from st3.exp035 import ResidualHead, add_merger_lora, image_hidden, odds_update, select_languages, update
+    from st3.exp035 import (ResidualHead, add_merger_lora, frozen_feature, image_hidden, objective,
+                           odds_update, select_languages, update)
 
     config, base, track = map(read_json, (RULE, BASE, TRACK1))
-    frames, prepared = prepare(args)
+    frames, _ = prepare(args)
     device = "cuda"
     if not torch.cuda.is_available() or "RTX 4060 Laptop" not in torch.cuda.get_device_name():
         raise RuntimeError("This bounded pilot is configured for the local RTX 4060 Laptop")
@@ -103,9 +107,14 @@ def worker(args, deadline):
         rgb = verified_rgb(safe_image_path(args.data_dir, row.image), row.image_sha256)
         return processor(text=[prompt], images=[rgb], return_tensors="pt").to(device)
 
+    def values(panel, column):
+        return torch.tensor(panel[column].to_numpy(), device=device, dtype=torch.float64)
+
+    def offsets(panel):
+        return values(panel, "prior"), torch.tensor([language_map.get(lang, -1) for lang in panel.language], device=device)
+
     def rows(panel):
-        prior, k, n = [torch.tensor(panel[z].to_numpy(), device=device, dtype=torch.float64) for z in ("prior", "k", "n")]
-        return prior, torch.tensor([language_map.get(lang, -1) for lang in panel.language], device=device), k, n
+        return *offsets(panel), values(panel, "k"), values(panel, "n")
 
     def new_head():
         return ResidualHead(model.language_model.config.hidden_size, len(language_map), config).to(device)
@@ -123,13 +132,28 @@ def worker(args, deadline):
         pre_deadline = time.time() + config["preflight_seconds"]
         torch.cuda.reset_peak_memory_stats()
         t = time.perf_counter()
-        with torch.no_grad():
-            frozen_example = {}
-            for name in example:
-                check_time(pre_deadline)
-                frozen_example[name] = image_hidden(model, inputs(name))
+        frozen_example = {}
+        for name in example:
+            check_time(pre_deadline)
+            frozen_feature(frozen_example, name, lambda: image_hidden(model, inputs(name)), device)
         torch.cuda.synchronize()
         forward_seconds = time.perf_counter() - t
+        with torch.no_grad():
+            for name in example:
+                check_time(pre_deadline)
+                live = image_hidden(model, inputs(name))
+                cached = frozen_example[name].to(device)
+                if live.dtype != cached.dtype or not torch.isfinite(live).all() or not torch.equal(live, cached):
+                    raise RuntimeError(f"Cached Qwen state differs from an independent live frozen forward for {name}")
+        head = new_head()
+        opt, scale = setup(head, None)
+        t = time.perf_counter()
+        for name in example:
+            check_time(pre_deadline)
+            update(head, None, opt, scale, frozen_example[name].to(device), *rows(lists["fit"][name]), votes, config)
+        torch.cuda.synchronize()
+        cached_seconds = time.perf_counter() - t
+        del opt, scale
         head = new_head()
         first = example[0]
         prior, ids, k, n = rows(lists["fit"][first])
@@ -142,7 +166,7 @@ def worker(args, deadline):
 
         with torch.no_grad():
             zero = image_hidden(model, inputs(first))
-            if not torch.equal(zero, frozen_example[first]) or not torch.equal(
+            if not torch.equal(zero, frozen_example[first].to(device)) or not torch.equal(
                     odds_update(prior, select_languages(head(zero).squeeze(0), ids)), prior):
                 raise RuntimeError("Zero-initialized merger or residual did not preserve exact predictions")
         optimizer, scaler = setup(head, adapter)
@@ -161,22 +185,32 @@ def worker(args, deadline):
         if any(not v > 0 for v in changes.values()) or not max(x["adapter_gradient"] for x in probe[1:]) > 1e-8:
             raise RuntimeError(f"Merger adapter failed gradient/update verification: {changes}")
         peak = torch.cuda.max_memory_reserved()
-        estimate = (back_seconds * len(lists["fit"]) * config["epochs"] + forward_seconds * (
-            len(lists["fit"]) + (1 + config["epochs"]) * len(lists["inner"]) + 2 * len(lists["outer"]))) / len(example)
+        fit_size, inner_size, outer_size = (len(lists[name]) for name in PARTITIONS)
+        b_seconds = (forward_seconds * (fit_size + inner_size + outer_size)
+                     + cached_seconds * (config["epochs"] * (fit_size + inner_size) + outer_size)) / len(example)
+        c_seconds = (back_seconds * fit_size * config["epochs"]
+                     + forward_seconds * (config["epochs"] * inner_size + outer_size)) / len(example)
+        estimate = b_seconds + c_seconds
         needed = estimate * config["runtime_margin"]
         fit_budget = peak + config["memory_margin_mib"] * 2**20 < hw["initial_free_bytes"]
         receipt = {"state": "PASS" if fit_budget else "MEMORY_MARGIN_FAIL", "hardware": hw, "targets": ["visual.merger.linear_fc2"],
                    "matrix_updates": changes, "zero_parity": True, "frozen_weights_verified": True,
+                   "frozen_cache_exact_parity": True,
                    "peak_reserved_bytes": peak, "peak_allocated_bytes": torch.cuda.max_memory_allocated(),
                    "adapter_parameters": adapter.left.numel() + adapter.right.numel(),
                    "head_parameters": sum(p.numel() for p in head.parameters()),
                    "sample": example, "forward_seconds": forward_seconds, "adapter_step_seconds": back_seconds,
+                   "frozen_cached_step_seconds": cached_seconds,
+                   "estimated_frozen_seconds": b_seconds, "estimated_merger_seconds": c_seconds,
                    "estimated_pilot_seconds": estimate, "estimated_with_reserve_seconds": needed, "steps": probe}
         write_atomic(preflight / "result.json", receipt)
     print({k: receipt[k] for k in ("state", "estimated_with_reserve_seconds", "peak_reserved_bytes")}, flush=True)
-    if args.preflight_only or not fit_budget or needed + 30 > deadline - time.time():
-        reason = "PREFLIGHT_ONLY" if args.preflight_only else "PILOT_EXCEEDS_MEASURED_BUDGET"
-        write_atomic(args.run_dir / "status.json", {"state": reason})
+    remaining = deadline - time.time()
+    if args.preflight_only or not fit_budget or needed + 30 > remaining:
+        reason = "PREFLIGHT_ONLY" if args.preflight_only else (
+            "PILOT_EXCEEDS_MEASURED_BUDGET" if fit_budget else "MEMORY_MARGIN_FAIL")
+        write_atomic(args.run_dir / "status.json", {"state": reason, "remaining_seconds": remaining,
+                                                   "required_seconds": needed + 30})
         return
 
     # Discard diagnostic updates before either scientific arm starts.
@@ -196,20 +230,25 @@ def worker(args, deadline):
         def feature(name):
             if adapted is not None:
                 return image_hidden(model, inputs(name))
-            if name not in frozen_cache:
-                with torch.no_grad():
-                    frozen_cache[name] = image_hidden(model, inputs(name)).cpu()
-            return frozen_cache[name].to(device)
+            return frozen_feature(frozen_cache, name, lambda: image_hidden(model, inputs(name)), device)
 
         @torch.no_grad()
         def predict(partition):
-            out = []
+            inner = partition == "inner"
+            out, losses = [], []
             for name, panel in lists[partition].items():
                 check_time()
-                prior, ids, _, _ = rows(panel)
+                prior, ids = offsets(panel)
                 delta = select_languages(current(feature(name)).squeeze(0), ids)
-                out.append(panel.assign(candidate=odds_update(prior, delta).cpu().numpy()))
-            return pd.concat(out, ignore_index=True)
+                predictions = odds_update(prior, delta)
+                if inner:
+                    loss, terms = objective(prior, delta, values(panel, "k"), values(panel, "n"), votes, config)
+                    diagnostics = [loss, *terms, delta.square().mean().sqrt(), (predictions - prior).abs().mean()]
+                    losses.append(torch.stack(diagnostics).cpu().numpy())
+                out.append(panel[KEYS].assign(candidate=predictions.cpu().numpy()))
+            return pd.concat(out, ignore_index=True), dict(zip(
+                ("loss", "bce", "centered_mse", "residual_penalty", "delta_rms", "mean_abs_probability_change"),
+                map(float, np.mean(losses, axis=0)))) if inner else {}
 
         history = []
         for epoch in range(1, config["epochs"] + 1):
@@ -232,10 +271,12 @@ def worker(args, deadline):
                     log.append(update(current, adapted, opt, scale, feature(name), *rows(lists["fit"][name]), votes, config))
                 isolation()
                 train_seconds = time.perf_counter() - begin
-                pred = predict("inner")
+                inner_predictions, losses = predict("inner")
+                pred = frames["inner"].merge(inner_predictions, on=KEYS, validate="one_to_one")
                 inner = scores(pred, ("prior", "candidate"), track["test_like_excluded"])
                 curve = {"epoch": epoch, "train": {k: float(np.mean([v[k] for v in log])) for k in log[0]},
-                         "inner": inner, "train_seconds": train_seconds, "total_seconds": time.perf_counter()-begin,
+                         "inner": inner, "inner_losses": losses, "train_seconds": train_seconds,
+                         "total_seconds": time.perf_counter()-begin,
                          "peak_reserved_bytes": torch.cuda.max_memory_reserved(),
                          "peak_allocated_bytes": torch.cuda.max_memory_allocated(),
                          "adapter_updates": {k: float((v-old[k]).norm()) for k, v in trainables(adapted).items()}
@@ -249,12 +290,18 @@ def worker(args, deadline):
         selected = path / f"epoch_{winner['epoch']}"
         restore(wrapping, load_sealed(selected, arm_id | {"epoch": winner["epoch"]}, torch)["trainable"])
         final = path / "outer"
-        if not final.exists():
-            pred = predict("outer")[KEYS + ["candidate"]].rename(columns={"candidate": arm})
+        checkpoint_sha = read_json(selected / "seal.json")["sha256"]
+        if final.exists():
+            seal = read_json(final / "seal.json")
+            if seal["selected_epoch"] != winner["epoch"] or seal["checkpoint"] != checkpoint_sha:
+                raise ValueError("Sealed outer predictions do not match the inner-selected checkpoint")
+        else:
+            pred, _ = predict("outer")
+            pred = pred.rename(columns={"candidate": arm})
             with new_output(final) as stage:
                 pred.to_csv(stage / "predictions.csv", index=False, float_format="%.17g")
                 write_atomic(stage / "seal.json", {"identity": arm_id, "selected_epoch": winner["epoch"],
-                    "checkpoint": read_json(selected / "seal.json")["sha256"],
+                    "checkpoint": checkpoint_sha,
                     "history": history, "inner_log_loss_guardrail": guardrail,
                     "sha256": file_sha256(stage / "predictions.csv")})
 
@@ -274,7 +321,8 @@ def worker(args, deadline):
     summary = held_metrics(result, track)
     with new_output(args.run_dir / "results") as stage:
         result[KEYS + ["prior", "frozen", "merger"]].to_csv(stage / "predictions.csv", index=False, float_format="%.17g")
-        write_atomic(stage / "metrics.json", summary | {"arms": arms, "preflight": receipt})
+        write_atomic(stage / "metrics.json", summary | {"arms": arms, "preflight": receipt,
+                                                          "paired_inner_curves": paired_epoch_curves(arms)})
         write_atomic(stage / "seal.json", {p.name: file_sha256(p) for p in stage.iterdir()})
     write_atomic(args.run_dir / "status.json", {"state": "FOLD_PILOT_COMPLETE"})
 
@@ -284,7 +332,9 @@ def supervise(args):
     root = args.run_dir
     ledger = root / "gpu_budget.json"
     with FileLock(str(ledger) + ".lock", timeout=0):
-        used = 0.
+        historical = HISTORICAL / "gpu_budget.json"
+        check_hash(historical, HISTORICAL_BUDGET_SHA)
+        used = float(read_json(historical)["charged_seconds"])
         if ledger.exists():
             last = read_json(ledger)
             used = float(last["charged_seconds"])
@@ -299,7 +349,7 @@ def supervise(args):
         write_atomic(ledger, {"charged_seconds": used, "active_since": start, "deadline": deadline})
         try:
             subprocess.run([sys.executable, "-u", str(Path(__file__)), *sys.argv[1:], "--worker"],
-                           check=True, timeout=deadline-start)
+                           check=True, timeout=max(0, deadline - time.time() - 2))
         except (subprocess.CalledProcessError, subprocess.TimeoutExpired):
             write_atomic(root / "status.json", {"state": "FAILED_OR_BUDGET_STOP", "sealed_epochs_retained": True})
             raise
@@ -313,11 +363,13 @@ def main():
     parser.add_argument("--data-dir", type=Path, default=ROOT / "data/upstream")
     parser.add_argument("--reference", type=Path, default=ROOT / "runs/competition_neighborhood_residual/results")
     parser.add_argument("--checkpoint", type=Path, default=ROOT / "cache/qwen3-vl-4b-ebb281e")
-    parser.add_argument("--run-dir", type=Path, default=ROOT / "runs/exp035_cultural_residual")
+    parser.add_argument("--run-dir", type=Path, default=PILOT)
     parser.add_argument("--run-bounded-gpu", action="store_true")
     parser.add_argument("--preflight-only", action="store_true")
     parser.add_argument("--worker", action="store_true", help=argparse.SUPPRESS)
     args = parser.parse_args()
+    if args.run_bounded_gpu and args.run_dir.resolve() != PILOT.resolve():
+        parser.error("GPU runs must use the canonical EXP-035 pilot directory to share the cumulative budget")
     if args.worker:
         lease = read_json(args.run_dir / "gpu_budget.json")
         if not args.run_bounded_gpu or lease["active_since"] is None:

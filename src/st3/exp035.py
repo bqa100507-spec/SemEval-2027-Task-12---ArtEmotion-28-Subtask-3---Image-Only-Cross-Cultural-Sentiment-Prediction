@@ -41,6 +41,14 @@ def image_hidden(backbone, encoded):
     return last_valid(output, encoded["attention_mask"])
 
 
+def frozen_feature(cache, painting, forward, device):
+    """One exact, dtype-preserving state per artwork, for the frozen arm only."""
+    if painting not in cache:
+        with torch.no_grad():
+            cache[painting] = forward().detach().cpu()
+    return cache[painting].to(device)
+
+
 def select_languages(deltas, language_ids):
     return torch.where(language_ids >= 0, deltas[language_ids.clamp_min(0)], 0.)
 
