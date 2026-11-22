@@ -65,6 +65,24 @@ def run_command(command, deadline, log, env):
 def restore_archive(archive, expected_handoff):
     if any(RUN.iterdir()):
         raise ValueError("Resume input requires a fresh Kaggle working directory")
+    if archive.is_dir():
+        if not (archive / "result_manifest.json").is_file():
+            manifests = list(archive.rglob("result_manifest.json"))
+            if len(manifests) != 1:
+                raise ValueError("Set the resume path to the extracted results directory containing result_manifest.json")
+            archive = manifests[0].parent
+        manifest = read(archive / "result_manifest.json")
+        if manifest["handoff_sha256"] != expected_handoff:
+            raise ValueError("Resume directory belongs to a different handoff")
+        for name, sha in manifest["files"].items():
+            path = (archive / relative(name)).resolve(strict=True)
+            if not path.is_relative_to(archive.resolve()) or digest(path) != sha:
+                raise ValueError(f"Corrupt resume file: {name}")
+        for name in manifest["files"]:
+            dest = RUN / relative(name)
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(archive / name, dest)
+        return
     with ZipFile(archive) as bundle:
         manifest = json.loads(bundle.read("result_manifest.json"))
         files = manifest["files"]
@@ -186,7 +204,7 @@ def execute(args, started):
                      "--data-dir", str(handoff / "artwork"), "--checkpoint", str(args.checkpoint),
                      "--run-dir", str(RUN), "--run-bounded-gpu", "--kaggle", "--worker"], deadline, log, env)
         print(json.dumps(read(RUN / "status.json"), indent=2), flush=True)
-    except Exception as error:
+    except (Exception, KeyboardInterrupt) as error:
         with log.open("a", encoding="utf-8") as stream:
             traceback.print_exc(file=stream)
         write(RUN / "status.json", {"state": "KAGGLE_STOPPED", "reason": str(error), "log": log.name})
