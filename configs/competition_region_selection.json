@@ -1,0 +1,21 @@
+{
+  "patch_count": 256,
+  "patch_width": 1024,
+  "batch_size": 8,
+  "extract_limit_seconds": 600,
+  "probe_images": 24,
+  "pca_width": 64,
+  "pca_paintings": 256,
+  "pca_patch_stride": 8,
+  "query_width": 16,
+  "epochs": 24,
+  "paintings_per_batch": 32,
+  "learning_rate": 0.015,
+  "query_l2": 0.002,
+  "seed": 203241,
+  "blend_share": 0.2,
+  "min_gain": 0.002,
+  "min_wins": 4,
+  "max_log_loss_delta": 0.005,
+  "cpu_threads": 2
+}
