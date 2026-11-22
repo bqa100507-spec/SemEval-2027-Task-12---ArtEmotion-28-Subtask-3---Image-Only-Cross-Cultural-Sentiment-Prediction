@@ -2,7 +2,7 @@
 """Prepare EXP-035 on CPU, then run one bounded real-image fold pilot."""
 
 import argparse
-import json
+import random
 import subprocess
 import sys
 import time
@@ -32,6 +32,9 @@ RULE = ROOT / "configs/exp035.json"
 PILOT = ROOT / "runs/exp035_fold3_pilot"
 HISTORICAL = ROOT / "runs/exp035_cultural_residual"
 HISTORICAL_BUDGET_SHA = "d4a1b62879e051dc04405b21836aa4e2a5ce75a0c9e28f114f89ddc30d42a5fa"
+KAGGLE_PREPARED_SHA = "baa3c118856a4867af80f734a093024baccb8ff110913e5b2e6c02e9e0753e07"
+KAGGLE_RUN = Path("/kaggle/working/exp035_fold3")
+KAGGLE_BUDGET = 5 * 60 * 60
 PARTITIONS = ("fit", "inner", "outer")
 SOURCE_FILES = (RULE, Path(__file__), ROOT / "src/st3/exp035.py", ROOT / "src/st3/exp035_protocol.py",
                 BASE, CORRECTION, TRACK1, ROOT / "src/st3/competition_challenger.py",
@@ -44,6 +47,10 @@ def prepare(args):
     identity = {"source": {str(p.relative_to(ROOT)): file_sha256(p) for p in SOURCE_FILES},
                 "inputs": track["p2_input_sha256"], "reference": base["incumbent_oof_sha256"]}
     path = args.run_dir / "prepared"
+    if args.kaggle:
+        # Preserve the original Windows preparation receipt verbatim. The sealed
+        # CPU offsets are inputs to the Linux worker and are never refitted here.
+        check_hash(path / "manifest.json", KAGGLE_PREPARED_SHA)
     if not path.exists():
         gold, features, _ = load_p2(args.inputs, track)
         frames, provenance = prepare_frames(gold, features, args.reference, track, read_json(CORRECTION), base, config)
@@ -55,7 +62,11 @@ def prepare(args):
                 files[file.name] = file_sha256(file)
             write_atomic(stage / "manifest.json", {"identity": identity, "files": files, "offsets": provenance})
     manifest = read_json(path / "manifest.json")
-    if manifest["identity"] != identity:
+    expected_identity = identity
+    if args.kaggle:
+        expected_identity = identity | {"source": manifest["identity"]["source"]}
+        check_hash(args.reference / "metrics.json", base["incumbent_metrics_sha256"])
+    if manifest["identity"] != expected_identity:
         raise ValueError("EXP-035 prepared data use a different frozen identity")
     for key, digest in track["p2_input_sha256"].items():
         check_hash(args.inputs / key, digest)
@@ -84,7 +95,16 @@ def worker(args, deadline):
     config, base, track = map(read_json, (RULE, BASE, TRACK1))
     frames, _ = prepare(args)
     device = "cuda"
-    if not torch.cuda.is_available() or "RTX 4060 Laptop" not in torch.cuda.get_device_name():
+    if not torch.cuda.is_available():
+        raise RuntimeError("EXP-035 requires a CUDA GPU")
+    gpu = torch.cuda.get_device_name()
+    if args.kaggle:
+        if torch.cuda.device_count() != 1 or not ("L4" in gpu or "T4" in gpu):
+            raise RuntimeError(f"Choose Kaggle L4 or T4 x2 with only GPU 0 visible, found {gpu}")
+        dtype_probe = torch.ones((16, 16), device="cuda", dtype=torch.float16)
+        if not torch.equal(dtype_probe @ dtype_probe, torch.full_like(dtype_probe, 16)):
+            raise RuntimeError("CUDA FP16 compatibility probe failed")
+    elif "RTX 4060 Laptop" not in gpu:
         raise RuntimeError("This bounded pilot is configured for the local RTX 4060 Laptop")
     assets = verified_assets(args.checkpoint, base)
     _, model, processor, hw = load_model(args.checkpoint, base | {"attention": "sdpa"})
@@ -95,6 +115,10 @@ def worker(args, deadline):
     votes = float(frames["fit"].n.sum() / len(lists["fit"]))
     identity = {"prepared": file_sha256(args.run_dir / "prepared/manifest.json"), "assets": assets,
                 "runtime": hw["runtime"], "gpu": hw["gpu"]}
+    if args.kaggle:
+        identity.update(source=read_json(args.run_dir / "provenance.json")["source_manifest_sha256"],
+                        environment=read_json(args.run_dir / "provenance.json")["runtime"],
+                        cuda=hw["cuda_runtime"], capability=list(torch.cuda.get_device_capability()))
     prompt = processor.apply_chat_template([{"role": "user", "content": [
         {"type": "image"}, {"type": "text", "text": config["prompt"]}]}], tokenize=False, add_generation_prompt=True)
 
@@ -126,6 +150,18 @@ def worker(args, deadline):
         opt = torch.optim.AdamW(params, foreach=False, weight_decay=config["weight_decay"])
         return opt, torch.amp.GradScaler("cuda", init_scale=128.)
 
+    completed = {}
+    for arm in ("frozen", "merger"):
+        path = args.run_dir / arm
+        epochs = sorted(int(p.name.removeprefix("epoch_")) for p in path.glob("epoch_*"))
+        if epochs != list(range(1, len(epochs) + 1)) or len(epochs) > config["epochs"]:
+            raise ValueError(f"Incomplete checkpoint sequence for {arm}")
+        for epoch in epochs:
+            load_sealed(path / f"epoch_{epoch}", identity | {"arm": arm, "epoch": epoch}, torch)
+        if (path / "outer").exists() and len(epochs) != config["epochs"]:
+            raise ValueError(f"Outer predictions are present before the last {arm} epoch")
+        completed[arm] = len(epochs)
+
     with new_output(args.run_dir / f"preflight_{time.time_ns()}") as preflight:
         names = sorted(lists["fit"])
         example = [names[i] for i in np.linspace(0, len(names)-1, config["preflight_artworks"], dtype=int)]
@@ -138,8 +174,9 @@ def worker(args, deadline):
             frozen_feature(frozen_example, name, lambda: image_hidden(model, inputs(name)), device)
         torch.cuda.synchronize()
         forward_seconds = time.perf_counter() - t
+        parity_sample = [example[0], example[len(example) // 2], example[-1]] if args.kaggle else example
         with torch.no_grad():
-            for name in example:
+            for name in parity_sample:
                 check_time(pre_deadline)
                 live = image_hidden(model, inputs(name))
                 cached = frozen_example[name].to(device)
@@ -186,16 +223,20 @@ def worker(args, deadline):
             raise RuntimeError(f"Merger adapter failed gradient/update verification: {changes}")
         peak = torch.cuda.max_memory_reserved()
         fit_size, inner_size, outer_size = (len(lists[name]) for name in PARTITIONS)
-        b_seconds = (forward_seconds * (fit_size + inner_size + outer_size)
-                     + cached_seconds * (config["epochs"] * (fit_size + inner_size) + outer_size)) / len(example)
-        c_seconds = (back_seconds * fit_size * config["epochs"]
-                     + forward_seconds * (config["epochs"] * inner_size + outer_size)) / len(example)
+        b_left, c_left = (config["epochs"] - completed[arm] for arm in ("frozen", "merger"))
+        b_outer, c_outer = (outer_size if not (args.run_dir / arm / "outer").exists() else 0
+                            for arm in ("frozen", "merger"))
+        b_pairs = fit_size + inner_size
+        b_seconds = (forward_seconds * ((b_pairs if b_left else 0) + b_outer)
+                     + cached_seconds * (b_left * b_pairs + b_outer)) / len(example)
+        c_seconds = (back_seconds * fit_size * c_left
+                     + forward_seconds * (c_left * inner_size + c_outer)) / len(example)
         estimate = b_seconds + c_seconds
         needed = estimate * config["runtime_margin"]
         fit_budget = peak + config["memory_margin_mib"] * 2**20 < hw["initial_free_bytes"]
         receipt = {"state": "PASS" if fit_budget else "MEMORY_MARGIN_FAIL", "hardware": hw, "targets": ["visual.merger.linear_fc2"],
                    "matrix_updates": changes, "zero_parity": True, "frozen_weights_verified": True,
-                   "frozen_cache_exact_parity": True,
+                   "frozen_cache_exact_parity": True, "parity_sample": parity_sample, "completed_epochs": completed,
                    "peak_reserved_bytes": peak, "peak_allocated_bytes": torch.cuda.max_memory_allocated(),
                    "adapter_parameters": adapter.left.numel() + adapter.right.numel(),
                    "head_parameters": sum(p.numel() for p in head.parameters()),
@@ -260,6 +301,13 @@ def worker(args, deadline):
                 restore(wrapping, state["trainable"])
                 opt.load_state_dict(state["optimizer"])
                 scale.load_state_dict(state["scaler"])
+                if args.kaggle:
+                    rng = state["rng"]
+                    torch.set_rng_state(rng["torch"])
+                    torch.cuda.set_rng_state(rng["cuda"])
+                    random.setstate(rng["python"])
+                    name, keys, pos, has_gauss, cached_gauss = rng["numpy"]
+                    np.random.set_state((name, np.asarray(keys, dtype=np.uint32), pos, has_gauss, cached_gauss))
             else:
                 begin = time.perf_counter()
                 old = trainables(adapted) if adapted is not None else {}
@@ -283,6 +331,11 @@ def worker(args, deadline):
                          if adapted is not None else {}}
                 state = {"trainable": trainables(wrapping), "optimizer": opt.state_dict(), "scaler": scale.state_dict(),
                          "curve": curve}
+                if args.kaggle:
+                    name, keys, pos, has_gauss, cached_gauss = np.random.get_state()
+                    state["rng"] = {"torch": torch.get_rng_state(), "cuda": torch.cuda.get_rng_state(),
+                                    "python": random.getstate(), "order_seed": config["seed"] + epoch,
+                                    "numpy": (name, keys.tolist(), pos, has_gauss, cached_gauss)}
                 save_sealed(directory, eid, state, torch)
             history.append(state["curve"])
             print(arm, epoch, history[-1], flush=True)
@@ -366,14 +419,21 @@ def main():
     parser.add_argument("--run-dir", type=Path, default=PILOT)
     parser.add_argument("--run-bounded-gpu", action="store_true")
     parser.add_argument("--preflight-only", action="store_true")
+    parser.add_argument("--kaggle", action="store_true", help="Use the pinned Kaggle handoff through its launcher")
     parser.add_argument("--worker", action="store_true", help=argparse.SUPPRESS)
     args = parser.parse_args()
-    if args.run_bounded_gpu and args.run_dir.resolve() != PILOT.resolve():
+    if args.kaggle and (not sys.platform.startswith("linux") or not Path("/kaggle/input").is_dir()
+                        or args.run_dir.resolve() != KAGGLE_RUN or not args.worker):
+        parser.error("Kaggle execution requires Linux, the Kaggle mounts and the notebook launcher")
+    if not args.kaggle and args.run_bounded_gpu and args.run_dir.resolve() != PILOT.resolve():
         parser.error("GPU runs must use the canonical EXP-035 pilot directory to share the cumulative budget")
     if args.worker:
         lease = read_json(args.run_dir / "gpu_budget.json")
         if not args.run_bounded_gpu or lease["active_since"] is None:
             raise PermissionError("GPU worker requires an active budget ledger")
+        if args.kaggle and (lease.get("platform") != "kaggle" or
+                            lease["deadline"] - lease["active_since"] + lease["charged_seconds"] > KAGGLE_BUDGET):
+            raise PermissionError("Kaggle GPU worker requires the five-hour notebook lease")
         worker(args, lease["deadline"])
     else:
         prepare(args)
