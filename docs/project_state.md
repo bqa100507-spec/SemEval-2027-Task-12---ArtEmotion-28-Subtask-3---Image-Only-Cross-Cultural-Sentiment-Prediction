@@ -1,6 +1,6 @@
 # SemEval-2027 ST3 project state
 
-Updated 23 November 2026. **The active goal is to improve hidden-test Cultural Contrast while maintaining Macro Log Loss, image-only inference and reproducibility.** Corrected Ridge is the best-known competition candidate. The next research direction is open. The released E50+L production default remains the fallback, with E50 and CLIP available explicitly. [Experiment registry](experiment_registry.md) · [E50+L release and evaluation runbook](competition_release.md)
+Updated 24 November 2026. **The active goal is to improve hidden-test Cultural Contrast while maintaining Macro Log Loss, image-only inference and reproducibility.** Corrected Ridge is the best-known competition candidate. The released E50+L production default remains the fallback, with E50 and CLIP available explicitly. [Experiment registry](experiment_registry.md) · [E50+L release and evaluation runbook](competition_release.md)
 
 ## Hosted Development
 
@@ -41,7 +41,7 @@ P2 uses five grouped folds over 1,335 official training paintings and 13,600 pai
 
 ## Open research questions
 
-Whether a different use of trainable visual representations can add complementary signal to Corrected Ridge remains open. The EXP-035 result applies to this residual recipe on one exploratory fold. A next research direction has yet to be selected.
+Whether caption-supervised adaptation can add useful visual signal remains open. **EXP-036** implements the owner-approved full-training SigLIP2 LoRA fit with Development checkpoint and blend selection. The private handoff and CPU checks are complete. Kaggle CUDA and candidate scores remain pending. [EXP-036 runbook](exp036_kaggle.md)
 
 ## Blocked and proposed work
 
