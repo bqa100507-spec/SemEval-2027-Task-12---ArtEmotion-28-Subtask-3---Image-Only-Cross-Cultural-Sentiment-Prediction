@@ -1,6 +1,6 @@
 # SemEval-2027 ST3 project state
 
-Updated 22 November 2026. **The active goal is to improve hidden-test Cultural Contrast while maintaining Macro Log Loss, image-only inference and reproducibility.** Corrected Ridge is the incumbent to beat. Continue bounded comparisons with a materially different source of predictive signal. The released E50+L production default remains the fallback, with E50 and CLIP available explicitly. [Experiment registry](experiment_registry.md) · [E50+L release and evaluation runbook](competition_release.md)
+Updated 23 November 2026. **The active goal is to improve hidden-test Cultural Contrast while maintaining Macro Log Loss, image-only inference and reproducibility.** Corrected Ridge is the best-known competition candidate. The next research direction is open. The released E50+L production default remains the fallback, with E50 and CLIP available explicitly. [Experiment registry](experiment_registry.md) · [E50+L release and evaluation runbook](competition_release.md)
 
 ## Hosted Development
 
@@ -35,9 +35,15 @@ P2 uses five grouped folds over 1,335 official training paintings and 13,600 pai
 - **Qwen reached the adapters, with limited score gains.** EXP-027 verified a nonzero gradient from stabilized within-painting Pearson into Qwen2.5-VL LoRA. Both treatments trailed BCE. The later Qwen3-VL semantic run cached all 1,571 training images and gained **+0.002687** test-like Contrast in joint fusion, below its **+0.005** gate. Direct Qwen3-VL QLoRA improved on frozen Qwen, with **0.344625** versus Corrected Ridge's **0.441599** on test-like fold 3. [Qwen experiments and objective audit](experiment_registry.md#post-release-research)
 - **Additional representations have yet to displace the incumbent.** DINOv2-L global features and language-conditioned patch attention failed their comparisons. EmotionCLIP's fixed blend gained **+0.000637** test-like, with an interval spanning zero and a negative result after removing the top painting wins. Cultural concepts improved their own matched-language control while their blend regressed by **0.006065**. EXP-033 spatial adaptation remains closed. [Competition comparisons](experiment_registry.md#competition-candidates-and-controls)
 
-## Blocked and proposed work
+## Completed experiment
 
-- **EXP-035 — fold-3 pilot blocked by measured runtime.** The authorized 90-minute continuation verified exact frozen-cache parity on 24 artworks and replayed the painting-disjoint Ridge offsets. The revised forecast was 152.7 minutes with reserve, with 86.6 minutes remaining at the gate. The worker stopped before scientific training. Corrected Ridge scored 0.437806 full and 0.441599 test-like on the matched fold. B/C and their training curves remain unmeasured. [EXP-035 report](../reports/exp035_cultural_residual.md#authorized-90-minute-continuation)
+- **EXP-035 — Kaggle fold-3 pilot complete, scientific NO-GO for five-fold expansion.** Both four-epoch arms selected epoch 1. Test-like Contrast / Macro Log Loss was **0.441386 / 0.721157** for frozen Qwen residuals and **0.441396 / 0.721156** for merger LoRA, versus **0.441599 / 0.721110** for Corrected Ridge. Both corrections were small, and the paired Contrast intervals span zero. [Verified final report](../reports/exp035_cultural_residual.md#final-kaggle-outcome)
+
+## Open research questions
+
+Whether a different use of trainable visual representations can add complementary signal to Corrected Ridge remains open. The EXP-035 result applies to this residual recipe on one exploratory fold. A next research direction has yet to be selected.
+
+## Blocked and proposed work
 
 - **DINOv3 — access pending.** The official ViT-B/16 gate returned authenticated HTTP 403 for the pinned weights and config. Hugging Face approval is pending in the project record. A valid checkpoint preflight, feature extraction and outer evaluation are all unmeasured. Preserve the existing runner and its frozen scope. [Track 2 access receipt and runner](experiment_registry.md#competition-candidates-and-controls)
 - **EXP-034 — paused, proposal only.** No implementation or run is recorded. The latest possible CPU-only direction is a whole-image color, tone and coarse-composition branch. It is an untested idea. More Qwen Pearson fine-tuning was declined in the latest audit. [Diagnostics and proposals](experiment_registry.md#diagnostics-and-strategy)

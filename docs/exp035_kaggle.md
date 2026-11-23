@@ -1,5 +1,9 @@
 # EXP-035 manual Kaggle run
 
+This guide records the setup used for the completed fold-3 pilot. See the
+[verified outcome](../reports/exp035_cultural_residual.md#final-kaggle-outcome)
+for the scientific closure and decision on further runs.
+
 Use the generated `notebooks/EXP035_Kaggle.ipynb` and the matching private handoff
 in `runs/exp035_kaggle/handoff/`. The notebook runs the existing matched fold-3
 comparison: sealed Corrected Ridge, frozen Qwen residuals with a feature cache,
