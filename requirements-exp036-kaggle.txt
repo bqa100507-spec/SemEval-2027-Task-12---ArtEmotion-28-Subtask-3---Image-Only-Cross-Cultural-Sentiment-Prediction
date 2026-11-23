@@ -1,0 +1,2 @@
+# In addition to the exact shared Torch/CUDA and Transformers lock.
+sentencepiece==0.2.1
