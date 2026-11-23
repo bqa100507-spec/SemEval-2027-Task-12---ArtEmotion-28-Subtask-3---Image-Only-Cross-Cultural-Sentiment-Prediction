@@ -346,7 +346,11 @@ def run(args):
     finally:
         if args.log.is_file():
             shutil.copyfile(args.log, root / "worker.log")
-        export(root.parent / "exp036_results.zip", root, checkpoint_files(root), args.handoff)
+        try:
+            export(root.parent / "exp036_results.zip", root, checkpoint_files(root), args.handoff)
+        except Exception as exc:
+            write(root / "status.json", {"state": "EXPORT_FAILED", "reason": str(exc)})
+            raise
 
 
 def infer(args):

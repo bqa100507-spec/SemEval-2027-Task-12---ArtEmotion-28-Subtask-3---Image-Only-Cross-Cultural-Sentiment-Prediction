@@ -69,13 +69,13 @@ def launch(args, output):
     except Exception as exc:
         status = output / "exp036_run/status.json"
         state = read(status) if status.is_file() else {}
-        if state.get("state") not in {"FAILED", "RESUMABLE_STOP"}:
+        if state.get("state") not in {"FAILED", "RESUMABLE_STOP", "EXPORT_FAILED"}:
             state = {"state": "LAUNCHER_STOP", "reason": str(exc)}
         print(state, flush=True)
         diagnostic = output / "exp036_diagnostic.json"
         write(diagnostic, state)
         report = output / "exp036_results.zip"
-        if not report.exists():
+        if not report.exists() or state.get("state") in {"EXPORT_FAILED", "LAUNCHER_STOP"}:
             files = [diagnostic]
             if log.exists():
                 files.append(log)

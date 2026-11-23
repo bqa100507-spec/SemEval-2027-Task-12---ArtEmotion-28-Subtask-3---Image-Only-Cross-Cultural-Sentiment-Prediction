@@ -65,8 +65,7 @@ def sha(path):
         return hashlib.file_digest(stream, "sha256").hexdigest()
 
 try:
-    matches = [p for p in mount.rglob("manifest.json") if p.parent.name == "exp036_inputs"
-               and sha(p) == MANIFEST_SHA]
+    matches = [p for p in mount.rglob("manifest.json") if sha(p) == MANIFEST_SHA]
     if len(matches) == 1:
         inputs = matches[0].parent
     elif not matches:

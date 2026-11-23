@@ -3,7 +3,7 @@
 import hashlib
 import json
 import shutil
-from pathlib import Path, PurePosixPath
+from pathlib import PurePosixPath
 from zipfile import ZIP_STORED, ZipFile
 
 
