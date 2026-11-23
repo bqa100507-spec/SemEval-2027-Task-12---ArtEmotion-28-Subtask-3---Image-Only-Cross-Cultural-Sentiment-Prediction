@@ -256,10 +256,11 @@ def fitting(args, manifest, cfg, deadline, device, identity):
                 losses = optimize(model, train, group, micro, inputs, processor, cfg, device, scaler)
                 scaler.unscale_(opt)
                 norm = torch.nn.utils.clip_grad_norm_(adapters + heads, cfg["gradient_clip"])
-                scaler.step(opt)
-                scaler.update()
                 if torch.isfinite(norm):
+                    scaler.step(opt)
+                    scaler.update()
                     break
+                scaler.update(new_scale=scaler.get_scale() / 2)
             else:
                 raise FloatingPointError("Repeated nonfinite gradient in the same optimizer step")
             scheduler.step()
@@ -336,6 +337,8 @@ def run(args):
     write(root / "run.json", identity)
     write(root / "status.json", {"state": "IN_PROGRESS"})
     shutil.copyfile(CONFIG, root / "exp036.json")
+    for name in ("requirements-exp035-kaggle.lock.txt", "requirements-exp036-kaggle.txt"):
+        shutil.copyfile(ROOT / name, root / name)
     try:
         fitting(args, manifest, cfg, args.deadline, device, identity)
         write(root / "status.json", {"state": "COMPLETE"})
