@@ -1,22 +1,26 @@
 # Future ST3 experiment workflow contract
 
-**Documentation standard only.** Apply when a new experiment is separately authorized. It does not reopen EXP-022/TASK-023 and does not change their archived notebooks, source, metrics or checkpoints. No future notebook or training implementation is created in TASK-024.
+Apply when a new experiment is separately authorized. Historical experiments retain their own protocols and artifacts.
 
 ## One notebook, one authorization, one Run all
 
-Before execution freeze the hypothesis, exact conditions/controls, eligible training population, partitions, source/config/assets, seeds, loss/optimizer/precision, pilot scope, decision gates and allowable artifacts. The single Configuration approval covers the declared sequence, including any explicitly authorized, guarded confirmation/final-fit branch. No additional scientific approval, Verify, Export, Submission or Cleanup click occurs midway.
+Before execution record the candidate, eligible training population, source/config/assets, seeds, loss/optimizer/precision, Development selection bounds and artifacts. The single Configuration approval covers the declared sequence. For new competition work, prefer a complete Kaggle notebook with pinned setup, automatic resume and an explicit owner Run All authorization.
 
 Required sequence:
 
-**Setup → Validate → Benchmark → Experiment → CV → Verify → Decision [guarded confirmation if declared] → Final fit only if GO → Inference → Submission validation → Export → Runtime release.**
+**Setup → Validate → Benchmark → Full training → Development selection → Inference → Submission validation → Export → Runtime release.**
+
+- Fit on the full authorized official training split by default. Use official Development for direct scoring, checkpoint selection and bounded hyperparameter or ensemble selection. Repeated selection can overfit Development. Five-fold and nested CV are opt-in. Scientific gates and ablations do not delay ZIP generation after successful training.
+- Evaluate Cultural Contrast first and monitor Macro Log Loss. Generate a valid standalone ZIP for every successfully trained competition candidate, including those below the incumbent. Generate applicable ensemble ZIPs and record the selected components. The owner decides what to upload.
+- Test upload-safe Kaggle names at the archive-member level. Keep a checksum-pinned logical path mapping for filenames with spaces, parentheses or other unsafe characters. Restore names in working storage automatically and verify extraction from both an intact ZIP and a recursively expanded dataset.
 
 - Validate actual official input-only CSV/images and every required asset/cache before spending the fit budget when a submission is required. No synthetic substitute. Keep evaluation-phase resources separate from Development workflows.
 - Pilot estimates use representative full work/epochs, not tiny-batch extrapolation. Separate training-stage occupancy, observed total GPU allocation and wall time; do not call wall occupancy CUDA kernel-active time. Include setup, verification, inference/export and pre-run idle-allocation limitations in the budget definition.
-- Enforce finite GPU/wall budgets, remaining-work forecasts and a persistence reserve. Parent process deadlines terminate children safely. Failed gates stop automatically with a precise stage/reason; no silent hyperparameter, precision, checkpoint or dependency substitution.
+- Enforce resource deadlines and a persistence reserve. Use remaining-work forecasts to plan continuation across sessions. Failed technical checks stop with a precise stage and reason. Preserve the declared hyperparameters, precision policy, checkpoint identity and dependencies.
 - Every complete seed/stage is sealed with source/runtime/input identity, coverage and checksums before reuse. No unnecessary repeat of valid completed stages; interrupted current fits restart unless an independently tested mid-fit resume exists. Corrupt/incompatible completed fits block instead of being silently retrained. Revoke stale PASS evidence before a new verification attempt.
-- Fit transforms and component heads only on applicable training paintings. Never select variants from Development gold. A sealed training-confirmation partition opens only under the predeclared successful gate/authorization. Final inference takes pixels and target language only.
+- Fit transforms, auxiliary targets and heads only on the applicable training paintings. Keep Development gold in the scorer for evaluation and selection. Hidden Evaluation annotations stay inaccessible. Final inference takes pixels and target language only.
 - Create `submission.zip` only after verified models, real official inputs, complete pair coverage, correct order/schema, finite [0,1] probabilities and correct ZIP structure. No automatic Codabench upload. Keep production unchanged until a separately documented promotion decision.
-- Progress shows current stage/seed/epoch, elapsed/remaining budget and stop reason. Distinguish operational success, scientific GO, and owner-reported hosted outcomes.
+- Progress shows current stage, seed, epoch, elapsed and remaining time, and stop reason. Distinguish operational completion, measured local results, and owner-reported hosted outcomes.
 
 ## Durable success and failure outputs
 

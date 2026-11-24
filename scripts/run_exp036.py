@@ -380,7 +380,8 @@ def infer(args):
     with args.pairs.open(encoding="utf-8", newline="") as f:
         pairs = data.read_exact_csv(f, data.INPUT_COLUMNS)
     data.unique_pairs(pairs)
-    frame = predictions(model, Paintings(pairs, bundle["languages"]), args.images, processor, 1, device, float("inf"))
+    frame = predictions(model, Paintings(pairs, bundle["languages"]), args.images, processor,
+                        args.microbatch, device, float("inf"))
     frame.to_csv(args.destination, index=False, float_format="%.6f")
 
 
@@ -396,6 +397,7 @@ if __name__ == "__main__":
     predict = sub.add_parser("infer")
     for field in ("bundle", "pairs", "images", "destination"):
         predict.add_argument(f"--{field}", type=Path, required=True)
+    predict.add_argument("--microbatch", type=int, choices=(1, 2, 4), default=1)
     for command in (train, predict):
         command.add_argument("--model", type=Path)
     args = parser.parse_args()

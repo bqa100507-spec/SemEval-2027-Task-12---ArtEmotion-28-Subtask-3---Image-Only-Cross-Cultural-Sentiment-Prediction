@@ -1,6 +1,6 @@
 # EXP-036 · Caption-supervised cultural visual adaptation
 
-**Prepared and CPU-validated. Kaggle pretrained CUDA preflight and training are pending.**
+**This training run is completed and closed.** This page preserves the original handoff and recipe. [Verified results](../reports/exp036_final.md) · [Active Evaluation inference guide](exp036_evaluation.md)
 
 The private handoff contains 1,571 official training paintings, 16,019 eligible training pairs, the 85 public Development artworks covering 849 pairs, and the sealed Corrected Ridge predictions and bundle. The local Development comparator scored **0.465462 Contrast / 0.740305 Macro Log Loss** and matched the saved replay on every pair. The package puts training captions under `training/`, input-only Development rows under `phase_inputs/dev/`, and Development vote counts under `scoring/`. Training and Development are disjoint by painting, image path and image bytes. [Organizer ST3 specification](https://github.com/artemotion-28/artemotion-28/blob/cf7cc444cf56617f3b8417497c6930ad172c5c99/README.md#st3-image-only-cross-cultural-sentiment-prediction)
 
@@ -42,4 +42,4 @@ The bundle runner `scripts/run_exp036.py infer --bundle ... --pairs ... --images
 
 ## Validation
 
-The packaging command `scripts/package_exp036.py --source <worker-sha> --upstream <organizer-root> --ridge <dev-release> --fixed <fixed-ridge-bundle> --output <private-folder> --notebook <ipynb>` regenerated and read back the private handoff. Focused CPU tests exercised the actual tiny SigLIP module layout, LoRA gradients, centered target aggregation, accumulation parity, exact optimizer resume, strict ZIP coverage and mocked notebook launch. The real Corrected Ridge result above is the only Development score measured at handoff. The EXP-036 submissions depend on successful owner execution of the training workflow.
+The packaging command `scripts/package_exp036.py --source <worker-sha> --upstream <organizer-root> --ridge <dev-release> --fixed <fixed-ridge-bundle> --output <private-folder> --notebook <ipynb>` regenerated and read back the private handoff. Focused CPU tests exercised the actual tiny SigLIP module layout, LoRA gradients, centered target aggregation, accumulation parity, exact optimizer resume, strict ZIP coverage and mocked notebook launch. The real Corrected Ridge result above was the only Development score measured at handoff. Subsequent verified Kaggle artifacts are recorded in the [closure report](../reports/exp036_final.md).
