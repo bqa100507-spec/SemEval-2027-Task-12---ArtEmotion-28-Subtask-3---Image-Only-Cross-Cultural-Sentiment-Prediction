@@ -1,9 +1,10 @@
 # ArtEmotion-28 Subtask 3
 
+**Active competition incumbent** — EXP-036, 75% Corrected Ridge and 25% CS-CVA. Owner-reported Development Contrast **0.4703** (submission **#1065924**). Use the [Evaluation runbook](docs/exp036_evaluation.md) for verified image-only packaging. Corrected Ridge is the primary fallback. [Verified closure](reports/exp036_final.md)
 
-**Current research status (TASK-024): EXP-022 and TASK-023 are CLOSED; EL8 is NO_GO_FOR_PRODUCTION. E50+L remains the competition production model.** EL8's positive train-only CV result did not improve the owner-reported hosted Development result (0.4537 vs 0.4643). Its verified artifacts/history are retained. No EL8 retraining or promotion is pending. Read the [closure report](reports/exp022_final_closure.md), [complete research index](docs/research_index.md), [proposal-only EXP-023](reports/next_exp_proposal.md) and [future one-click workflow contract](docs/experiment_workflow_standard.md). Historical instructions below do not authorize new runs.
+**Historical TASK-024 status.** EXP-022 and TASK-023 are closed. EL8 was a production NO-GO after its owner-reported hosted Development result of 0.4537 compared with 0.4643 for E50+L. The [closure report](reports/exp022_final_closure.md) and [research index](docs/research_index.md) preserve those artifacts and decisions.
 
-Image-only cross-cultural sentiment prediction for SemEval 2027 Task 12. The competition release uses **E50+L**, the hosted-verified CLIP-B, SigLIP 2 Base and CLIP-L ensemble. The project owner reported Development Contrast **0.4643** for submission **#1046158**. Use the [competition release manifest and evaluation-day commands](docs/competition_release.md) for frozen inference.
+Image-only cross-cultural sentiment prediction for SemEval 2027 Task 12. The historical release **E50+L** combines CLIP-B, SigLIP 2 Base and CLIP-L. The owner reported Development Contrast **0.4643** for submission **#1046158**. Use the [release manifest](docs/competition_release.md) for its unchanged fallback inference.
 
 The sections below retain the original baseline setup and EXP-001–011 reproduction commands. The complete EXP-001–015 history is preserved on [archive/exp001-015-verified](https://github.com/bqa100507-spec/SemEval-2027-Task-12---ArtEmotion-28-Subtask-3---Image-Only-Cross-Cultural-Sentiment-Prediction/tree/archive/exp001-015-verified). [PR integration audit](docs/release016_pr_audit.json)
 

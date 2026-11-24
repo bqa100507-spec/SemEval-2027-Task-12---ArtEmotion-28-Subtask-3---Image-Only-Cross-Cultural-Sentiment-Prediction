@@ -1,19 +1,22 @@
 # SemEval-2027 ST3 project state
 
-Updated 23 November 2026. **The active goal is to improve hidden-test Cultural Contrast while maintaining Macro Log Loss, image-only inference and reproducibility.** Corrected Ridge is the best-known competition candidate. The next research direction is open. The released E50+L production default remains the fallback, with E50 and CLIP available explicitly. [Experiment registry](experiment_registry.md) · [E50+L release and evaluation runbook](competition_release.md)
+Updated 24 November 2026. **The active incumbent is the EXP-036 ensemble, 75% Corrected Ridge and 25% epoch-5 CS-CVA.** Corrected Ridge is the primary fallback. E50+L remains the historical released fallback, with E50 and CLIP available explicitly. [Experiment registry](experiment_registry.md) · [Evaluation inference](exp036_evaluation.md) · [E50+L release](competition_release.md)
 
 ## Hosted Development
 
 | System | Hosted Contrast | Submission | Repository status |
 | --- | ---: | ---: | --- |
-| **Corrected Ridge** | **0.4655** | **#1063064** | Best known hosted candidate, independently verified local artifact |
+| **EXP-036 ensemble** | **0.4703** | **#1065924** | Active incumbent, local Development replay 0.470339 / 0.729709 |
+| Corrected Ridge | 0.4655 | #1063064 | Primary fallback, local Development replay 0.465462 / 0.740305 |
 | E50+L | 0.4643 | #1046158 | Released production fallback |
 | EL8 | 0.4537 | #1053827 | Archived, production NO-GO |
 
-The hosted values and submission IDs come from owner reports. The audit verified the local 849-key Fixed Ridge and Corrected Ridge archives against the public inputs, their recorded SHA-256 values and byte-identical prediction members in the saved replay archives. The private score records were not independently read in this reconciliation. A Fixed Ridge hosted score or submission ID is not documented in the available records. No Development gold was used.
+The hosted values and submission IDs come from owner reports. The EXP-036 closure independently rescored the archived 849 Development predictions against the official Development counts. Development selected both the CS-CVA checkpoint and the ensemble coefficient. Earlier Fixed Ridge and Corrected Ridge archive validation also verified their 849 keys and byte-identical saved replay.
 
 | Local Development archive | SHA-256 |
 | --- | --- |
+| `runs/exp036/closure/exp036_ensemble_submission.zip` | `bd6752c9a8a60f7c3754053afe11eec0187172838e9c67d43880b9c41fb5b274` |
+| `runs/exp036/closure/exp036_standalone_submission.zip` | `d4feaa9dc09422eb78bf530b3cf9d36a6c76bcc2fc8e5cc50f57be5acdb25df1` |
 | `runs/codabench_dev_release/corrected_ridge/submission.zip` | `39db05b31bb37a82c327a55c0d981af73db957e7133377308200218dfc67f958` |
 | `runs/codabench_dev_release/fixed_ridge/submission.zip` | `d77f1bf6881afef898a73ea2a6d41c218dfccbd735295d8017509e3e09069b24` |
 
@@ -35,13 +38,15 @@ P2 uses five grouped folds over 1,335 official training paintings and 13,600 pai
 - **Qwen reached the adapters, with limited score gains.** EXP-027 verified a nonzero gradient from stabilized within-painting Pearson into Qwen2.5-VL LoRA. Both treatments trailed BCE. The later Qwen3-VL semantic run cached all 1,571 training images and gained **+0.002687** test-like Contrast in joint fusion, below its **+0.005** gate. Direct Qwen3-VL QLoRA improved on frozen Qwen, with **0.344625** versus Corrected Ridge's **0.441599** on test-like fold 3. [Qwen experiments and objective audit](experiment_registry.md#post-release-research)
 - **Additional representations have yet to displace the incumbent.** DINOv2-L global features and language-conditioned patch attention failed their comparisons. EmotionCLIP's fixed blend gained **+0.000637** test-like, with an interval spanning zero and a negative result after removing the top painting wins. Cultural concepts improved their own matched-language control while their blend regressed by **0.006065**. EXP-033 spatial adaptation remains closed. [Competition comparisons](experiment_registry.md#competition-candidates-and-controls)
 
-## Completed experiment
+## Completed experiments
+
+- **EXP-036 — closed as the selected competition candidate.** Kaggle completed six epochs. Epoch-5 standalone scored **0.437632 / 0.742911**. The frozen 75/25 blend gained **+0.004876 Contrast** and reduced Macro Log Loss by **0.010597 bits** versus Corrected Ridge on Development. The selected deployment bundle is in `runs/exp036/deployment/`. Fresh CS-CVA GPU replay and the hidden Evaluation result remain unmeasured. [Closure report](../reports/exp036_final.md)
 
 - **EXP-035 — Kaggle fold-3 pilot complete, scientific NO-GO for five-fold expansion.** Both four-epoch arms selected epoch 1. Test-like Contrast / Macro Log Loss was **0.441386 / 0.721157** for frozen Qwen residuals and **0.441396 / 0.721156** for merger LoRA, versus **0.441599 / 0.721110** for Corrected Ridge. Both corrections were small, and the paired Contrast intervals span zero. [Verified final report](../reports/exp035_cultural_residual.md#final-kaggle-outcome)
 
-## Open research questions
+## Competition-first evaluation strategy
 
-Whether a different use of trainable visual representations can add complementary signal to Corrected Ridge remains open. The EXP-035 result applies to this residual recipe on one exploratory fold. A next research direction has yet to be selected.
+Default to a single resumable Kaggle run on the full authorized official training split. Use official Development for checkpoint selection and bounded model or blend selection. Prioritize Contrast, track Macro Log Loss, and preserve the risks of Development reuse in the record. Development gold remains scorer-only and hidden Evaluation annotations remain out of scope. Every completed fit produces its validated standalone ZIP and applicable ensemble ZIPs. Five-fold and nested CV are opt-in. The owner retains upload control. [Workflow and upload-safe packaging standard](experiment_workflow_standard.md)
 
 ## Blocked and proposed work
 

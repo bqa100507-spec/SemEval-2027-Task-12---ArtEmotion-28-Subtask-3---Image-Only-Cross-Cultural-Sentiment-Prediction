@@ -1,5 +1,7 @@
 # ST3 competition release
 
+**Current competition inference** uses the [EXP-036 Evaluation commands](exp036_evaluation.md). Corrected Ridge is the primary fallback. The following release record and commands preserve the historical E50+L fallback.
+
 Released on 2026-11-11. The selected system is **E50+L** with project-owner-reported hosted Development Contrast **0.4643**, submission **#1046158**. The measured local development Contrast is 0.46431737014951985 and Macro Log Loss is 0.7409970449028339. [Task 011 verification](../reports/e50l_inference_verification.md)
 
 The production integration main commit is `7a02e63f7cdfdf1e89e92929e3297b6a61b9b508`. Its complete Git tree is identical to Task 011 head `64c38204c31ae9915a5241f057cd8dd49ef349e1`. The subsequent release documentation commit changes README and documentation only. Resolve that delivery commit with `git rev-parse HEAD` after checkout. The execution manifest at `runs/release016/release_manifest.json` records the final delivery SHA on the prepared machine. [PR audit](release016_pr_audit.json)
