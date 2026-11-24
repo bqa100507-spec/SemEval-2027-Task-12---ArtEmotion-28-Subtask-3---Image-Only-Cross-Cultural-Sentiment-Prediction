@@ -48,7 +48,9 @@ P2 uses five grouped folds over 1,335 official training paintings and 13,600 pai
 
 Default to a single resumable Kaggle run on the full authorized official training split. Use official Development for checkpoint selection and bounded model or blend selection. Prioritize Contrast, track Macro Log Loss, and preserve the risks of Development reuse in the record. Development gold remains scorer-only and hidden Evaluation annotations remain out of scope. Every completed fit produces its validated standalone ZIP and applicable ensemble ZIPs. Five-fold and nested CV are opt-in. The owner retains upload control. [Workflow and upload-safe packaging standard](experiment_workflow_standard.md)
 
-## Blocked and proposed work
+## Active, blocked and proposed work
+
+- **EXP-037 — CPU validated, Kaggle execution pending.** One resumable notebook runs frozen dual-backbone fusion, SigLIP2 LoRA and joint SigLIP2/Qwen QLoRA on official Train, selecting via public Development. The private handoff and EXP-036 incumbent replay are verified. Real pretrained CUDA memory, throughput and performance are unmeasured. Qwen eligibility is unresolved. [Run guide](exp037_kaggle.md)
 
 - **DINOv3 — access pending.** The official ViT-B/16 gate returned authenticated HTTP 403 for the pinned weights and config. Hugging Face approval is pending in the project record. A valid checkpoint preflight, feature extraction and outer evaluation are all unmeasured. Preserve the existing runner and its frozen scope. [Track 2 access receipt and runner](experiment_registry.md#competition-candidates-and-controls)
 - **EXP-034 — paused, proposal only.** No implementation or run is recorded. The latest possible CPU-only direction is a whole-image color, tone and coarse-composition branch. It is an untested idea. More Qwen Pearson fine-tuning was declined in the latest audit. [Diagnostics and proposals](experiment_registry.md#diagnostics-and-strategy)

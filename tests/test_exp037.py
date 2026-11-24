@@ -1,4 +1,6 @@
+import ast
 import importlib
+import json
 import sys
 from pathlib import Path
 from types import SimpleNamespace
@@ -221,3 +223,37 @@ def test_blend_retains_incumbent_and_validates_new_candidate(tmp_path):
     archive = tmp_path / "submission.zip"
     pack(csv, archive, parent)
     pd.testing.assert_frame_equal(validate_archive(archive, parent), parent, check_exact=True)
+
+
+def test_kaggle_notebook_discovers_both_readonly_layouts_and_pins_worker(tmp_path):
+    notebook = json.loads((ROOT / "notebooks/EXP037_Kaggle.ipynb").read_text(encoding="utf-8"))
+    code = {cell["id"]: "".join(cell["source"]) for cell in notebook["cells"] if cell["cell_type"] == "code"}
+    assert list(code) == ["owner-settings", "verify-inputs", "run", "outputs"]
+    for label, source in code.items():
+        compile(source, label, "exec")
+    state = {}
+    verify = ast.parse(code["verify-inputs"])
+    safe_prefix = ast.Module(body=verify.body[:next(i for i, node in enumerate(verify.body)
+        if isinstance(node, ast.Assign) and isinstance(node.targets[0], ast.Name) and node.targets[0].id == "STARTED")],
+        type_ignores=[])
+    exec(compile(safe_prefix, "verify-helpers", "exec"), state)
+    assert len(state["WORKER_SOURCE"]) == 40
+    assert len(state["MANIFEST_SHA256"]) == len(state["ARCHIVE_SHA256"]) == 64
+    source = state["WORKER_SOURCE"]
+    extracted = tmp_path / "layout-a/owner/dataset/exp037_inputs"
+    (extracted / "runtime").mkdir(parents=True)
+    (extracted / "runtime/example.py").write_text("x = 1", encoding="utf-8")
+    manifest = {"source": source, "files": {"runtime/example.py": sha(extracted / "runtime/example.py")}}
+    write(extracted / "exp037_manifest.json", manifest)
+    checksum = sha(extracted / "exp037_manifest.json")
+    unmodified = tmp_path / "layout-b/owner/dataset/exp037_inputs.zip"
+    unmodified.parent.mkdir(parents=True)
+    with ZipFile(unmodified, "w") as z:
+        for member in ["exp037_manifest.json", "runtime/example.py"]:
+            z.write(extracted / member, "exp037_inputs/"+member)
+    locate = state["locate_inputs"]
+    assert locate(tmp_path / "layout-a", tmp_path / "scratch", checksum, sha(unmodified), source) == (extracted, manifest)
+    mounted, result = locate(tmp_path / "layout-b", tmp_path / "scratch", checksum, sha(unmodified), source)
+    assert result == manifest and mounted.parent.parent == tmp_path / "scratch"
+    with pytest.raises(ValueError, match="different worker"):
+        locate(tmp_path / "layout-a", tmp_path / "scratch", checksum, sha(unmodified), "wrong")
