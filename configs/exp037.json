@@ -1,0 +1,32 @@
+{
+  "seed": 203037,
+  "prompt": "Inspect this artwork.",
+  "qwen_width": 2560,
+  "qwen_layers": 36,
+  "qwen_tail": 8,
+  "qwen_rank": 16,
+  "qwen_alpha": 32,
+  "fusion_width": 256,
+  "fusion_heads": 4,
+  "fusion_blocks": 2,
+  "dropout": 0.1,
+  "emotion_lambda": 0.2,
+  "caption_lambda": 0.1,
+  "effective_paintings": 8,
+  "microbatches": [4, 2, 1],
+  "memory_margin_mib": 768,
+  "checkpoint_steps": 24,
+  "progress_steps": 96,
+  "weight_decay": 0.01,
+  "gradient_clip": 1.0,
+  "warmup_fraction": 0.05,
+  "stages": {
+    "A": {"epochs": 4, "fusion_lr": 0.001},
+    "B": {"epochs": 6, "fusion_lr": 0.0005, "vision_lr": 0.0001},
+    "C": {"epochs": 8, "fusion_lr": 0.0003, "vision_lr": 0.0001, "qwen_lr": 0.00003}
+  },
+  "ensemble_grid": [0, 0.10, 0.20, 0.25, 0.35, 0.50, 0.75, 1.0],
+  "incumbent_zip_sha256": "bd6752c9a8a60f7c3754053afe11eec0187172838e9c67d43880b9c41fb5b274",
+  "test_like_excluded": ["English", "Arabic", "Chinese"],
+  "eligibility": "UNCONFIRMED_QWEN_ST3"
+}
