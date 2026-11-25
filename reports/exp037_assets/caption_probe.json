@@ -1,0 +1,683 @@
+{
+  "device": "NVIDIA GeForce RTX 4060 Laptop GPU",
+  "torch": "2.7.1+cu126",
+  "encoder_inputs": "deterministic synthetic activations",
+  "saved_heads": "A4, B6 and C6",
+  "measurements": [
+    {
+      "stage": "A",
+      "mode": "fp32",
+      "paintings": 1,
+      "sample_paintings": [
+        "vincent-van-gogh_vineyards-with-a-view-of-auvers-1890"
+      ],
+      "caption_mass": 48.0,
+      "weighted_loss": 0.11292486637830734,
+      "grad_l2": {
+        "visual_projection": 0.0066801151260733604,
+        "qwen_projection": 0.014274945482611656,
+        "caption_head": 0.00729830376803875,
+        "caption_language": 0.004460244905203581,
+        "proxy_visual_lora": 0.005837570875883102,
+        "proxy_qwen_qlora": 0.003083315445110202
+      }
+    },
+    {
+      "stage": "A",
+      "mode": "fp16_unscaled",
+      "paintings": 1,
+      "sample_paintings": [
+        "vincent-van-gogh_vineyards-with-a-view-of-auvers-1890"
+      ],
+      "caption_mass": 48.0,
+      "weighted_loss": 0.1130775436758995,
+      "grad_l2": {
+        "visual_projection": 0.005557974334806204,
+        "qwen_projection": 0.013410629704594612,
+        "caption_head": 0.007273295894265175,
+        "caption_language": 0.004452015273272991,
+        "proxy_visual_lora": 0.005587540566921234,
+        "proxy_qwen_qlora": 0.0030308219138532877
+      }
+    },
+    {
+      "stage": "A",
+      "mode": "fp16_scaled_128",
+      "paintings": 1,
+      "sample_paintings": [
+        "vincent-van-gogh_vineyards-with-a-view-of-auvers-1890"
+      ],
+      "caption_mass": 48.0,
+      "weighted_loss": 0.1130775436758995,
+      "grad_l2": {
+        "visual_projection": 0.005630107596516609,
+        "qwen_projection": 0.01383809745311737,
+        "caption_head": 0.007273370865732431,
+        "caption_language": 0.00445209676399827,
+        "proxy_visual_lora": 0.005561946425586939,
+        "proxy_qwen_qlora": 0.0031558871269226074
+      }
+    },
+    {
+      "stage": "A",
+      "mode": "fp32",
+      "paintings": 1,
+      "sample_paintings": [
+        "niko-pirosmani_peasant-woman-with-children-goes-for-water"
+      ],
+      "caption_mass": 55.0,
+      "weighted_loss": 0.10065300762653351,
+      "grad_l2": {
+        "visual_projection": 0.0003776054363697767,
+        "qwen_projection": 0.0010095934849232435,
+        "caption_head": 0.003994368016719818,
+        "caption_language": 0.00240919622592628,
+        "proxy_visual_lora": 0.0013110226718708873,
+        "proxy_qwen_qlora": 0.00025803130120038986
+      }
+    },
+    {
+      "stage": "A",
+      "mode": "fp16_unscaled",
+      "paintings": 1,
+      "sample_paintings": [
+        "niko-pirosmani_peasant-woman-with-children-goes-for-water"
+      ],
+      "caption_mass": 55.0,
+      "weighted_loss": 0.1006462350487709,
+      "grad_l2": {
+        "visual_projection": 0.00040678854566067457,
+        "qwen_projection": 0.0007941906806081533,
+        "caption_head": 0.003985700663179159,
+        "caption_language": 0.002406822983175516,
+        "proxy_visual_lora": 0.001306905411183834,
+        "proxy_qwen_qlora": 0.00020019628573209047
+      }
+    },
+    {
+      "stage": "A",
+      "mode": "fp16_scaled_128",
+      "paintings": 1,
+      "sample_paintings": [
+        "niko-pirosmani_peasant-woman-with-children-goes-for-water"
+      ],
+      "caption_mass": 55.0,
+      "weighted_loss": 0.1006462350487709,
+      "grad_l2": {
+        "visual_projection": 0.0004143913683947176,
+        "qwen_projection": 0.0009319503442384303,
+        "caption_head": 0.003985829651355743,
+        "caption_language": 0.0024068281054496765,
+        "proxy_visual_lora": 0.0013099677162244916,
+        "proxy_qwen_qlora": 0.00021961875609122217
+      }
+    },
+    {
+      "stage": "A",
+      "mode": "fp32",
+      "paintings": 1,
+      "sample_paintings": [
+        "friedel-dzubas_hope-distant-1987"
+      ],
+      "caption_mass": 36.0,
+      "weighted_loss": 0.09543024748563766,
+      "grad_l2": {
+        "visual_projection": 0.0035889693535864353,
+        "qwen_projection": 0.008954732678830624,
+        "caption_head": 0.0070754834450781345,
+        "caption_language": 0.0039690835401415825,
+        "proxy_visual_lora": 0.004090311471372843,
+        "proxy_qwen_qlora": 0.0019758802372962236
+      }
+    },
+    {
+      "stage": "A",
+      "mode": "fp16_unscaled",
+      "paintings": 1,
+      "sample_paintings": [
+        "friedel-dzubas_hope-distant-1987"
+      ],
+      "caption_mass": 36.0,
+      "weighted_loss": 0.09553996473550797,
+      "grad_l2": {
+        "visual_projection": 0.003070342820137739,
+        "qwen_projection": 0.008413084782660007,
+        "caption_head": 0.007070042658597231,
+        "caption_language": 0.003966886084526777,
+        "proxy_visual_lora": 0.003979189787060022,
+        "proxy_qwen_qlora": 0.0019606391433626413
+      }
+    },
+    {
+      "stage": "A",
+      "mode": "fp16_scaled_128",
+      "paintings": 1,
+      "sample_paintings": [
+        "friedel-dzubas_hope-distant-1987"
+      ],
+      "caption_mass": 36.0,
+      "weighted_loss": 0.09553996473550797,
+      "grad_l2": {
+        "visual_projection": 0.0029695017728954554,
+        "qwen_projection": 0.008472327142953873,
+        "caption_head": 0.007069640327244997,
+        "caption_language": 0.003966949414461851,
+        "proxy_visual_lora": 0.003998169209808111,
+        "proxy_qwen_qlora": 0.001898681279271841
+      }
+    },
+    {
+      "stage": "A",
+      "mode": "fp32",
+      "paintings": 4,
+      "sample_paintings": [
+        "vincent-van-gogh_vineyards-with-a-view-of-auvers-1890",
+        "niko-pirosmani_peasant-woman-with-children-goes-for-water",
+        "friedel-dzubas_hope-distant-1987",
+        "tom-thomson_forest-undergrowth-i-1916"
+      ],
+      "caption_mass": 199.0,
+      "weighted_loss": 0.10254299640655518,
+      "grad_l2": {
+        "visual_projection": 0.002795300679281354,
+        "qwen_projection": 0.006510430481284857,
+        "caption_head": 0.002878295024856925,
+        "caption_language": 0.0017753448337316513,
+        "proxy_visual_lora": 0.0023833406157791615,
+        "proxy_qwen_qlora": 0.00268249842338264
+      }
+    },
+    {
+      "stage": "A",
+      "mode": "fp16_unscaled",
+      "paintings": 4,
+      "sample_paintings": [
+        "vincent-van-gogh_vineyards-with-a-view-of-auvers-1890",
+        "niko-pirosmani_peasant-woman-with-children-goes-for-water",
+        "friedel-dzubas_hope-distant-1987",
+        "tom-thomson_forest-undergrowth-i-1916"
+      ],
+      "caption_mass": 199.0,
+      "weighted_loss": 0.10264187306165695,
+      "grad_l2": {
+        "visual_projection": 0.003084380878135562,
+        "qwen_projection": 0.00447837682440877,
+        "caption_head": 0.0028654728084802628,
+        "caption_language": 0.0017690772656351328,
+        "proxy_visual_lora": 0.001945778727531433,
+        "proxy_qwen_qlora": 0.0014622401213273406
+      }
+    },
+    {
+      "stage": "A",
+      "mode": "fp16_scaled_128",
+      "paintings": 4,
+      "sample_paintings": [
+        "vincent-van-gogh_vineyards-with-a-view-of-auvers-1890",
+        "niko-pirosmani_peasant-woman-with-children-goes-for-water",
+        "friedel-dzubas_hope-distant-1987",
+        "tom-thomson_forest-undergrowth-i-1916"
+      ],
+      "caption_mass": 199.0,
+      "weighted_loss": 0.10264187306165695,
+      "grad_l2": {
+        "visual_projection": 0.0033922470174729824,
+        "qwen_projection": 0.00565640814602375,
+        "caption_head": 0.0028650369495153427,
+        "caption_language": 0.001768619753420353,
+        "proxy_visual_lora": 0.0021346828434616327,
+        "proxy_qwen_qlora": 0.0021693038288503885
+      }
+    },
+    {
+      "stage": "B",
+      "mode": "fp32",
+      "paintings": 1,
+      "sample_paintings": [
+        "vincent-van-gogh_vineyards-with-a-view-of-auvers-1890"
+      ],
+      "caption_mass": 48.0,
+      "weighted_loss": 0.1091407909989357,
+      "grad_l2": {
+        "visual_projection": 0.010391204617917538,
+        "qwen_projection": 0.03277835622429848,
+        "caption_head": 0.011328338645398617,
+        "caption_language": 0.006880901753902435,
+        "proxy_visual_lora": 0.011249278672039509,
+        "proxy_qwen_qlora": 0.01623283140361309
+      }
+    },
+    {
+      "stage": "B",
+      "mode": "fp16_unscaled",
+      "paintings": 1,
+      "sample_paintings": [
+        "vincent-van-gogh_vineyards-with-a-view-of-auvers-1890"
+      ],
+      "caption_mass": 48.0,
+      "weighted_loss": 0.1095009446144104,
+      "grad_l2": {
+        "visual_projection": 0.04341982305049896,
+        "qwen_projection": 0.10684555768966675,
+        "caption_head": 0.011291778646409512,
+        "caption_language": 0.00686294212937355,
+        "proxy_visual_lora": 0.0324433371424675,
+        "proxy_qwen_qlora": 0.042447444051504135
+      }
+    },
+    {
+      "stage": "B",
+      "mode": "fp16_scaled_128",
+      "paintings": 1,
+      "sample_paintings": [
+        "vincent-van-gogh_vineyards-with-a-view-of-auvers-1890"
+      ],
+      "caption_mass": 48.0,
+      "weighted_loss": 0.1095009446144104,
+      "grad_l2": {
+        "visual_projection": 0.043840598315000534,
+        "qwen_projection": 0.10773112624883652,
+        "caption_head": 0.011291653849184513,
+        "caption_language": 0.006862863432615995,
+        "proxy_visual_lora": 0.03249943628907204,
+        "proxy_qwen_qlora": 0.042543135583400726
+      }
+    },
+    {
+      "stage": "B",
+      "mode": "fp32",
+      "paintings": 1,
+      "sample_paintings": [
+        "niko-pirosmani_peasant-woman-with-children-goes-for-water"
+      ],
+      "caption_mass": 55.0,
+      "weighted_loss": 0.09950205683708191,
+      "grad_l2": {
+        "visual_projection": 0.0006335433572530746,
+        "qwen_projection": 0.0022277922835201025,
+        "caption_head": 0.006245872937142849,
+        "caption_language": 0.004014166072010994,
+        "proxy_visual_lora": 0.0021448598708957434,
+        "proxy_qwen_qlora": 0.0007753045065328479
+      }
+    },
+    {
+      "stage": "B",
+      "mode": "fp16_unscaled",
+      "paintings": 1,
+      "sample_paintings": [
+        "niko-pirosmani_peasant-woman-with-children-goes-for-water"
+      ],
+      "caption_mass": 55.0,
+      "weighted_loss": 0.09950017184019089,
+      "grad_l2": {
+        "visual_projection": 0.001344930729828775,
+        "qwen_projection": 0.003778052283450961,
+        "caption_head": 0.006230909377336502,
+        "caption_language": 0.004009193740785122,
+        "proxy_visual_lora": 0.0022871841210871935,
+        "proxy_qwen_qlora": 0.001331042847596109
+      }
+    },
+    {
+      "stage": "B",
+      "mode": "fp16_scaled_128",
+      "paintings": 1,
+      "sample_paintings": [
+        "niko-pirosmani_peasant-woman-with-children-goes-for-water"
+      ],
+      "caption_mass": 55.0,
+      "weighted_loss": 0.09950017184019089,
+      "grad_l2": {
+        "visual_projection": 0.0016959360800683498,
+        "qwen_projection": 0.004722819663584232,
+        "caption_head": 0.00623060530051589,
+        "caption_language": 0.004009281285107136,
+        "proxy_visual_lora": 0.0023923940025269985,
+        "proxy_qwen_qlora": 0.0016698397230356932
+      }
+    },
+    {
+      "stage": "B",
+      "mode": "fp32",
+      "paintings": 1,
+      "sample_paintings": [
+        "friedel-dzubas_hope-distant-1987"
+      ],
+      "caption_mass": 36.0,
+      "weighted_loss": 0.09591973572969437,
+      "grad_l2": {
+        "visual_projection": 0.004814257845282555,
+        "qwen_projection": 0.01604347676038742,
+        "caption_head": 0.010989238508045673,
+        "caption_language": 0.006421070080250502,
+        "proxy_visual_lora": 0.007074654567986727,
+        "proxy_qwen_qlora": 0.00765411090105772
+      }
+    },
+    {
+      "stage": "B",
+      "mode": "fp16_unscaled",
+      "paintings": 1,
+      "sample_paintings": [
+        "friedel-dzubas_hope-distant-1987"
+      ],
+      "caption_mass": 36.0,
+      "weighted_loss": 0.09604454040527344,
+      "grad_l2": {
+        "visual_projection": 0.016700761392712593,
+        "qwen_projection": 0.041592858731746674,
+        "caption_head": 0.010959653183817863,
+        "caption_language": 0.006394738331437111,
+        "proxy_visual_lora": 0.01346428319811821,
+        "proxy_qwen_qlora": 0.016417579725384712
+      }
+    },
+    {
+      "stage": "B",
+      "mode": "fp16_scaled_128",
+      "paintings": 1,
+      "sample_paintings": [
+        "friedel-dzubas_hope-distant-1987"
+      ],
+      "caption_mass": 36.0,
+      "weighted_loss": 0.09604454040527344,
+      "grad_l2": {
+        "visual_projection": 0.017636995762586594,
+        "qwen_projection": 0.04409443959593773,
+        "caption_head": 0.010957576334476471,
+        "caption_language": 0.006394665688276291,
+        "proxy_visual_lora": 0.01413680613040924,
+        "proxy_qwen_qlora": 0.017416128888726234
+      }
+    },
+    {
+      "stage": "B",
+      "mode": "fp32",
+      "paintings": 4,
+      "sample_paintings": [
+        "vincent-van-gogh_vineyards-with-a-view-of-auvers-1890",
+        "niko-pirosmani_peasant-woman-with-children-goes-for-water",
+        "friedel-dzubas_hope-distant-1987",
+        "tom-thomson_forest-undergrowth-i-1916"
+      ],
+      "caption_mass": 199.0,
+      "weighted_loss": 0.09867332875728607,
+      "grad_l2": {
+        "visual_projection": 0.011125452816486359,
+        "qwen_projection": 0.021497569978237152,
+        "caption_head": 0.004683975595980883,
+        "caption_language": 0.002886036178097129,
+        "proxy_visual_lora": 0.008022439666092396,
+        "proxy_qwen_qlora": 0.006467027589678764
+      }
+    },
+    {
+      "stage": "B",
+      "mode": "fp16_unscaled",
+      "paintings": 4,
+      "sample_paintings": [
+        "vincent-van-gogh_vineyards-with-a-view-of-auvers-1890",
+        "niko-pirosmani_peasant-woman-with-children-goes-for-water",
+        "friedel-dzubas_hope-distant-1987",
+        "tom-thomson_forest-undergrowth-i-1916"
+      ],
+      "caption_mass": 199.0,
+      "weighted_loss": 0.09873910248279572,
+      "grad_l2": {
+        "visual_projection": 0.012563487514853477,
+        "qwen_projection": 0.028245901688933372,
+        "caption_head": 0.004653625655919313,
+        "caption_language": 0.002873920602723956,
+        "proxy_visual_lora": 0.010723003186285496,
+        "proxy_qwen_qlora": 0.009330833330750465
+      }
+    },
+    {
+      "stage": "B",
+      "mode": "fp16_scaled_128",
+      "paintings": 4,
+      "sample_paintings": [
+        "vincent-van-gogh_vineyards-with-a-view-of-auvers-1890",
+        "niko-pirosmani_peasant-woman-with-children-goes-for-water",
+        "friedel-dzubas_hope-distant-1987",
+        "tom-thomson_forest-undergrowth-i-1916"
+      ],
+      "caption_mass": 199.0,
+      "weighted_loss": 0.09873910248279572,
+      "grad_l2": {
+        "visual_projection": 0.012455836869776249,
+        "qwen_projection": 0.02827293425798416,
+        "caption_head": 0.00465347059071064,
+        "caption_language": 0.0028738193213939667,
+        "proxy_visual_lora": 0.010535802692174911,
+        "proxy_qwen_qlora": 0.008661740459501743
+      }
+    },
+    {
+      "stage": "C",
+      "mode": "fp32",
+      "paintings": 1,
+      "sample_paintings": [
+        "vincent-van-gogh_vineyards-with-a-view-of-auvers-1890"
+      ],
+      "caption_mass": 48.0,
+      "weighted_loss": 0.10861654579639435,
+      "grad_l2": {
+        "visual_projection": 0.014940248802304268,
+        "qwen_projection": 0.06664004176855087,
+        "caption_head": 0.013192345388233662,
+        "caption_language": 0.008153709582984447,
+        "proxy_visual_lora": 0.011725611053407192,
+        "proxy_qwen_qlora": 0.03023259900510311
+      }
+    },
+    {
+      "stage": "C",
+      "mode": "fp16_unscaled",
+      "paintings": 1,
+      "sample_paintings": [
+        "vincent-van-gogh_vineyards-with-a-view-of-auvers-1890"
+      ],
+      "caption_mass": 48.0,
+      "weighted_loss": 0.10945691913366318,
+      "grad_l2": {
+        "visual_projection": 0.023789148777723312,
+        "qwen_projection": 0.06581918895244598,
+        "caption_head": 0.013087421655654907,
+        "caption_language": 0.008118923753499985,
+        "proxy_visual_lora": 0.014410735107958317,
+        "proxy_qwen_qlora": 0.03106457181274891
+      }
+    },
+    {
+      "stage": "C",
+      "mode": "fp16_scaled_128",
+      "paintings": 1,
+      "sample_paintings": [
+        "vincent-van-gogh_vineyards-with-a-view-of-auvers-1890"
+      ],
+      "caption_mass": 48.0,
+      "weighted_loss": 0.10945691913366318,
+      "grad_l2": {
+        "visual_projection": 0.024035317823290825,
+        "qwen_projection": 0.06611883640289307,
+        "caption_head": 0.013087732717394829,
+        "caption_language": 0.008119039237499237,
+        "proxy_visual_lora": 0.014502806589007378,
+        "proxy_qwen_qlora": 0.031076544895768166
+      }
+    },
+    {
+      "stage": "C",
+      "mode": "fp32",
+      "paintings": 1,
+      "sample_paintings": [
+        "niko-pirosmani_peasant-woman-with-children-goes-for-water"
+      ],
+      "caption_mass": 55.0,
+      "weighted_loss": 0.10000786930322647,
+      "grad_l2": {
+        "visual_projection": 0.0024473615922033787,
+        "qwen_projection": 0.014895561151206493,
+        "caption_head": 0.0077350144274532795,
+        "caption_language": 0.004977631848305464,
+        "proxy_visual_lora": 0.0026910945307463408,
+        "proxy_qwen_qlora": 0.005348351784050465
+      }
+    },
+    {
+      "stage": "C",
+      "mode": "fp16_unscaled",
+      "paintings": 1,
+      "sample_paintings": [
+        "niko-pirosmani_peasant-woman-with-children-goes-for-water"
+      ],
+      "caption_mass": 55.0,
+      "weighted_loss": 0.09991314262151718,
+      "grad_l2": {
+        "visual_projection": 0.0026633157394826412,
+        "qwen_projection": 0.01477902103215456,
+        "caption_head": 0.007684489246457815,
+        "caption_language": 0.004959440790116787,
+        "proxy_visual_lora": 0.002869244897738099,
+        "proxy_qwen_qlora": 0.0051879785023629665
+      }
+    },
+    {
+      "stage": "C",
+      "mode": "fp16_scaled_128",
+      "paintings": 1,
+      "sample_paintings": [
+        "niko-pirosmani_peasant-woman-with-children-goes-for-water"
+      ],
+      "caption_mass": 55.0,
+      "weighted_loss": 0.09991314262151718,
+      "grad_l2": {
+        "visual_projection": 0.0033413441851735115,
+        "qwen_projection": 0.015656301751732826,
+        "caption_head": 0.007684000767767429,
+        "caption_language": 0.00495944544672966,
+        "proxy_visual_lora": 0.0030623937491327524,
+        "proxy_qwen_qlora": 0.005084233824163675
+      }
+    },
+    {
+      "stage": "C",
+      "mode": "fp32",
+      "paintings": 1,
+      "sample_paintings": [
+        "friedel-dzubas_hope-distant-1987"
+      ],
+      "caption_mass": 36.0,
+      "weighted_loss": 0.09586381912231445,
+      "grad_l2": {
+        "visual_projection": 0.007358748000115156,
+        "qwen_projection": 0.03875678405165672,
+        "caption_head": 0.013548146933317184,
+        "caption_language": 0.00779680535197258,
+        "proxy_visual_lora": 0.007264502812176943,
+        "proxy_qwen_qlora": 0.014481664635241032
+      }
+    },
+    {
+      "stage": "C",
+      "mode": "fp16_unscaled",
+      "paintings": 1,
+      "sample_paintings": [
+        "friedel-dzubas_hope-distant-1987"
+      ],
+      "caption_mass": 36.0,
+      "weighted_loss": 0.09621389955282211,
+      "grad_l2": {
+        "visual_projection": 0.010859370231628418,
+        "qwen_projection": 0.03819895163178444,
+        "caption_head": 0.01346184965223074,
+        "caption_language": 0.007736879866570234,
+        "proxy_visual_lora": 0.008792330510914326,
+        "proxy_qwen_qlora": 0.014598878100514412
+      }
+    },
+    {
+      "stage": "C",
+      "mode": "fp16_scaled_128",
+      "paintings": 1,
+      "sample_paintings": [
+        "friedel-dzubas_hope-distant-1987"
+      ],
+      "caption_mass": 36.0,
+      "weighted_loss": 0.09621389955282211,
+      "grad_l2": {
+        "visual_projection": 0.010543566197156906,
+        "qwen_projection": 0.03793935105204582,
+        "caption_head": 0.013461698777973652,
+        "caption_language": 0.007736771367490292,
+        "proxy_visual_lora": 0.008629714138805866,
+        "proxy_qwen_qlora": 0.014472822658717632
+      }
+    },
+    {
+      "stage": "C",
+      "mode": "fp32",
+      "paintings": 4,
+      "sample_paintings": [
+        "vincent-van-gogh_vineyards-with-a-view-of-auvers-1890",
+        "niko-pirosmani_peasant-woman-with-children-goes-for-water",
+        "friedel-dzubas_hope-distant-1987",
+        "tom-thomson_forest-undergrowth-i-1916"
+      ],
+      "caption_mass": 199.0,
+      "weighted_loss": 0.09978824853897095,
+      "grad_l2": {
+        "visual_projection": 0.006033339537680149,
+        "qwen_projection": 0.03125820308923721,
+        "caption_head": 0.005857779644429684,
+        "caption_language": 0.003506953362375498,
+        "proxy_visual_lora": 0.004037865437567234,
+        "proxy_qwen_qlora": 0.009625190868973732
+      }
+    },
+    {
+      "stage": "C",
+      "mode": "fp16_unscaled",
+      "paintings": 4,
+      "sample_paintings": [
+        "vincent-van-gogh_vineyards-with-a-view-of-auvers-1890",
+        "niko-pirosmani_peasant-woman-with-children-goes-for-water",
+        "friedel-dzubas_hope-distant-1987",
+        "tom-thomson_forest-undergrowth-i-1916"
+      ],
+      "caption_mass": 199.0,
+      "weighted_loss": 0.09984932094812393,
+      "grad_l2": {
+        "visual_projection": 0.0166598130017519,
+        "qwen_projection": 0.05899528041481972,
+        "caption_head": 0.005840655416250229,
+        "caption_language": 0.0034932224079966545,
+        "proxy_visual_lora": 0.007381579373031855,
+        "proxy_qwen_qlora": 0.024089401587843895
+      }
+    },
+    {
+      "stage": "C",
+      "mode": "fp16_scaled_128",
+      "paintings": 4,
+      "sample_paintings": [
+        "vincent-van-gogh_vineyards-with-a-view-of-auvers-1890",
+        "niko-pirosmani_peasant-woman-with-children-goes-for-water",
+        "friedel-dzubas_hope-distant-1987",
+        "tom-thomson_forest-undergrowth-i-1916"
+      ],
+      "caption_mass": 199.0,
+      "weighted_loss": 0.09984932094812393,
+      "grad_l2": {
+        "visual_projection": 0.019517948850989342,
+        "qwen_projection": 0.07136623561382294,
+        "caption_head": 0.005839931778609753,
+        "caption_language": 0.0034932417329400778,
+        "proxy_visual_lora": 0.00869705993682146,
+        "proxy_qwen_qlora": 0.027857836335897446
+      }
+    }
+  ]
+}

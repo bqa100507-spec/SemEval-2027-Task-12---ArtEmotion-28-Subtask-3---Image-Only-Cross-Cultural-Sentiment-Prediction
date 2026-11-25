@@ -131,6 +131,22 @@ def test_native_tiny_qwen_stage_isolation_and_inference_restore():
     model.restore(retained, inference=True)
     torch.testing.assert_close(model.heads.logits(model.features(pixels, encoded), groups, languages), reference,
                                atol=0., rtol=0.)
+    # Isolate the caption term on the native, checkpointed Qwen path for closure.
+    model.train()
+    h = model.features(pixels, encoded)
+    fitted = languages.clamp_min(0)
+    votes = torch.tensor([5., 7., 6.])
+    emotions = torch.zeros(3, 8)
+    emotions[:, 0] = votes
+    targets = torch.nn.functional.normalize(torch.arange(36,dtype=torch.float32).reshape(3,12)+1)
+    caption = losses(model.heads, h, (groups,fitted,votes,votes,emotions,targets,votes),18.,18.)[2] * .1
+    constrained = [model.heads.caption_language.weight, model.heads.visual_projection.weight,
+                   model.heads.qwen_projection.weight]
+    params = model.groups()["vision"]+model.groups()["qwen"]
+    gradients = torch.autograd.grad(caption, constrained+params)
+    assert all(g.isfinite().all() for g in gradients)
+    assert all(g.norm()>0 for g in gradients[:3])
+    assert all(g.norm()>0 for g in gradients[3::2])  # Adapted low-rank left factors are now off their zero-gradient start.
 
 
 @pytest.mark.parametrize("names", [["A.jpg", "a.JPG"], ["p/A.jpg", "P/b.jpg"], ["NUL.jpg"], ["ok."],

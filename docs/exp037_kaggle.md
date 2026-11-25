@@ -1,6 +1,6 @@
 # EXP-037 · Progressive joint vision–language adaptation
 
-**CPU validated. Kaggle pretrained preflight and scientific results pending.** EXP-036 remains the incumbent. Replaying its sealed 849 Development predictions gave **0.470338787 Contrast / 0.729708508 bits**. Excluding English, Arabic and Chinese from that same panel gave **0.448751126 / 0.752287512**. The hosted result of **0.4703 (#1065924)** is owner-reported.
+**Archived runbook for the completed Kaggle run.** All 18 epochs and saved predictions were verified. EXP-036 remains the incumbent. The original C6 blend scored **0.472818377 Contrast / 0.728087866 bits** on Development and remains experimental. [Final audit](../reports/exp037_final.md) · [Evaluation inference](exp037_evaluation.md)
 
 ## Recipe
 

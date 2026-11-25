@@ -1,0 +1,241 @@
+{
+  "measurements": [
+    {
+      "stage": "A",
+      "painting": "vincent-van-gogh_vineyards-with-a-view-of-auvers-1890",
+      "caption_mass": 48.0,
+      "weighted_caption_loss": 0.0826290026307106,
+      "loss_scale": 1.0,
+      "rescaled_grad_l2": {
+        "visual_projection": 0.0,
+        "qwen_projection": 0.0,
+        "caption_language": 0.0024034082889556885
+      }
+    },
+    {
+      "stage": "A",
+      "painting": "vincent-van-gogh_vineyards-with-a-view-of-auvers-1890",
+      "caption_mass": 48.0,
+      "weighted_caption_loss": 0.0826290026307106,
+      "loss_scale": 128.0,
+      "rescaled_grad_l2": {
+        "visual_projection": 0.0013386491918936372,
+        "qwen_projection": 0.0007099730428308249,
+        "caption_language": 0.0024034378584474325
+      }
+    },
+    {
+      "stage": "A",
+      "painting": "vincent-van-gogh_vineyards-with-a-view-of-auvers-1890",
+      "caption_mass": 48.0,
+      "weighted_caption_loss": 0.0826290026307106,
+      "loss_scale": 8192.0,
+      "rescaled_grad_l2": {
+        "visual_projection": 0.0013459004694595933,
+        "qwen_projection": 0.0007124266121536493,
+        "caption_language": 0.002403437625616789
+      }
+    },
+    {
+      "stage": "A",
+      "painting": "niko-pirosmani_peasant-woman-with-children-goes-for-water",
+      "caption_mass": 55.0,
+      "weighted_caption_loss": 0.09364151209592819,
+      "loss_scale": 1.0,
+      "rescaled_grad_l2": {
+        "visual_projection": 0.0,
+        "qwen_projection": 0.0,
+        "caption_language": 0.003219243139028549
+      }
+    },
+    {
+      "stage": "A",
+      "painting": "niko-pirosmani_peasant-woman-with-children-goes-for-water",
+      "caption_mass": 55.0,
+      "weighted_caption_loss": 0.09364151209592819,
+      "loss_scale": 128.0,
+      "rescaled_grad_l2": {
+        "visual_projection": 0.0037695898208767176,
+        "qwen_projection": 0.0015873743686825037,
+        "caption_language": 0.003219151869416237
+      }
+    },
+    {
+      "stage": "A",
+      "painting": "niko-pirosmani_peasant-woman-with-children-goes-for-water",
+      "caption_mass": 55.0,
+      "weighted_caption_loss": 0.09364151209592819,
+      "loss_scale": 8192.0,
+      "rescaled_grad_l2": {
+        "visual_projection": 0.003717200830578804,
+        "qwen_projection": 0.001596182002685964,
+        "caption_language": 0.003219151869416237
+      }
+    },
+    {
+      "stage": "B",
+      "painting": "vincent-van-gogh_vineyards-with-a-view-of-auvers-1890",
+      "caption_mass": 48.0,
+      "weighted_caption_loss": 0.0657295510172844,
+      "loss_scale": 1.0,
+      "rescaled_grad_l2": {
+        "visual_projection": 0.0,
+        "qwen_projection": 0.0,
+        "caption_language": 0.003290075110271573,
+        "vision": 0.004498855210840702
+      }
+    },
+    {
+      "stage": "B",
+      "painting": "vincent-van-gogh_vineyards-with-a-view-of-auvers-1890",
+      "caption_mass": 48.0,
+      "weighted_caption_loss": 0.0657295510172844,
+      "loss_scale": 128.0,
+      "rescaled_grad_l2": {
+        "visual_projection": 0.0007863712962716818,
+        "qwen_projection": 0.0008887108997441828,
+        "caption_language": 0.0032900674268603325,
+        "vision": 0.005567188840359449
+      }
+    },
+    {
+      "stage": "B",
+      "painting": "vincent-van-gogh_vineyards-with-a-view-of-auvers-1890",
+      "caption_mass": 48.0,
+      "weighted_caption_loss": 0.0657295510172844,
+      "loss_scale": 8192.0,
+      "rescaled_grad_l2": {
+        "visual_projection": 0.0007768961368128657,
+        "qwen_projection": 0.0008679373422637582,
+        "caption_language": 0.0032900674268603325,
+        "vision": 0.005682159215211868
+      }
+    },
+    {
+      "stage": "B",
+      "painting": "niko-pirosmani_peasant-woman-with-children-goes-for-water",
+      "caption_mass": 55.0,
+      "weighted_caption_loss": 0.08551471680402756,
+      "loss_scale": 1.0,
+      "rescaled_grad_l2": {
+        "visual_projection": 0.0009122791816480458,
+        "qwen_projection": 0.0,
+        "caption_language": 0.005070032086223364,
+        "vision": 0.012989861890673637
+      }
+    },
+    {
+      "stage": "B",
+      "painting": "niko-pirosmani_peasant-woman-with-children-goes-for-water",
+      "caption_mass": 55.0,
+      "weighted_caption_loss": 0.08551471680402756,
+      "loss_scale": 128.0,
+      "rescaled_grad_l2": {
+        "visual_projection": 0.003494315082207322,
+        "qwen_projection": 0.006369503680616617,
+        "caption_language": 0.005070081911981106,
+        "vision": 0.021875666454434395
+      }
+    },
+    {
+      "stage": "B",
+      "painting": "niko-pirosmani_peasant-woman-with-children-goes-for-water",
+      "caption_mass": 55.0,
+      "weighted_caption_loss": 0.08551471680402756,
+      "loss_scale": 8192.0,
+      "rescaled_grad_l2": {
+        "visual_projection": 0.0034593024756759405,
+        "qwen_projection": 0.006281695794314146,
+        "caption_language": 0.005070081911981106,
+        "vision": 0.02173108421266079
+      }
+    },
+    {
+      "stage": "C",
+      "painting": "vincent-van-gogh_vineyards-with-a-view-of-auvers-1890",
+      "caption_mass": 48.0,
+      "weighted_caption_loss": 0.06102844700217247,
+      "loss_scale": 1.0,
+      "rescaled_grad_l2": {
+        "visual_projection": 0.0,
+        "qwen_projection": 0.0,
+        "caption_language": 0.00409192917868495,
+        "vision": 0.008623555302619934,
+        "qwen": 0.0
+      }
+    },
+    {
+      "stage": "C",
+      "painting": "vincent-van-gogh_vineyards-with-a-view-of-auvers-1890",
+      "caption_mass": 48.0,
+      "weighted_caption_loss": 0.06102844700217247,
+      "loss_scale": 128.0,
+      "rescaled_grad_l2": {
+        "visual_projection": 0.0011639045551419258,
+        "qwen_projection": 0.0013732552761211991,
+        "caption_language": 0.004091895651072264,
+        "vision": 0.010983023792505264,
+        "qwen": 0.0007389432867057621
+      }
+    },
+    {
+      "stage": "C",
+      "painting": "vincent-van-gogh_vineyards-with-a-view-of-auvers-1890",
+      "caption_mass": 48.0,
+      "weighted_caption_loss": 0.06102844700217247,
+      "loss_scale": 8192.0,
+      "rescaled_grad_l2": {
+        "visual_projection": 0.0011661298340186477,
+        "qwen_projection": 0.0013708530459553003,
+        "caption_language": 0.004091895651072264,
+        "vision": 0.011178596876561642,
+        "qwen": 0.0007376039866358042
+      }
+    },
+    {
+      "stage": "C",
+      "painting": "niko-pirosmani_peasant-woman-with-children-goes-for-water",
+      "caption_mass": 55.0,
+      "weighted_caption_loss": 0.08192435652017593,
+      "loss_scale": 1.0,
+      "rescaled_grad_l2": {
+        "visual_projection": 0.0,
+        "qwen_projection": 0.0,
+        "caption_language": 0.005233301781117916,
+        "vision": 0.018780656158924103,
+        "qwen": 0.0
+      }
+    },
+    {
+      "stage": "C",
+      "painting": "niko-pirosmani_peasant-woman-with-children-goes-for-water",
+      "caption_mass": 55.0,
+      "weighted_caption_loss": 0.08192435652017593,
+      "loss_scale": 128.0,
+      "rescaled_grad_l2": {
+        "visual_projection": 0.0023709142114967108,
+        "qwen_projection": 0.0032795502338558435,
+        "caption_language": 0.005233467556536198,
+        "vision": 0.02703966572880745,
+        "qwen": 0.0032841654028743505
+      }
+    },
+    {
+      "stage": "C",
+      "painting": "niko-pirosmani_peasant-woman-with-children-goes-for-water",
+      "caption_mass": 55.0,
+      "weighted_caption_loss": 0.08192435652017593,
+      "loss_scale": 8192.0,
+      "rescaled_grad_l2": {
+        "visual_projection": 0.0023543862625956535,
+        "qwen_projection": 0.0032792154233902693,
+        "caption_language": 0.005233467556536198,
+        "vision": 0.027081001549959183,
+        "qwen": 0.003260970814153552
+      }
+    }
+  ],
+  "gpu": "NVIDIA GeForce RTX 4060 Laptop GPU",
+  "peak_allocated_bytes": 4050778624,
+  "peak_reserved_bytes": 4129292288
+}
