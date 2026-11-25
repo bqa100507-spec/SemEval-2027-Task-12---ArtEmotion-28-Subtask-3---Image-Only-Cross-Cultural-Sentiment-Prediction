@@ -1,0 +1,2702 @@
+{
+  "standalone_and_original": {
+    "ridge": {
+      "full_contrast": 0.46546232785032965,
+      "full_log_loss": 0.7403051141853827,
+      "full_eligible": 82,
+      "full_macro_languages": 17,
+      "like_contrast": 0.44121993567089607,
+      "like_log_loss": 0.7639025335298361,
+      "like_eligible": 79,
+      "like_macro_languages": 14
+    },
+    "cscva": {
+      "full_contrast": 0.4376321906325028,
+      "full_log_loss": 0.7429108068719134,
+      "full_eligible": 82,
+      "full_macro_languages": 17,
+      "like_contrast": 0.42366125290990614,
+      "like_log_loss": 0.7666573624254835,
+      "like_eligible": 79,
+      "like_macro_languages": 14
+    },
+    "incumbent": {
+      "full_contrast": 0.4703387872416294,
+      "full_log_loss": 0.7297085084022875,
+      "full_eligible": 82,
+      "full_macro_languages": 17,
+      "like_contrast": 0.4487511260120377,
+      "like_log_loss": 0.7522875122556872,
+      "like_eligible": 79,
+      "like_macro_languages": 14
+    },
+    "A4": {
+      "full_contrast": 0.42082769452122887,
+      "full_log_loss": 0.7561853308102772,
+      "full_eligible": 82,
+      "full_macro_languages": 17,
+      "like_contrast": 0.40601132701358805,
+      "like_log_loss": 0.7814150307823866,
+      "like_eligible": 79,
+      "like_macro_languages": 14
+    },
+    "B6": {
+      "full_contrast": 0.4407449164569196,
+      "full_log_loss": 0.7506811534202781,
+      "full_eligible": 82,
+      "full_macro_languages": 17,
+      "like_contrast": 0.4311624559464698,
+      "like_log_loss": 0.7736863084704574,
+      "like_eligible": 79,
+      "like_macro_languages": 14
+    },
+    "C6": {
+      "full_contrast": 0.4459570175727772,
+      "full_log_loss": 0.7447584301001855,
+      "full_eligible": 82,
+      "full_macro_languages": 17,
+      "like_contrast": 0.43774412426591836,
+      "like_log_loss": 0.7668061066439299,
+      "like_eligible": 79,
+      "like_macro_languages": 14
+    },
+    "selected": {
+      "full_contrast": 0.4728183766162482,
+      "full_log_loss": 0.728087866415007,
+      "full_eligible": 82,
+      "full_macro_languages": 17,
+      "like_contrast": 0.45404128566475155,
+      "like_log_loss": 0.7502752169211606,
+      "like_eligible": 79,
+      "like_macro_languages": 14
+    },
+    "C7": {
+      "full_contrast": 0.4372056862241077,
+      "full_log_loss": 0.7496932948315063,
+      "full_eligible": 82,
+      "full_macro_languages": 17,
+      "like_contrast": 0.4267008092711477,
+      "like_log_loss": 0.772284928473003,
+      "like_eligible": 79,
+      "like_macro_languages": 14
+    },
+    "C8": {
+      "full_contrast": 0.4383145675788868,
+      "full_log_loss": 0.7486264273686758,
+      "full_eligible": 82,
+      "full_macro_languages": 17,
+      "like_contrast": 0.42888713846026527,
+      "like_log_loss": 0.7710293735627687,
+      "like_eligible": 79,
+      "like_macro_languages": 14
+    },
+    "posthoc_best": {
+      "full_contrast": 0.4731433358738072,
+      "full_log_loss": 0.7292457058626503,
+      "full_eligible": 82,
+      "full_macro_languages": 17,
+      "like_contrast": 0.45366743204998256,
+      "like_log_loss": 0.7515487472064055,
+      "like_eligible": 79,
+      "like_macro_languages": 14
+    }
+  },
+  "best_by_stage": {
+    "A": {
+      "id": "A1_a000",
+      "epoch": "A1",
+      "alpha": 0.0,
+      "full_contrast": 0.4703387872416294,
+      "full_log_loss": 0.7297085084022875,
+      "full_eligible": 82,
+      "full_macro_languages": 17,
+      "like_contrast": 0.4487511260120377,
+      "like_log_loss": 0.7522875122556872,
+      "like_eligible": 79,
+      "like_macro_languages": 14
+    },
+    "B": {
+      "id": "B6_a010",
+      "epoch": "B6",
+      "alpha": 0.1,
+      "full_contrast": 0.4704916396512801,
+      "full_log_loss": 0.7292811017677802,
+      "full_eligible": 82,
+      "full_macro_languages": 17,
+      "like_contrast": 0.4500272056173939,
+      "like_log_loss": 0.7517370009673502,
+      "like_eligible": 79,
+      "like_macro_languages": 14
+    },
+    "C": {
+      "id": "C6_a020",
+      "epoch": "C6",
+      "alpha": 0.2,
+      "full_contrast": 0.4728183766162482,
+      "full_log_loss": 0.728087866415007,
+      "full_eligible": 82,
+      "full_macro_languages": 17,
+      "like_contrast": 0.45404128566475155,
+      "like_log_loss": 0.7502752169211606,
+      "like_eligible": 79,
+      "like_macro_languages": 14
+    }
+  },
+  "best_by_stage_like_diagnostic": {
+    "A": {
+      "id": "A2_a010",
+      "epoch": "A2",
+      "alpha": 0.1,
+      "full_contrast": 0.47007579925742476,
+      "full_log_loss": 0.7308658856765532,
+      "full_eligible": 82,
+      "full_macro_languages": 17,
+      "like_contrast": 0.4492942713786705,
+      "like_log_loss": 0.7538675302235026,
+      "like_eligible": 79,
+      "like_macro_languages": 14
+    },
+    "B": {
+      "id": "B5_a025",
+      "epoch": "B5",
+      "alpha": 0.25,
+      "full_contrast": 0.4693120878298762,
+      "full_log_loss": 0.7296122235736283,
+      "full_eligible": 82,
+      "full_macro_languages": 17,
+      "like_contrast": 0.45099078954966765,
+      "like_log_loss": 0.7520180686099013,
+      "like_eligible": 79,
+      "like_macro_languages": 14
+    },
+    "C": {
+      "id": "C6_a035",
+      "epoch": "C6",
+      "alpha": 0.35,
+      "full_contrast": 0.472024317947539,
+      "full_log_loss": 0.7282693912147504,
+      "full_eligible": 82,
+      "full_macro_languages": 17,
+      "like_contrast": 0.4553579003771288,
+      "like_log_loss": 0.7502612812818619,
+      "like_eligible": 79,
+      "like_macro_languages": 14
+    }
+  },
+  "best_posthoc_or_original": {
+    "id": "flat_65_15_20",
+    "full_contrast": 0.4731433358738072,
+    "full_log_loss": 0.7292457058626503,
+    "full_eligible": 82,
+    "full_macro_languages": 17,
+    "like_contrast": 0.45366743204998256,
+    "like_log_loss": 0.7515487472064055,
+    "like_eligible": 79,
+    "like_macro_languages": 14
+  },
+  "logit_variants": {
+    "train_prior_beta_1_1": {
+      "full_contrast": 0.36435264450765686,
+      "full_log_loss": 0.86776861746716,
+      "full_eligible": 82,
+      "full_macro_languages": 17,
+      "like_contrast": 0.3282278011695769,
+      "like_log_loss": 0.9038216068284989,
+      "like_eligible": 79,
+      "like_macro_languages": 14
+    },
+    "A4": {
+      "components": {
+        "shared_proxy_sd": 0.9725529595191379,
+        "intercept_sd_over_observed_rows": 0.021519135467507028,
+        "centered_intercept_sd": 0.020947948839299943,
+        "interaction_sd": 0.4510874967281188,
+        "interaction_intercept_centered_r": 0.7698747353827949
+      },
+      "metrics": {
+        "shared_proxy": {
+          "full_contrast": 0.0,
+          "full_log_loss": 0.7881197783819913,
+          "full_eligible": 82,
+          "full_macro_languages": 17,
+          "like_contrast": 0.0,
+          "like_log_loss": 0.8105444447156321,
+          "like_eligible": 79,
+          "like_macro_languages": 14
+        },
+        "intercept_only": {
+          "full_contrast": 0.3450529500491377,
+          "full_log_loss": 0.9896553776256922,
+          "full_eligible": 82,
+          "full_macro_languages": 17,
+          "like_contrast": 0.3130961490875055,
+          "like_log_loss": 0.9921272706210928,
+          "like_eligible": 79,
+          "like_macro_languages": 14
+        },
+        "no_intercept": {
+          "full_contrast": 0.42168293702425497,
+          "full_log_loss": 0.7563296583012113,
+          "full_eligible": 82,
+          "full_macro_languages": 17,
+          "like_contrast": 0.407873893021665,
+          "like_log_loss": 0.7813178437244482,
+          "like_eligible": 79,
+          "like_macro_languages": 14
+        },
+        "no_observed_interaction": {
+          "full_contrast": 0.34492920577393515,
+          "full_log_loss": 0.7857657547955978,
+          "full_eligible": 82,
+          "full_macro_languages": 17,
+          "like_contrast": 0.31299937166023106,
+          "like_log_loss": 0.8090318017327872,
+          "like_eligible": 79,
+          "like_macro_languages": 14
+        },
+        "shuffled_interaction": {
+          "full_contrast": 0.3108577678345413,
+          "full_log_loss": 0.7741500137267525,
+          "full_eligible": 82,
+          "full_macro_languages": 17,
+          "like_contrast": 0.287461265569143,
+          "like_log_loss": 0.802547158670568,
+          "like_eligible": 79,
+          "like_macro_languages": 14
+        }
+      }
+    },
+    "B6": {
+      "components": {
+        "shared_proxy_sd": 1.156272110353238,
+        "intercept_sd_over_observed_rows": 0.03114411489460015,
+        "centered_intercept_sd": 0.030307688665850697,
+        "interaction_sd": 0.5440123611666055,
+        "interaction_intercept_centered_r": 0.680718503164674
+      },
+      "metrics": {
+        "shared_proxy": {
+          "full_contrast": 0.0,
+          "full_log_loss": 0.7864875659725433,
+          "full_eligible": 82,
+          "full_macro_languages": 17,
+          "like_contrast": 0.0,
+          "like_log_loss": 0.8088851034361427,
+          "like_eligible": 79,
+          "like_macro_languages": 14
+        },
+        "intercept_only": {
+          "full_contrast": 0.334797332115123,
+          "full_log_loss": 0.9877106774224832,
+          "full_eligible": 82,
+          "full_macro_languages": 17,
+          "like_contrast": 0.3025241732578974,
+          "like_log_loss": 0.99083271464323,
+          "like_eligible": 79,
+          "like_macro_languages": 14
+        },
+        "no_intercept": {
+          "full_contrast": 0.44142650318165344,
+          "full_log_loss": 0.7497970442830082,
+          "full_eligible": 82,
+          "full_macro_languages": 17,
+          "like_contrast": 0.43302333953681243,
+          "like_log_loss": 0.7724929395258491,
+          "like_eligible": 79,
+          "like_macro_languages": 14
+        },
+        "no_observed_interaction": {
+          "full_contrast": 0.3345133092054208,
+          "full_log_loss": 0.784195263155667,
+          "full_eligible": 82,
+          "full_macro_languages": 17,
+          "like_contrast": 0.3022920246651316,
+          "like_log_loss": 0.8075097025635986,
+          "like_eligible": 79,
+          "like_macro_languages": 14
+        },
+        "shuffled_interaction": {
+          "full_contrast": 0.2821089979187466,
+          "full_log_loss": 0.7812231739771155,
+          "full_eligible": 82,
+          "full_macro_languages": 17,
+          "like_contrast": 0.2582650275391869,
+          "like_log_loss": 0.8090300701378788,
+          "like_eligible": 79,
+          "like_macro_languages": 14
+        }
+      }
+    },
+    "C6": {
+      "components": {
+        "shared_proxy_sd": 1.216045598811057,
+        "intercept_sd_over_observed_rows": 0.03624882838261101,
+        "centered_intercept_sd": 0.035228953777450195,
+        "interaction_sd": 0.5981098428421865,
+        "interaction_intercept_centered_r": 0.6341160579738078
+      },
+      "metrics": {
+        "shared_proxy": {
+          "full_contrast": 0.0,
+          "full_log_loss": 0.7813043775819046,
+          "full_eligible": 82,
+          "full_macro_languages": 17,
+          "like_contrast": 0.0,
+          "like_log_loss": 0.8037397836934354,
+          "like_eligible": 79,
+          "like_macro_languages": 14
+        },
+        "intercept_only": {
+          "full_contrast": 0.3363338613584971,
+          "full_log_loss": 0.9867457139640583,
+          "full_eligible": 82,
+          "full_macro_languages": 17,
+          "like_contrast": 0.3032419424372827,
+          "like_log_loss": 0.9903326880517662,
+          "like_eligible": 79,
+          "like_macro_languages": 14
+        },
+        "no_intercept": {
+          "full_contrast": 0.4459129202034498,
+          "full_log_loss": 0.74351833221499,
+          "full_eligible": 82,
+          "full_macro_languages": 17,
+          "like_contrast": 0.4391154076958629,
+          "like_log_loss": 0.7651944417160361,
+          "like_eligible": 79,
+          "like_macro_languages": 14
+        },
+        "no_observed_interaction": {
+          "full_contrast": 0.33594789680887144,
+          "full_log_loss": 0.7788562310426118,
+          "full_eligible": 82,
+          "full_macro_languages": 17,
+          "like_contrast": 0.30289586336992,
+          "like_log_loss": 0.8022821734949875,
+          "like_eligible": 79,
+          "like_macro_languages": 14
+        },
+        "shuffled_interaction": {
+          "full_contrast": 0.2639387547895802,
+          "full_log_loss": 0.7802317047258999,
+          "full_eligible": 82,
+          "full_macro_languages": 17,
+          "like_contrast": 0.23987749733179559,
+          "like_log_loss": 0.8081380997891882,
+          "like_eligible": 79,
+          "like_macro_languages": 14
+        }
+      }
+    }
+  },
+  "scopes": {
+    "full": {
+      "summary": {
+        "ridge": {
+          "contrast": 0.46546232785032965,
+          "spearman": 0.4205096323884312,
+          "ranking": 0.7171729804495212,
+          "global_bias": 0.006944118707489409,
+          "global_mse": 0.01895387839334697,
+          "deviation_mse": 0.03245517634951446,
+          "gold_variance": 0.04232867346047384,
+          "prediction_variance": 0.010062971928792679,
+          "covariance": 0.00996823451987603,
+          "n": 82,
+          "negative": 4,
+          "quantiles": [
+            -0.27824950629614265,
+            0.08328625780505089,
+            0.3244156672364998,
+            0.5100754917359096,
+            0.6491133585489931,
+            0.7623713956180864,
+            0.9792826041459618
+          ],
+          "global_rmse": 0.13767308521765237,
+          "deviation_rmse": 0.18015320244035204,
+          "relative_deviation_rms": 0.48757990840635596,
+          "deviation_calibration_slope": 0.9905855437551624
+        },
+        "cscva": {
+          "contrast": 0.4376321906325028,
+          "spearman": 0.39358330607386816,
+          "ranking": 0.7004881223747096,
+          "global_bias": -0.012917144016575144,
+          "global_mse": 0.02072716784487324,
+          "deviation_mse": 0.03328495111654453,
+          "gold_variance": 0.04232867346047384,
+          "prediction_variance": 0.008081628094052759,
+          "covariance": 0.008562675218991036,
+          "n": 82,
+          "negative": 6,
+          "quantiles": [
+            -0.6029816202358853,
+            0.07649520765929131,
+            0.26341429020192103,
+            0.4661545669931644,
+            0.6558386973021344,
+            0.7659797982643815,
+            0.9140312397754193
+          ],
+          "global_rmse": 0.14396932952845629,
+          "deviation_rmse": 0.18244163756265874,
+          "relative_deviation_rms": 0.4369503597948855,
+          "deviation_calibration_slope": 1.059523541462181
+        },
+        "incumbent": {
+          "contrast": 0.4703387872416294,
+          "spearman": 0.4159273353067716,
+          "ranking": 0.714337800768165,
+          "global_bias": 0.0019788207620743932,
+          "global_mse": 0.01713243683367959,
+          "deviation_mse": 0.03219746561172181,
+          "gold_variance": 0.04232867346047384,
+          "prediction_variance": 0.009102483063088824,
+          "covariance": 0.009616845455920429,
+          "n": 82,
+          "negative": 4,
+          "quantiles": [
+            -0.26398035890223953,
+            0.07692490187733633,
+            0.3518205117869337,
+            0.508769806287196,
+            0.643992511681856,
+            0.7585909285076501,
+            0.9525582691479937
+          ],
+          "global_rmse": 0.1308909348796913,
+          "deviation_rmse": 0.17943652251345546,
+          "relative_deviation_rms": 0.46372724307148927,
+          "deviation_calibration_slope": 1.056507920890002
+        },
+        "A4": {
+          "contrast": 0.42082769452122887,
+          "spearman": 0.37872923580384465,
+          "ranking": 0.6946265233689003,
+          "global_bias": -0.012273935047258542,
+          "global_mse": 0.023115276150318713,
+          "deviation_mse": 0.034117606399101,
+          "gold_variance": 0.04232867346047384,
+          "prediction_variance": 0.007211277026457217,
+          "covariance": 0.007711172043915031,
+          "n": 82,
+          "negative": 4,
+          "quantiles": [
+            -0.6259683389374774,
+            0.10898217529635303,
+            0.26964043012643457,
+            0.4546971028183991,
+            0.6015776164242091,
+            0.720340108801748,
+            0.8927263448413579
+          ],
+          "global_rmse": 0.15203708807497832,
+          "deviation_rmse": 0.18470951897263171,
+          "relative_deviation_rms": 0.4127515954406433,
+          "deviation_calibration_slope": 1.0693212888124761
+        },
+        "B6": {
+          "contrast": 0.4407449164569196,
+          "spearman": 0.38386352687649955,
+          "ranking": 0.696833740671073,
+          "global_bias": 0.0009259444970453896,
+          "global_mse": 0.02240852452202965,
+          "deviation_mse": 0.03310204564023186,
+          "gold_variance": 0.04232867346047384,
+          "prediction_variance": 0.009454442829663163,
+          "covariance": 0.00934053532495257,
+          "n": 82,
+          "negative": 6,
+          "quantiles": [
+            -0.38659121864769475,
+            0.12958684444785057,
+            0.30414040330405595,
+            0.4679521165052275,
+            0.6441599837256935,
+            0.7565161114833514,
+            0.8899503244584163
+          ],
+          "global_rmse": 0.14969477119134672,
+          "deviation_rmse": 0.18193967582754417,
+          "relative_deviation_rms": 0.47260753429486857,
+          "deviation_calibration_slope": 0.9879519600718077
+        },
+        "C6": {
+          "contrast": 0.4459570175727772,
+          "spearman": 0.41318791655301046,
+          "ranking": 0.714433444513531,
+          "global_bias": 0.004729409854418364,
+          "global_mse": 0.02102671537663476,
+          "deviation_mse": 0.032498916317990505,
+          "gold_variance": 0.04232867346047384,
+          "prediction_variance": 0.010950918866162783,
+          "covariance": 0.010390338004323058,
+          "n": 82,
+          "negative": 6,
+          "quantiles": [
+            -0.2723940568233843,
+            0.12254136404933942,
+            0.28158374765048644,
+            0.4848425908175814,
+            0.6417218178655605,
+            0.7708406714642413,
+            0.9184216392592045
+          ],
+          "global_rmse": 0.14500591497119958,
+          "deviation_rmse": 0.18027455815502783,
+          "relative_deviation_rms": 0.5086370028741695,
+          "deviation_calibration_slope": 0.9488096963651277
+        },
+        "selected": {
+          "contrast": 0.4728183766162482,
+          "spearman": 0.42856536903607056,
+          "ranking": 0.7219606461611909,
+          "global_bias": 0.002528948078914058,
+          "global_mse": 0.01687298230551609,
+          "deviation_mse": 0.032006743729507604,
+          "gold_variance": 0.04232867346047384,
+          "prediction_variance": 0.009221154387488977,
+          "covariance": 0.009771542059227605,
+          "n": 82,
+          "negative": 4,
+          "quantiles": [
+            -0.2337752919389967,
+            0.12020389805330188,
+            0.3501069394589578,
+            0.5141872696458499,
+            0.6520122295966,
+            0.749298161380611,
+            0.939876507634355
+          ],
+          "global_rmse": 0.12989604422581963,
+          "deviation_rmse": 0.1789042865040064,
+          "relative_deviation_rms": 0.4667403177389148,
+          "deviation_calibration_slope": 1.0596875020860055
+        },
+        "C7": {
+          "contrast": 0.4372056862241077,
+          "spearman": 0.3945510045001529,
+          "ranking": 0.7018199601494559,
+          "global_bias": 0.0018657131012392925,
+          "global_mse": 0.02172402220052778,
+          "deviation_mse": 0.032913863313671916,
+          "gold_variance": 0.04232867346047384,
+          "prediction_variance": 0.011350900767051461,
+          "covariance": 0.01038285545692669,
+          "n": 82,
+          "negative": 7,
+          "quantiles": [
+            -0.28899463081839555,
+            0.10235882029138951,
+            0.27814345069296087,
+            0.4806723567105524,
+            0.6389836577837302,
+            0.7771064098583027,
+            0.9209032016787396
+          ],
+          "global_rmse": 0.1473907127349881,
+          "deviation_rmse": 0.18142178290842562,
+          "relative_deviation_rms": 0.5178426712868778,
+          "deviation_calibration_slope": 0.9147164326434128
+        },
+        "C8": {
+          "contrast": 0.4383145675788868,
+          "spearman": 0.3984157306664123,
+          "ranking": 0.7043891474317847,
+          "global_bias": 0.0034291939431616053,
+          "global_mse": 0.021657447731958403,
+          "deviation_mse": 0.032843849321843165,
+          "gold_variance": 0.04232867346047384,
+          "prediction_variance": 0.01124927072018073,
+          "covariance": 0.0103670474294057,
+          "n": 82,
+          "negative": 7,
+          "quantiles": [
+            -0.27966871412204364,
+            0.11219857994720685,
+            0.2755390241429724,
+            0.4795861808246295,
+            0.6393256265470978,
+            0.7746953651742577,
+            0.9214220762421584
+          ],
+          "global_rmse": 0.14716469594287349,
+          "deviation_rmse": 0.1812287210180637,
+          "relative_deviation_rms": 0.5155192122006133,
+          "deviation_calibration_slope": 0.9215750680448682
+        },
+        "posthoc_best": {
+          "contrast": 0.4731433358738072,
+          "spearman": 0.42473320332622877,
+          "ranking": 0.71885089098523,
+          "global_bias": 0.003521989890862272,
+          "global_mse": 0.01705111609353461,
+          "deviation_mse": 0.03201662697681471,
+          "gold_variance": 0.04232867346047384,
+          "prediction_variance": 0.009371585510906564,
+          "covariance": 0.009841815997282845,
+          "n": 82,
+          "negative": 4,
+          "quantiles": [
+            -0.23713604617850942,
+            0.11460362523821967,
+            0.3555157158454867,
+            0.5135785968466118,
+            0.6505801343642513,
+            0.7558196099201551,
+            0.9396478842348255
+          ],
+          "global_rmse": 0.1305799222450933,
+          "deviation_rmse": 0.17893190597770625,
+          "relative_deviation_rms": 0.47053204620258166,
+          "deviation_calibration_slope": 1.0501761933270557
+        }
+      },
+      "paired_bootstrap": {
+        "ridge-incumbent": {
+          "n": 82,
+          "delta": -0.004876459391299746,
+          "ci95": [
+            -0.015124216681085496,
+            0.006285250184826566
+          ],
+          "positive_fraction": 0.18245,
+          "wins": 35,
+          "ties": 0,
+          "losses": 47,
+          "trim_absolute_5pct": -0.0053529154296195975,
+          "trim_best_5pct": -0.012308168251031149,
+          "without_single_best": -0.007803068849385499,
+          "largest_wins_sum": 0.5478592852428192,
+          "largest_losses_sum": -0.47150357721511515
+        },
+        "cscva-incumbent": {
+          "n": 82,
+          "delta": -0.03270659660912661,
+          "ci95": [
+            -0.06706639997959903,
+            -0.00021129523803761828
+          ],
+          "positive_fraction": 0.0242,
+          "wins": 37,
+          "ties": 0,
+          "losses": 45,
+          "trim_absolute_5pct": -0.007675920769366263,
+          "trim_best_5pct": -0.049611794501875646,
+          "without_single_best": -0.03620893646301268,
+          "largest_wins_sum": 1.1381672546960426,
+          "largest_losses_sum": -2.0908950227071808
+        },
+        "A4-incumbent": {
+          "n": 82,
+          "delta": -0.04951109272040066,
+          "ci95": [
+            -0.07957292114854408,
+            -0.021005299963834375
+          ],
+          "positive_fraction": 0.00025,
+          "wins": 29,
+          "ties": 0,
+          "losses": 53,
+          "trim_absolute_5pct": -0.026821359982950134,
+          "trim_best_5pct": -0.06391871416893495,
+          "without_single_best": -0.05250279415126694,
+          "largest_wins_sum": 0.8618313879351371,
+          "largest_losses_sum": -1.994664884385694
+        },
+        "B6-incumbent": {
+          "n": 82,
+          "delta": -0.029593870784709906,
+          "ci95": [
+            -0.05820843782884667,
+            -0.0021899889271424808
+          ],
+          "positive_fraction": 0.0182,
+          "wins": 35,
+          "ties": 0,
+          "losses": 47,
+          "trim_absolute_5pct": -0.010549769352710604,
+          "trim_best_5pct": -0.04395859405850192,
+          "without_single_best": -0.03256697019144166,
+          "largest_wins_sum": 0.9581143381584355,
+          "largest_losses_sum": -1.6143651641874959
+        },
+        "C6-incumbent": {
+          "n": 82,
+          "delta": -0.02438176966885226,
+          "ci95": [
+            -0.055987475034493944,
+            0.0061687584577647375
+          ],
+          "positive_fraction": 0.0603,
+          "wins": 35,
+          "ties": 0,
+          "losses": 47,
+          "trim_absolute_5pct": -0.00013561073310273538,
+          "trim_best_5pct": -0.04060044870481865,
+          "without_single_best": -0.027863363977453953,
+          "largest_wins_sum": 1.1269294374251508,
+          "largest_losses_sum": -1.9888630863969738
+        },
+        "selected-incumbent": {
+          "n": 82,
+          "delta": 0.00247958937461879,
+          "ci95": [
+            -0.003694357893158998,
+            0.008833832643969133
+          ],
+          "positive_fraction": 0.7848,
+          "wins": 47,
+          "ties": 0,
+          "losses": 35,
+          "trim_absolute_5pct": 0.001510878594116484,
+          "trim_best_5pct": -0.0016286589179417142,
+          "without_single_best": 0.001525941670474261,
+          "largest_wins_sum": 0.32873306540025277,
+          "largest_losses_sum": -0.290108337058242
+        },
+        "C7-incumbent": {
+          "n": 82,
+          "delta": -0.033133101017521725,
+          "ci95": [
+            -0.06338081153580333,
+            -0.0037682823615439462
+          ],
+          "positive_fraction": 0.01385,
+          "wins": 34,
+          "ties": 0,
+          "losses": 48,
+          "trim_absolute_5pct": -0.011408838036121402,
+          "trim_best_5pct": -0.04831435835607883,
+          "without_single_best": -0.036233014188189964,
+          "largest_wins_sum": 1.003291309981289,
+          "largest_losses_sum": -1.8384337546554335
+        },
+        "C8-incumbent": {
+          "n": 82,
+          "delta": -0.032024219662742645,
+          "ci95": [
+            -0.06309155599266948,
+            -0.0018664050628754666
+          ],
+          "positive_fraction": 0.019,
+          "wins": 35,
+          "ties": 0,
+          "losses": 47,
+          "trim_absolute_5pct": -0.009170915060059652,
+          "trim_best_5pct": -0.04785190546502957,
+          "without_single_best": -0.03533189999619972,
+          "largest_wins_sum": 1.0586107084623801,
+          "largest_losses_sum": -1.9198255527203036
+        },
+        "posthoc_best-incumbent": {
+          "n": 82,
+          "delta": 0.002804548632177746,
+          "ci95": [
+            -0.002782924326917811,
+            0.008353826995862148
+          ],
+          "positive_fraction": 0.8398,
+          "wins": 49,
+          "ties": 0,
+          "losses": 33,
+          "trim_absolute_5pct": 0.002363240129212874,
+          "trim_best_5pct": -0.0007728215884503058,
+          "without_single_best": 0.001972822193571981,
+          "largest_wins_sum": 0.2894802501492488,
+          "largest_losses_sum": -0.27853532073453624
+        },
+        "B6-A4": {
+          "n": 82,
+          "delta": 0.01991722193569075,
+          "ci95": [
+            -0.0007240000677600376,
+            0.040117261834333444
+          ],
+          "positive_fraction": 0.97085,
+          "wins": 55,
+          "ties": 0,
+          "losses": 27,
+          "trim_absolute_5pct": 0.020749178146500624,
+          "trim_best_5pct": 0.008642747177533472,
+          "without_single_best": 0.01720784047452913,
+          "largest_wins_sum": 0.9677206660565645,
+          "largest_losses_sum": -1.0912962150934595
+        },
+        "B6-cscva": {
+          "n": 82,
+          "delta": 0.0031127258244167157,
+          "ci95": [
+            -0.023732409165616846,
+            0.02886543276959835
+          ],
+          "positive_fraction": 0.59765,
+          "wins": 40,
+          "ties": 0,
+          "losses": 42,
+          "trim_absolute_5pct": 0.016024863876160984,
+          "trim_best_5pct": -0.011186183164482642,
+          "without_single_best": -0.0005319328956015755,
+          "largest_wins_sum": 1.1165796212673338,
+          "largest_losses_sum": -1.493218406175779
+        },
+        "C6-B6": {
+          "n": 82,
+          "delta": 0.005212101115857654,
+          "ci95": [
+            -0.01091285981498033,
+            0.021587746489075976
+          ],
+          "positive_fraction": 0.7377,
+          "wins": 44,
+          "ties": 0,
+          "losses": 38,
+          "trim_absolute_5pct": 0.006606540674968584,
+          "trim_best_5pct": -0.0049324491941869,
+          "without_single_best": 0.0024090626131318886,
+          "largest_wins_sum": 0.8071908794527188,
+          "largest_losses_sum": -0.7190111419026758
+        },
+        "C7-C6": {
+          "n": 82,
+          "delta": -0.008751331348669473,
+          "ci95": [
+            -0.015435139585751274,
+            -0.002442444698874626
+          ],
+          "positive_fraction": 0.00305,
+          "wins": 38,
+          "ties": 0,
+          "losses": 44,
+          "trim_absolute_5pct": -0.005695611794141836,
+          "trim_best_5pct": -0.012230516520475495,
+          "without_single_best": -0.009716888590873909,
+          "largest_wins_sum": 0.22414060148571627,
+          "largest_losses_sum": -0.4121494071480377
+        },
+        "C8-C6": {
+          "n": 82,
+          "delta": -0.007642449993890395,
+          "ci95": [
+            -0.012811924280713522,
+            -0.002812067515798154
+          ],
+          "positive_fraction": 0.00065,
+          "wins": 38,
+          "ties": 0,
+          "losses": 44,
+          "trim_absolute_5pct": -0.00357001888485644,
+          "trim_best_5pct": -0.009982880931958933,
+          "without_single_best": -0.008315475708796915,
+          "largest_wins_sum": 0.14200093226182542,
+          "largest_losses_sum": -0.35178944536506657
+        }
+      },
+      "paired_log_loss": {
+        "ridge-incumbent": {
+          "delta": 0.010596605783095073,
+          "ci95": [
+            0.0023180675980750257,
+            0.021743544041246947
+          ],
+          "kept_draws": 20000
+        },
+        "cscva-incumbent": {
+          "delta": 0.013202298469625855,
+          "ci95": [
+            -0.010792952834723684,
+            0.03883800910933757
+          ],
+          "kept_draws": 20000
+        },
+        "A4-incumbent": {
+          "delta": 0.02647682240798961,
+          "ci95": [
+            0.007880721103133877,
+            0.045600285495407886
+          ],
+          "kept_draws": 20000
+        },
+        "B6-incumbent": {
+          "delta": 0.020972645017990517,
+          "ci95": [
+            -0.0015365301681545232,
+            0.0451705824344637
+          ],
+          "kept_draws": 20000
+        },
+        "C6-incumbent": {
+          "delta": 0.015049921697897876,
+          "ci95": [
+            -0.0050113547490543186,
+            0.0359022691370782
+          ],
+          "kept_draws": 20000
+        },
+        "selected-incumbent": {
+          "delta": -0.001620641987280472,
+          "ci95": [
+            -0.0055504208557799395,
+            0.0022094294077551918
+          ],
+          "kept_draws": 20000
+        },
+        "C7-incumbent": {
+          "delta": 0.019984786429218665,
+          "ci95": [
+            -0.0004745437906767005,
+            0.04123793762422544
+          ],
+          "kept_draws": 20000
+        },
+        "C8-incumbent": {
+          "delta": 0.018917918966388142,
+          "ci95": [
+            -0.0013870232070217015,
+            0.03986310378702306
+          ],
+          "kept_draws": 20000
+        },
+        "posthoc_best-incumbent": {
+          "delta": -0.0004628025396373525,
+          "ci95": [
+            -0.003945512288241142,
+            0.0028530540022515174
+          ],
+          "kept_draws": 20000
+        },
+        "B6-A4": {
+          "delta": -0.005504177389999095,
+          "ci95": [
+            -0.020286875277769807,
+            0.010081070193933816
+          ],
+          "kept_draws": 20000
+        },
+        "B6-cscva": {
+          "delta": 0.007770346548364661,
+          "ci95": [
+            -0.012632132515153886,
+            0.028094189815734482
+          ],
+          "kept_draws": 20000
+        },
+        "C6-B6": {
+          "delta": -0.005922723320092641,
+          "ci95": [
+            -0.017063382860386885,
+            0.0047814493029973764
+          ],
+          "kept_draws": 20000
+        },
+        "C7-C6": {
+          "delta": 0.00493486473132079,
+          "ci95": [
+            0.0013872481599952664,
+            0.00882526879574942
+          ],
+          "kept_draws": 20000
+        },
+        "C8-C6": {
+          "delta": 0.0038679972684902662,
+          "ci95": [
+            7.708676050452374e-05,
+            0.007922991147350955
+          ],
+          "kept_draws": 20000
+        }
+      },
+      "largest": {
+        "ridge-incumbent": {
+          "wins": {
+            "dante-gabriel-rossetti_the-sermon-on-the-mount-1862": 0.23217890671364633,
+            "antonello-da-messina_portrait-of-a-man-1470": 0.09700969862149667,
+            "ad-reinhardt_yellow-painting-1949": 0.07843259679199044,
+            "john-singer-sargent_charles-deering-1917": 0.075253491928465,
+            "rembrandt_batavernas-trohetsed-1662": 0.06498459118722083
+          },
+          "losses": {
+            "maurice-prendergast_summer-outing": -0.11293233715427364,
+            "richard-diebenkorn_sausalito-1": -0.1049914612511387,
+            "pieter-bruegel-the-elder_christ-carrying-the-cross-1564": -0.09895998893560082,
+            "imi-knoebel_weiss-und-schwarz-4-2009": -0.08064983023166326,
+            "martin-barre_66-7-a-1966": -0.07396995964243869
+          }
+        },
+        "cscva-incumbent": {
+          "wins": {
+            "imi-knoebel_weiss-und-schwarz-4-2009": 0.25098293155564433,
+            "pieter-bruegel-the-elder_christ-carrying-the-cross-1564": 0.25082829784146266,
+            "georges-seurat_farm-women-at-work-1883": 0.22089774446643712,
+            "martin-barre_66-7-a-1966": 0.21255565833481216,
+            "richard-diebenkorn_sausalito-1": 0.2029026224976862
+          },
+          "losses": {
+            "antonello-da-messina_portrait-of-a-man-1470": -0.50360969773745,
+            "ad-reinhardt_yellow-painting-1949": -0.48213133998570024,
+            "dante-gabriel-rossetti_the-sermon-on-the-mount-1862": -0.44428588551253634,
+            "henri-edmond-cross_cape-layet-provence": -0.3611020668840633,
+            "dmitry-levitzky_portrait-of-countess-n-f-vorontsova": -0.29976603258743084
+          }
+        },
+        "A4-incumbent": {
+          "wins": {
+            "imi-knoebel_weiss-und-schwarz-4-2009": 0.19281672317976806,
+            "georges-seurat_farm-women-at-work-1883": 0.1825704548733436,
+            "carlo-crivelli_two-apostles-1475": 0.1806853661666653,
+            "ivan-bilibin_illustration-for-the-russian-fairy-story-white-duck-1902(1)": 0.16647028336238923,
+            "richard-diebenkorn_sausalito-1": 0.13928856035297094
+          },
+          "losses": {
+            "dante-gabriel-rossetti_the-sermon-on-the-mount-1862": -0.4672726042141284,
+            "ad-reinhardt_yellow-painting-1949": -0.4425455552690519,
+            "antonello-da-messina_portrait-of-a-man-1470": -0.39195427720950615,
+            "henri-edmond-cross_cape-layet-provence": -0.3721696893759313,
+            "dmitry-levitzky_portrait-of-countess-n-f-vorontsova": -0.32072275831707603
+          }
+        },
+        "B6-incumbent": {
+          "wins": {
+            "imi-knoebel_weiss-und-schwarz-4-2009": 0.21122718116056216,
+            "paula-modersohn-becker_breast-feeding-mother": 0.19659550856580987,
+            "georges-seurat_farm-women-at-work-1883": 0.19402975378419252,
+            "carlo-crivelli_two-apostles-1475": 0.1835137189709185,
+            "pietro-perugino_trinity-and-six-saints": 0.1727481756769525
+          },
+          "losses": {
+            "ad-reinhardt_yellow-painting-1949": -0.38270573913604244,
+            "jack-tworkov_untitled-1955": -0.3508587630506428,
+            "henri-edmond-cross_cape-layet-provence": -0.32172142824353733,
+            "pierre-auguste-renoir_reading-the-part-1876": -0.304492830979807,
+            "benozzo-gozzoli_the-dance-of-salome-detail-1462-1": -0.25458640277746614
+          }
+        },
+        "C6-incumbent": {
+          "wins": {
+            "paula-modersohn-becker_breast-feeding-mother": 0.25762736932788566,
+            "imi-knoebel_weiss-und-schwarz-4-2009": 0.24898094600339105,
+            "david-alfaro-siqueiros_portrait-of-dramatist-margarita-urueta-1947": 0.23248773258123046,
+            "pietro-perugino_trinity-and-six-saints": 0.19652107509700095,
+            "paul-cezanne_four-bathers-1880": 0.19131231441564256
+          },
+          "losses": {
+            "jack-tworkov_untitled-1955": -0.4636879824706257,
+            "pierre-auguste-renoir_reading-the-part-1876": -0.4200100569044237,
+            "aleksey-savrasov_steppe-day-1852": -0.3930261707337227,
+            "benozzo-gozzoli_the-dance-of-salome-detail-1462-1": -0.37112679002709226,
+            "henri-edmond-cross_cape-layet-provence": -0.34101208626110946
+          }
+        },
+        "selected-incumbent": {
+          "wins": {
+            "paula-modersohn-becker_breast-feeding-mother": 0.07972505341032565,
+            "imi-knoebel_weiss-und-schwarz-4-2009": 0.07532561068348294,
+            "paul-cezanne_four-bathers-1880": 0.06686749902727585,
+            "pietro-perugino_trinity-and-six-saints": 0.05787725052208331,
+            "raphael-kirchner_girls-with-good-luck-charms-5": 0.04893765175708503
+          },
+          "losses": {
+            "jack-tworkov_untitled-1955": -0.07388067068646642,
+            "pierre-auguste-renoir_reading-the-part-1876": -0.06104881546284652,
+            "aleksey-savrasov_steppe-day-1852": -0.05914916593120512,
+            "rembrandt_batavernas-trohetsed-1662": -0.04973728574141911,
+            "dante-gabriel-rossetti_the-sermon-on-the-mount-1862": -0.04629239923630482
+          }
+        },
+        "C7-incumbent": {
+          "wins": {
+            "pietro-perugino_trinity-and-six-saints": 0.21795986580660603,
+            "paula-modersohn-becker_breast-feeding-mother": 0.2126816970782669,
+            "imi-knoebel_weiss-und-schwarz-4-2009": 0.2121183216748203,
+            "paul-cezanne_four-bathers-1880": 0.19168723227653783,
+            "david-alfaro-siqueiros_portrait-of-dramatist-margarita-urueta-1947": 0.16884419314505794
+          },
+          "losses": {
+            "jack-tworkov_untitled-1955": -0.4751538994225204,
+            "pierre-auguste-renoir_reading-the-part-1876": -0.37462582727400856,
+            "benozzo-gozzoli_the-dance-of-salome-detail-1462-1": -0.36517682419579217,
+            "aleksey-savrasov_steppe-day-1852": -0.32356736546383286,
+            "edouard-manet_the-head-of-christ": -0.2999098382992792
+          }
+        },
+        "C8-incumbent": {
+          "wins": {
+            "imi-knoebel_weiss-und-schwarz-4-2009": 0.23589788734728023,
+            "paula-modersohn-becker_breast-feeding-mother": 0.22991640093032983,
+            "pietro-perugino_trinity-and-six-saints": 0.20893953439207175,
+            "paul-cezanne_four-bathers-1880": 0.1943385748628722,
+            "david-alfaro-siqueiros_portrait-of-dramatist-margarita-urueta-1947": 0.1895183109298263
+          },
+          "losses": {
+            "jack-tworkov_untitled-1955": -0.48170160774851734,
+            "pierre-auguste-renoir_reading-the-part-1876": -0.3960773014282508,
+            "benozzo-gozzoli_the-dance-of-salome-detail-1462-1": -0.36673711705854767,
+            "aleksey-savrasov_steppe-day-1852": -0.346153537820185,
+            "henri-edmond-cross_cape-layet-provence": -0.3291559886648029
+          }
+        },
+        "posthoc_best-incumbent": {
+          "wins": {
+            "paula-modersohn-becker_breast-feeding-mother": 0.07017439015924476,
+            "paul-cezanne_four-bathers-1880": 0.0634567187094186,
+            "imi-knoebel_weiss-und-schwarz-4-2009": 0.05991619926239204,
+            "pietro-perugino_trinity-and-six-saints": 0.0500059897496124,
+            "pierre-auguste-renoir_young-woman-in-a-straw-hat-1901": 0.045926952268580956
+          },
+          "losses": {
+            "jack-tworkov_untitled-1955": -0.08770067237558532,
+            "pierre-auguste-renoir_reading-the-part-1876": -0.05784313786628617,
+            "aleksey-savrasov_steppe-day-1852": -0.05545788754981218,
+            "egon-schiele_melon-1905": -0.03906044091447444,
+            "pierre-auguste-renoir_woman-s-head-5": -0.03847318202837813
+          }
+        },
+        "B6-A4": {
+          "wins": {
+            "dante-gabriel-rossetti_the-sermon-on-the-mount-1862": 0.23937712028978264,
+            "maurice-prendergast_summer-outing": 0.1951600380456585,
+            "antonello-da-messina_portrait-of-a-man-1470": 0.1866746616179543,
+            "dmitry-levitzky_portrait-of-countess-n-f-vorontsova": 0.17548484771305545,
+            "mikhail-nesterov_old-painter-1884": 0.17102399839011356
+          },
+          "losses": {
+            "jack-tworkov_untitled-1955": -0.3435269520498466,
+            "pierre-auguste-renoir_reading-the-part-1876": -0.24215938645745483,
+            "edouard-manet_the-head-of-christ": -0.18616063477906386,
+            "rembrandt_batavernas-trohetsed-1662": -0.17076970151668766,
+            "richard-diebenkorn_sausalito-1": -0.1486795402904066
+          }
+        },
+        "B6-cscva": {
+          "wins": {
+            "antonello-da-messina_portrait-of-a-man-1470": 0.2983300821458982,
+            "dante-gabriel-rossetti_the-sermon-on-the-mount-1862": 0.21639040158819056,
+            "carlo-crivelli_two-apostles-1475": 0.2067590843437741,
+            "hans-hofmann_nocturnal-splendor-1963": 0.19930197230508556,
+            "franz-xaver-winterhalter_portrait-of-a-lady-with-a-fan": 0.19579808088438555
+          },
+          "losses": {
+            "jack-tworkov_untitled-1955": -0.5148121580156169,
+            "pieter-bruegel-the-elder_christ-carrying-the-cross-1564": -0.29570428936829896,
+            "martin-barre_66-7-a-1966": -0.24310673964550333,
+            "albrecht-durer_the-sudarium-of-st-veronica-1510": -0.2233778959787044,
+            "pierre-auguste-renoir_reading-the-part-1876": -0.2162173231676556
+          }
+        },
+        "C6-B6": {
+          "wins": {
+            "john-singer-sargent_charles-deering-1917": 0.23225821983664466,
+            "antonello-da-messina_portrait-of-a-man-1470": 0.1649856426182607,
+            "david-alfaro-siqueiros_portrait-of-dramatist-margarita-urueta-1947": 0.14965168725450764,
+            "ad-reinhardt_yellow-painting-1949": 0.14021459719449178,
+            "pieter-bruegel-the-elder_christ-carrying-the-cross-1564": 0.12008073254881413
+          },
+          "losses": {
+            "aleksey-savrasov_steppe-day-1852": -0.16147849783367874,
+            "egon-schiele_melon-1905": -0.1586004187680251,
+            "viktor-vasnetsov_entertainment": -0.15847628632545485,
+            "edouard-manet_the-head-of-christ": -0.12391555172589094,
+            "benozzo-gozzoli_the-dance-of-salome-detail-1462-1": -0.11654038724962612
+          }
+        },
+        "C7-C6": {
+          "wins": {
+            "aleksey-savrasov_steppe-day-1852": 0.06945880526988985,
+            "pierre-auguste-renoir_reading-the-part-1876": 0.04538422963041519,
+            "henri-edmond-cross_cape-layet-provence": 0.04352079725113378,
+            "alfred-sisley_landscape-at-louveciennes": 0.034720758294164156,
+            "pierre-auguste-renoir_woman-s-head-5": 0.031056011040113296
+          },
+          "losses": {
+            "antonello-da-messina_portrait-of-a-man-1470": -0.11478481478430691,
+            "ivan-bilibin_illustration-for-the-russian-fairy-story-white-duck-1902(1)": -0.08509295098957645,
+            "egon-schiele_melon-1905": -0.08045506424065046,
+            "edouard-manet_the-head-of-christ": -0.0681730376973314,
+            "david-alfaro-siqueiros_portrait-of-dramatist-margarita-urueta-1947": -0.06364353943617251
+          }
+        },
+        "C8-C6": {
+          "wins": {
+            "aleksey-savrasov_steppe-day-1852": 0.046872632913537715,
+            "alfred-sisley_landscape-at-louveciennes": 0.027126963603778975,
+            "giovanni-battista-tiepolo_last-communion-of-st-lucy-1748": 0.02450001659350709,
+            "pierre-auguste-renoir_reading-the-part-1876": 0.023932755476172907,
+            "henri-de-toulouse-lautrec_portrait-of-berthe-bady-1897": 0.01956856367482873
+          },
+          "losses": {
+            "antonello-da-messina_portrait-of-a-man-1470": -0.08216540697302965,
+            "ivan-bilibin_illustration-for-the-russian-fairy-story-white-duck-1902(1)": -0.07522982962995742,
+            "edouard-manet_the-head-of-christ": -0.07457154389699955,
+            "egon-schiele_melon-1905": -0.06733166926694087,
+            "john-singer-sargent_a-gust-of-wind": -0.05249099559813908
+          }
+        }
+      },
+      "diversity": [
+        {
+          "a": "ridge",
+          "b": "cscva",
+          "prediction_r": 0.8587017707298633,
+          "centered_prediction_r": 0.866157601428436,
+          "residual_r": 0.8654618849141449,
+          "centered_residual_r": 0.9607691320043888,
+          "order_agreement": 0.8341192280100089
+        },
+        {
+          "a": "ridge",
+          "b": "incumbent",
+          "prediction_r": 0.9894412144808077,
+          "centered_prediction_r": 0.9929769575271089,
+          "residual_r": 0.9914765571970352,
+          "centered_residual_r": 0.9975033800571119,
+          "order_agreement": 0.9565853369641552
+        },
+        {
+          "a": "ridge",
+          "b": "A4",
+          "prediction_r": 0.8816703033126044,
+          "centered_prediction_r": 0.8668948404132488,
+          "residual_r": 0.9082448660489889,
+          "centered_residual_r": 0.9617026830915323,
+          "order_agreement": 0.8353873089513115
+        },
+        {
+          "a": "ridge",
+          "b": "B6",
+          "prediction_r": 0.8846212259066415,
+          "centered_prediction_r": 0.8969068085027097,
+          "residual_r": 0.8939810127415998,
+          "centered_residual_r": 0.9684388479340418,
+          "order_agreement": 0.8514058628727643
+        },
+        {
+          "a": "ridge",
+          "b": "C6",
+          "prediction_r": 0.8952405466668045,
+          "centered_prediction_r": 0.897946897734248,
+          "residual_r": 0.8964621423211572,
+          "centered_residual_r": 0.9659783644817483,
+          "order_agreement": 0.8677564618364265
+        },
+        {
+          "a": "ridge",
+          "b": "selected",
+          "prediction_r": 0.9811778682968303,
+          "centered_prediction_r": 0.9849985507833985,
+          "residual_r": 0.9842906064093386,
+          "centered_residual_r": 0.995137647998088,
+          "order_agreement": 0.9422952191387195
+        },
+        {
+          "a": "cscva",
+          "b": "incumbent",
+          "prediction_r": 0.9239104522297742,
+          "centered_prediction_r": 0.9192013977222163,
+          "residual_r": 0.9233547749993528,
+          "centered_residual_r": 0.9779565205796582,
+          "order_agreement": 0.8775338910458536
+        },
+        {
+          "a": "cscva",
+          "b": "A4",
+          "prediction_r": 0.9012769222148673,
+          "centered_prediction_r": 0.951807930064259,
+          "residual_r": 0.9085640040726469,
+          "centered_residual_r": 0.9883570394655412,
+          "order_agreement": 0.9487783328687847
+        },
+        {
+          "a": "cscva",
+          "b": "B6",
+          "prediction_r": 0.9065890254769488,
+          "centered_prediction_r": 0.9429472123623669,
+          "residual_r": 0.9088666768183559,
+          "centered_residual_r": 0.9838170242887952,
+          "order_agreement": 0.9242342944902963
+        },
+        {
+          "a": "cscva",
+          "b": "C6",
+          "prediction_r": 0.9105405117919898,
+          "centered_prediction_r": 0.9209378133530245,
+          "residual_r": 0.9091483989218078,
+          "centered_residual_r": 0.9736899115437755,
+          "order_agreement": 0.8985525190592047
+        },
+        {
+          "a": "cscva",
+          "b": "selected",
+          "prediction_r": 0.9329575164117531,
+          "centered_prediction_r": 0.9313588468026222,
+          "residual_r": 0.9321735237610808,
+          "centered_residual_r": 0.9810197152853906,
+          "order_agreement": 0.8907230603618044
+        },
+        {
+          "a": "incumbent",
+          "b": "A4",
+          "prediction_r": 0.9131383181275282,
+          "centered_prediction_r": 0.9083740259001248,
+          "residual_r": 0.9323645412380314,
+          "centered_residual_r": 0.9756948228274449,
+          "order_agreement": 0.8752949747537107
+        },
+        {
+          "a": "incumbent",
+          "b": "B6",
+          "prediction_r": 0.9168437815576134,
+          "centered_prediction_r": 0.9299240346322077,
+          "residual_r": 0.9215114167992832,
+          "centered_residual_r": 0.9796103232024578,
+          "order_agreement": 0.8777651887047074
+        },
+        {
+          "a": "incumbent",
+          "b": "C6",
+          "prediction_r": 0.9258895882950771,
+          "centered_prediction_r": 0.9255333847407762,
+          "residual_r": 0.9234862271824531,
+          "centered_residual_r": 0.9751793217162962,
+          "order_agreement": 0.8888590964318557
+        },
+        {
+          "a": "incumbent",
+          "b": "selected",
+          "prediction_r": 0.9963892982592057,
+          "centered_prediction_r": 0.9965914813882882,
+          "residual_r": 0.9967861064961114,
+          "centered_residual_r": 0.9989988560190004,
+          "order_agreement": 0.9741299072120476
+        },
+        {
+          "a": "A4",
+          "b": "B6",
+          "prediction_r": 0.9646096068447679,
+          "centered_prediction_r": 0.9601903470586446,
+          "residual_r": 0.9659177419872407,
+          "centered_residual_r": 0.9879057091475097,
+          "order_agreement": 0.9333833790123441
+        },
+        {
+          "a": "A4",
+          "b": "C6",
+          "prediction_r": 0.9442719457397174,
+          "centered_prediction_r": 0.9231055338382543,
+          "residual_r": 0.944881381566031,
+          "centered_residual_r": 0.9734568589616331,
+          "order_agreement": 0.8977010165981579
+        },
+        {
+          "a": "A4",
+          "b": "selected",
+          "prediction_r": 0.9320462010935953,
+          "centered_prediction_r": 0.9232238317068792,
+          "residual_r": 0.9468785558946909,
+          "centered_residual_r": 0.9791588217279772,
+          "order_agreement": 0.8877061745040579
+        },
+        {
+          "a": "B6",
+          "b": "C6",
+          "prediction_r": 0.9854813660121823,
+          "centered_prediction_r": 0.9809685001278636,
+          "residual_r": 0.9856261980944552,
+          "centered_residual_r": 0.993126957528697,
+          "order_agreement": 0.9463101460618485
+        },
+        {
+          "a": "B6",
+          "b": "selected",
+          "prediction_r": 0.9442282990919997,
+          "centered_prediction_r": 0.952960990787782,
+          "residual_r": 0.9466614674122016,
+          "centered_residual_r": 0.9862731443633389,
+          "order_agreement": 0.9000739136421393
+        },
+        {
+          "a": "C6",
+          "b": "selected",
+          "prediction_r": 0.9546219989208026,
+          "centered_prediction_r": 0.9536167268557912,
+          "residual_r": 0.9512505973363625,
+          "centered_residual_r": 0.9841082583225724,
+          "order_agreement": 0.9147291892198083
+        }
+      ],
+      "selected_gain_by_baseline_quality": {
+        "ridge": -0.23079154030512983,
+        "cscva": 0.10855669264375022,
+        "incumbent": -0.14615570453726554
+      },
+      "selected_gain_slices": {
+        "low_ridge": 0.006590812792831635,
+        "high_ridge": -0.0016316340435940549,
+        "low_cscva": 0.00039710322806223316,
+        "high_cscva": 0.004562075521175347
+      }
+    },
+    "like": {
+      "summary": {
+        "ridge": {
+          "contrast": 0.44121993567089607,
+          "spearman": 0.39951549354576954,
+          "ranking": 0.706171819498595,
+          "global_bias": 0.01049980942304295,
+          "global_mse": 0.02253988424809784,
+          "deviation_mse": 0.03226149984668655,
+          "gold_variance": 0.04155774744657922,
+          "prediction_variance": 0.010802356805340106,
+          "covariance": 0.010049302202616383,
+          "n": 79,
+          "negative": 5,
+          "quantiles": [
+            -0.46123176983459485,
+            0.05758881487657551,
+            0.32617692123204506,
+            0.488902685192457,
+            0.6408229323530381,
+            0.7721978774721491,
+            0.92420834080895
+          ],
+          "global_rmse": 0.1501328886290337,
+          "deviation_rmse": 0.17961486532769652,
+          "relative_deviation_rms": 0.5098392414259351,
+          "deviation_calibration_slope": 0.9302879347262948
+        },
+        "cscva": {
+          "contrast": 0.42366125290990614,
+          "spearman": 0.3788289641657177,
+          "ranking": 0.6936397566104644,
+          "global_bias": -0.011009698568262508,
+          "global_mse": 0.02437058520381543,
+          "deviation_mse": 0.0332692021696517,
+          "gold_variance": 0.04155774744657922,
+          "prediction_variance": 0.008416248503205829,
+          "covariance": 0.008352396890066668,
+          "n": 79,
+          "negative": 8,
+          "quantiles": [
+            -0.5999025849451404,
+            -0.0047579532301479455,
+            0.25403133044527926,
+            0.42287898531155615,
+            0.6645282702098922,
+            0.7991810922404442,
+            0.9168002871935297
+          ],
+          "global_rmse": 0.15611081065645463,
+          "deviation_rmse": 0.18239847085338107,
+          "relative_deviation_rms": 0.4500215129305282,
+          "deviation_calibration_slope": 0.9924132927972791
+        },
+        "incumbent": {
+          "contrast": 0.4487511260120377,
+          "spearman": 0.40714112203029335,
+          "ranking": 0.7097946791470774,
+          "global_bias": 0.005122455241535281,
+          "global_mse": 0.020563651406724812,
+          "deviation_mse": 0.0320156462051523,
+          "gold_variance": 0.04155774744657922,
+          "prediction_variance": 0.009708054828299902,
+          "covariance": 0.009625078034863408,
+          "n": 79,
+          "negative": 5,
+          "quantiles": [
+            -0.5639767717890886,
+            0.0696485270228807,
+            0.34760636777251075,
+            0.487272588096369,
+            0.6385431072685736,
+            0.7686078121765418,
+            0.9347459889511383
+          ],
+          "global_rmse": 0.14340031871207543,
+          "deviation_rmse": 0.17892916532849612,
+          "relative_deviation_rms": 0.48332594692926234,
+          "deviation_calibration_slope": 0.991452788956794
+        },
+        "A4": {
+          "contrast": 0.40601132701358805,
+          "spearman": 0.36799083498559026,
+          "ranking": 0.6899788131822918,
+          "global_bias": -0.01060963986184937,
+          "global_mse": 0.027420251901876025,
+          "deviation_mse": 0.03408672909310213,
+          "gold_variance": 0.04155774744657922,
+          "prediction_variance": 0.007326572498064619,
+          "covariance": 0.007398795425770845,
+          "n": 79,
+          "negative": 5,
+          "quantiles": [
+            -0.6616027748902495,
+            0.0927459013847789,
+            0.24645034878563163,
+            0.42398512878094574,
+            0.5997342630290114,
+            0.7563927756863303,
+            0.8927263448413579
+          ],
+          "global_rmse": 0.1655906153798458,
+          "deviation_rmse": 0.18462591663442632,
+          "relative_deviation_rms": 0.41987926274772763,
+          "deviation_calibration_slope": 1.0098576691522954
+        },
+        "B6": {
+          "contrast": 0.4311624559464698,
+          "spearman": 0.37554719561851796,
+          "ranking": 0.6941986797368507,
+          "global_bias": 0.0027218194619491923,
+          "global_mse": 0.026355523119960433,
+          "deviation_mse": 0.0329406326539668,
+          "gold_variance": 0.04155774744657922,
+          "prediction_variance": 0.00990275810282387,
+          "covariance": 0.009259936447718142,
+          "n": 79,
+          "negative": 7,
+          "quantiles": [
+            -0.3573706331129411,
+            0.11327300348011166,
+            0.2550744388882168,
+            0.45985868214037556,
+            0.6149096210133591,
+            0.7916161505318607,
+            0.8899503244584163
+          ],
+          "global_rmse": 0.16234384226067963,
+          "deviation_rmse": 0.18149554444659738,
+          "relative_deviation_rms": 0.48814864208515885,
+          "deviation_calibration_slope": 0.9350866043145676
+        },
+        "C6": {
+          "contrast": 0.43774412426591836,
+          "spearman": 0.4043134818544161,
+          "ranking": 0.7105313468637712,
+          "global_bias": 0.007238323927034032,
+          "global_mse": 0.025220698699973277,
+          "deviation_mse": 0.03239793898261602,
+          "gold_variance": 0.04155774744657922,
+          "prediction_variance": 0.01167347377801879,
+          "covariance": 0.010416641120990996,
+          "n": 79,
+          "negative": 6,
+          "quantiles": [
+            -0.20314541310813927,
+            0.0934648519406235,
+            0.2774431014078445,
+            0.4683751876529563,
+            0.6365217750479552,
+            0.7799193194558425,
+            0.9185090282578422
+          ],
+          "global_rmse": 0.15881026005889315,
+          "deviation_rmse": 0.17999427486066333,
+          "relative_deviation_rms": 0.5299977871226752,
+          "deviation_calibration_slope": 0.8923343058863578
+        },
+        "selected": {
+          "contrast": 0.45404128566475155,
+          "spearman": 0.42089128600372816,
+          "ranking": 0.7188252618293066,
+          "global_bias": 0.005545638741087781,
+          "global_mse": 0.02039496900135988,
+          "deviation_mse": 0.031826169972443114,
+          "gold_variance": 0.04155774744657922,
+          "prediction_variance": 0.009835201433043166,
+          "covariance": 0.009783389453589635,
+          "n": 79,
+          "negative": 6,
+          "quantiles": [
+            -0.5252237089300398,
+            0.10421255497900563,
+            0.35508082798984064,
+            0.5048899577305168,
+            0.6394982678159377,
+            0.7709099374221288,
+            0.9407530227185509
+          ],
+          "global_rmse": 0.14281095546686845,
+          "deviation_rmse": 0.1783989068700902,
+          "relative_deviation_rms": 0.4864807162179687,
+          "deviation_calibration_slope": 0.9947319859378315
+        },
+        "C7": {
+          "contrast": 0.4267008092711477,
+          "spearman": 0.3818321725872663,
+          "ranking": 0.6964245058775929,
+          "global_bias": 0.004478104494462376,
+          "global_mse": 0.025987262194892353,
+          "deviation_mse": 0.03289967416475993,
+          "gold_variance": 0.04155774744657922,
+          "prediction_variance": 0.01211741072345659,
+          "covariance": 0.010387742002637933,
+          "n": 79,
+          "negative": 7,
+          "quantiles": [
+            -0.2899294626383303,
+            0.06065256017067816,
+            0.2696168872973103,
+            0.4559688350675167,
+            0.6252124330842522,
+            0.7805564352158939,
+            0.9209032016787396
+          ],
+          "global_rmse": 0.16120565187018832,
+          "deviation_rmse": 0.18138267327603244,
+          "relative_deviation_rms": 0.5399815418353422,
+          "deviation_calibration_slope": 0.8572575643185548
+        },
+        "C8": {
+          "contrast": 0.42888713846026527,
+          "spearman": 0.38636419069464256,
+          "ranking": 0.6995868944135535,
+          "global_bias": 0.006102132985064614,
+          "global_mse": 0.025920101701750804,
+          "deviation_mse": 0.03279628640729922,
+          "gold_variance": 0.04155774744657922,
+          "prediction_variance": 0.012027440442849612,
+          "covariance": 0.010394450741064805,
+          "n": 79,
+          "negative": 6,
+          "quantiles": [
+            -0.2799703830577722,
+            0.06909157160920328,
+            0.27756601357748434,
+            0.4579350857509086,
+            0.6287840553944744,
+            0.782772795608257,
+            0.9214220762421584
+          ],
+          "global_rmse": 0.16099721022971425,
+          "deviation_rmse": 0.18109745002980915,
+          "relative_deviation_rms": 0.5379731587046838,
+          "deviation_calibration_slope": 0.8642279951795039
+        },
+        "posthoc_best": {
+          "contrast": 0.45366743204998256,
+          "spearman": 0.4174795987917726,
+          "ranking": 0.7159210394748673,
+          "global_bias": 0.00662109453957901,
+          "global_mse": 0.020590029875896303,
+          "deviation_mse": 0.03183210348721321,
+          "gold_variance": 0.04155774744657922,
+          "prediction_variance": 0.010010819859863868,
+          "covariance": 0.009868231909614935,
+          "n": 79,
+          "negative": 5,
+          "quantiles": [
+            -0.5107091376927648,
+            0.10087116860271503,
+            0.35145169382782204,
+            0.5021305873122585,
+            0.638639754905304,
+            0.7671429574296494,
+            0.9391159321702909
+          ],
+          "global_rmse": 0.14349226416743274,
+          "deviation_rmse": 0.1784155360029311,
+          "relative_deviation_rms": 0.490804824984841,
+          "deviation_calibration_slope": 0.9857566161168669
+        }
+      },
+      "paired_bootstrap": {
+        "ridge-incumbent": {
+          "n": 79,
+          "delta": -0.007531190341141553,
+          "ci95": [
+            -0.017586468730223792,
+            0.002705922215221974
+          ],
+          "positive_fraction": 0.07435,
+          "wins": 31,
+          "ties": 0,
+          "losses": 48,
+          "trim_absolute_5pct": -0.004946100793738248,
+          "trim_best_5pct": -0.012945012065615264,
+          "without_single_best": -0.00894498767826508,
+          "largest_wins_sum": 0.37591186797096215,
+          "largest_losses_sum": -0.40740130960597104
+        },
+        "cscva-incumbent": {
+          "n": 79,
+          "delta": -0.02508987310213149,
+          "ci95": [
+            -0.05925726055759427,
+            0.00794165656816236
+          ],
+          "positive_fraction": 0.0734,
+          "wins": 40,
+          "ties": 0,
+          "losses": 39,
+          "trim_absolute_5pct": -0.004411766342531475,
+          "trim_best_5pct": -0.03918492034491855,
+          "without_single_best": -0.028660403748823404,
+          "largest_wins_sum": 0.9567690508005036,
+          "largest_losses_sum": -1.651217499378527
+        },
+        "A4-incumbent": {
+          "n": 79,
+          "delta": -0.04273979899844965,
+          "ci95": [
+            -0.07252519699609775,
+            -0.013486620658398582
+          ],
+          "positive_fraction": 0.00195,
+          "wins": 31,
+          "ties": 0,
+          "losses": 48,
+          "trim_absolute_5pct": -0.025146993409853016,
+          "trim_best_5pct": -0.05644994280786379,
+          "without_single_best": -0.04671166167408004,
+          "largest_wins_sum": 0.8573015897122633,
+          "largest_losses_sum": -1.4904196151385456
+        },
+        "B6-incumbent": {
+          "n": 79,
+          "delta": -0.017588670065567826,
+          "ci95": [
+            -0.04951862879340216,
+            0.013655176453093444
+          ],
+          "positive_fraction": 0.1405,
+          "wins": 36,
+          "ties": 0,
+          "losses": 43,
+          "trim_absolute_5pct": 0.0005981865665226723,
+          "trim_best_5pct": -0.02967070475388585,
+          "without_single_best": -0.020652231129986147,
+          "largest_wins_sum": 0.8357979213615808,
+          "largest_losses_sum": -1.4343689276690588
+        },
+        "C6-incumbent": {
+          "n": 79,
+          "delta": -0.011007001746119233,
+          "ci95": [
+            -0.04731807236134414,
+            0.024533407731344273
+          ],
+          "positive_fraction": 0.2771,
+          "wins": 38,
+          "ties": 0,
+          "losses": 41,
+          "trim_absolute_5pct": 0.01277746824152836,
+          "trim_best_5pct": -0.027285127890060424,
+          "without_single_best": -0.01659764475461936,
+          "largest_wins_sum": 1.176831453811112,
+          "largest_losses_sum": -1.8278632560580461
+        },
+        "selected-incumbent": {
+          "n": 79,
+          "delta": 0.0052901596527137945,
+          "ci95": [
+            -0.0013889435322831638,
+            0.012068281454477902
+          ],
+          "positive_fraction": 0.94005,
+          "wins": 47,
+          "ties": 0,
+          "losses": 32,
+          "trim_absolute_5pct": 0.005421961412151397,
+          "trim_best_5pct": 0.00180740503557088,
+          "without_single_best": 0.004335866143000822,
+          "largest_wins_sum": 0.2823672348965738,
+          "largest_losses_sum": -0.262293049314936
+        },
+        "C7-incumbent": {
+          "n": 79,
+          "delta": -0.022050316740890013,
+          "ci95": [
+            -0.05713881318273425,
+            0.012704943777671304
+          ],
+          "positive_fraction": 0.10695,
+          "wins": 32,
+          "ties": 0,
+          "losses": 47,
+          "trim_absolute_5pct": -0.010354097672281222,
+          "trim_best_5pct": -0.03708361506168924,
+          "without_single_best": -0.027273531621191498,
+          "largest_wins_sum": 1.0392961070963813,
+          "largest_losses_sum": -1.7296625789741318
+        },
+        "C8-incumbent": {
+          "n": 79,
+          "delta": -0.019863987551772336,
+          "ci95": [
+            -0.05565023954477477,
+            0.015297465875991333
+          ],
+          "positive_fraction": 0.13505,
+          "wins": 34,
+          "ties": 0,
+          "losses": 45,
+          "trim_absolute_5pct": 0.0027638377001475223,
+          "trim_best_5pct": -0.03545010343111309,
+          "without_single_best": -0.025292513262306277,
+          "largest_wins_sum": 1.0895027407434674,
+          "largest_losses_sum": -1.7765428441010789
+        },
+        "posthoc_best-incumbent": {
+          "n": 79,
+          "delta": 0.004916306037944972,
+          "ci95": [
+            -0.0013803872233702627,
+            0.011137749875642547
+          ],
+          "positive_fraction": 0.9392,
+          "wins": 47,
+          "ties": 0,
+          "losses": 32,
+          "trim_absolute_5pct": 0.007168296008093626,
+          "trim_best_5pct": 0.0018876431302703152,
+          "without_single_best": 0.004079663933825744,
+          "largest_wins_sum": 0.24681494222737915,
+          "largest_losses_sum": -0.26714333171122495
+        },
+        "B6-A4": {
+          "n": 79,
+          "delta": 0.02515112893288182,
+          "ci95": [
+            0.002729916206111238,
+            0.04754586804687192
+          ],
+          "positive_fraction": 0.9849,
+          "wins": 51,
+          "ties": 0,
+          "losses": 28,
+          "trim_absolute_5pct": 0.021412498806504723,
+          "trim_best_5pct": 0.014187864445617017,
+          "without_single_best": 0.021573167229748138,
+          "largest_wins_sum": 0.9228493522763872,
+          "largest_losses_sum": -0.892083465156468
+        },
+        "B6-cscva": {
+          "n": 79,
+          "delta": 0.007501203036563662,
+          "ci95": [
+            -0.021702135985044783,
+            0.03562439375432176
+          ],
+          "positive_fraction": 0.7015,
+          "wins": 40,
+          "ties": 0,
+          "losses": 39,
+          "trim_absolute_5pct": 0.018497675864879007,
+          "trim_best_5pct": -0.005472687121726017,
+          "without_single_best": 0.003772627663367064,
+          "largest_wins_sum": 1.0030465740179806,
+          "largest_losses_sum": -1.3361674717687977
+        },
+        "C6-B6": {
+          "n": 79,
+          "delta": 0.006581668319448591,
+          "ci95": [
+            -0.011140118337367643,
+            0.02487711652815519
+          ],
+          "positive_fraction": 0.76265,
+          "wins": 42,
+          "ties": 0,
+          "losses": 37,
+          "trim_absolute_5pct": 0.005406228357139231,
+          "trim_best_5pct": -0.0037797342729014374,
+          "without_single_best": 0.0033180170741367522,
+          "largest_wins_sum": 0.8034318677040468,
+          "largest_losses_sum": -0.6928794712867267
+        },
+        "C7-C6": {
+          "n": 79,
+          "delta": -0.011043314994770783,
+          "ci95": [
+            -0.018246317862830104,
+            -0.004022633445729693
+          ],
+          "positive_fraction": 0.001,
+          "wins": 35,
+          "ties": 0,
+          "losses": 44,
+          "trim_absolute_5pct": -0.008933840858076638,
+          "trim_best_5pct": -0.014376538128306925,
+          "without_single_best": -0.012195809749242564,
+          "largest_wins_sum": 0.20581847503612738,
+          "largest_losses_sum": -0.34940813378250346
+        },
+        "C8-C6": {
+          "n": 79,
+          "delta": -0.008856985805653105,
+          "ci95": [
+            -0.014486008165739604,
+            -0.0034007230284825085
+          ],
+          "positive_fraction": 0.00075,
+          "wins": 35,
+          "ties": 0,
+          "losses": 44,
+          "trim_absolute_5pct": -0.0053290656758772665,
+          "trim_best_5pct": -0.011067370713056615,
+          "without_single_best": -0.009658261309893865,
+          "largest_wins_sum": 0.13035092483265107,
+          "largest_losses_sum": -0.30002195295580014
+        }
+      },
+      "paired_log_loss": {
+        "ridge-incumbent": {
+          "delta": 0.011615021274148962,
+          "ci95": [
+            0.0022513256179380195,
+            0.023806756785548222
+          ],
+          "kept_draws": 20000
+        },
+        "cscva-incumbent": {
+          "delta": 0.014369850169796278,
+          "ci95": [
+            -0.011170172876774387,
+            0.04319982583250393
+          ],
+          "kept_draws": 20000
+        },
+        "A4-incumbent": {
+          "delta": 0.029127518526699436,
+          "ci95": [
+            0.00852138141880109,
+            0.050583047090780965
+          ],
+          "kept_draws": 20000
+        },
+        "B6-incumbent": {
+          "delta": 0.021398796214770192,
+          "ci95": [
+            -0.0031864229164669812,
+            0.047975227754689063
+          ],
+          "kept_draws": 20000
+        },
+        "C6-incumbent": {
+          "delta": 0.014518594388242644,
+          "ci95": [
+            -0.007703018936542496,
+            0.038104287673737185
+          ],
+          "kept_draws": 20000
+        },
+        "selected-incumbent": {
+          "delta": -0.002012295334526569,
+          "ci95": [
+            -0.006520394855724602,
+            0.0024348123781279614
+          ],
+          "kept_draws": 20000
+        },
+        "C7-incumbent": {
+          "delta": 0.01999741621731593,
+          "ci95": [
+            -0.002601346054392614,
+            0.04412321902847361
+          ],
+          "kept_draws": 20000
+        },
+        "C8-incumbent": {
+          "delta": 0.018741861307081466,
+          "ci95": [
+            -0.0034857691110099886,
+            0.0425272915884827
+          ],
+          "kept_draws": 20000
+        },
+        "posthoc_best-incumbent": {
+          "delta": -0.0007387650492817638,
+          "ci95": [
+            -0.004660229653624143,
+            0.0030625244207268245
+          ],
+          "kept_draws": 20000
+        },
+        "B6-A4": {
+          "delta": -0.007728722311929242,
+          "ci95": [
+            -0.023949289947096015,
+            0.009303009225031716
+          ],
+          "kept_draws": 20000
+        },
+        "B6-cscva": {
+          "delta": 0.007028946044973914,
+          "ci95": [
+            -0.015467117152845938,
+            0.029067508730767085
+          ],
+          "kept_draws": 20000
+        },
+        "C6-B6": {
+          "delta": -0.0068802018265275485,
+          "ci95": [
+            -0.018805231294939904,
+            0.004820319469264441
+          ],
+          "kept_draws": 20000
+        },
+        "C7-C6": {
+          "delta": 0.005478821829073285,
+          "ci95": [
+            0.0014477685278841495,
+            0.009941397296757696
+          ],
+          "kept_draws": 20000
+        },
+        "C8-C6": {
+          "delta": 0.004223266918838821,
+          "ci95": [
+            3.918879080287487e-05,
+            0.008819061805598527
+          ],
+          "kept_draws": 20000
+        }
+      },
+      "largest": {
+        "ridge-incumbent": {
+          "wins": {
+            "dante-gabriel-rossetti_the-sermon-on-the-mount-1862": 0.10274500195449371,
+            "antonello-da-messina_portrait-of-a-man-1470": 0.09700969862149667,
+            "john-singer-sargent_charles-deering-1917": 0.09252573444449158,
+            "rembrandt_batavernas-trohetsed-1662": 0.0836314329504802,
+            "ad-reinhardt_yellow-painting-1949": 0.07843259679199044
+          },
+          "losses": {
+            "maurice-prendergast_summer-outing": -0.12924147908574468,
+            "pieter-bruegel-the-elder_christ-carrying-the-cross-1564": -0.09934534124490507,
+            "giovanni-bellini_madonna-with-child-1455": -0.09816465904365801,
+            "imi-knoebel_weiss-und-schwarz-4-2009": -0.08064983023166326,
+            "david-burliuk_a-girl-watering-horse": -0.0776340732077535
+          }
+        },
+        "cscva-incumbent": {
+          "wins": {
+            "pieter-bruegel-the-elder_christ-carrying-the-cross-1564": 0.25341151733983786,
+            "imi-knoebel_weiss-und-schwarz-4-2009": 0.25098293155564433,
+            "georges-seurat_farm-women-at-work-1883": 0.23267168068959548,
+            "giovanni-bellini_madonna-with-child-1455": 0.21970292121542592,
+            "martin-barre_66-7-a-1966": 0.21255565833481216
+          },
+          "losses": {
+            "antonello-da-messina_portrait-of-a-man-1470": -0.50360969773745,
+            "ad-reinhardt_yellow-painting-1949": -0.48213133998570024,
+            "rembrandt_batavernas-trohetsed-1662": -0.34699438097757546,
+            "bartolome-esteban-murillo_the-toilette-1675": -0.3184820806778013,
+            "benozzo-gozzoli_the-dance-of-salome-detail-1462-1": -0.30034151352392796
+          }
+        },
+        "A4-incumbent": {
+          "wins": {
+            "pierre-auguste-renoir_the-agreement-1919": 0.2670654897007226,
+            "giovanni-bellini_madonna-with-child-1455": 0.19962914457055955,
+            "georges-seurat_farm-women-at-work-1883": 0.19779023226121317,
+            "imi-knoebel_weiss-und-schwarz-4-2009": 0.19281672317976806,
+            "carlo-crivelli_two-apostles-1475": 0.18175782560153275
+          },
+          "losses": {
+            "ad-reinhardt_yellow-painting-1949": -0.4425455552690519,
+            "antonello-da-messina_portrait-of-a-man-1470": -0.39195427720950615,
+            "benozzo-gozzoli_the-dance-of-salome-detail-1462-1": -0.37184184852194524,
+            "john-singer-sargent_charles-deering-1917": -0.2840779341380425,
+            "john-singer-sargent_a-gust-of-wind": -0.2805073013724162
+          }
+        },
+        "B6-incumbent": {
+          "wins": {
+            "georges-seurat_farm-women-at-work-1883": 0.22136909295906138,
+            "imi-knoebel_weiss-und-schwarz-4-2009": 0.21122718116056216,
+            "dante-gabriel-rossetti_the-sermon-on-the-mount-1862": 0.20660613867614747,
+            "paula-modersohn-becker_breast-feeding-mother": 0.19659550856580987,
+            "carlo-crivelli_two-apostles-1475": 0.18260891725582695
+          },
+          "losses": {
+            "ad-reinhardt_yellow-painting-1949": -0.38270573913604244,
+            "benozzo-gozzoli_the-dance-of-salome-detail-1462-1": -0.35950402303295137,
+            "jack-tworkov_untitled-1955": -0.3508587630506428,
+            "pierre-auguste-renoir_reading-the-part-1876": -0.3413004024494222,
+            "rembrandt_batavernas-trohetsed-1662": -0.289514926733708
+          }
+        },
+        "C6-incumbent": {
+          "wins": {
+            "dante-gabriel-rossetti_the-sermon-on-the-mount-1862": 0.42506315291689023,
+            "paula-modersohn-becker_breast-feeding-mother": 0.25762736932788566,
+            "imi-knoebel_weiss-und-schwarz-4-2009": 0.24898094600339105,
+            "david-alfaro-siqueiros_portrait-of-dramatist-margarita-urueta-1947": 0.245159985562945,
+            "georges-seurat_farm-women-at-work-1883": 0.20626546568473897
+          },
+          "losses": {
+            "jack-tworkov_untitled-1955": -0.4636879824706257,
+            "aleksey-savrasov_steppe-day-1852": -0.45773571379631456,
+            "pierre-auguste-renoir_reading-the-part-1876": -0.4577039267774863,
+            "benozzo-gozzoli_the-dance-of-salome-detail-1462-1": -0.44873563301361974,
+            "rembrandt_batavernas-trohetsed-1662": -0.3367498938679918
+          }
+        },
+        "selected-incumbent": {
+          "wins": {
+            "paula-modersohn-becker_breast-feeding-mother": 0.07972505341032565,
+            "imi-knoebel_weiss-und-schwarz-4-2009": 0.07532561068348294,
+            "paul-cezanne_four-bathers-1880": 0.06686749902727585,
+            "pietro-perugino_trinity-and-six-saints": 0.06044907177548936,
+            "raphael-kirchner_girls-with-good-luck-charms-5": 0.04893765175708503
+          },
+          "losses": {
+            "jack-tworkov_untitled-1955": -0.07388067068646642,
+            "aleksey-savrasov_steppe-day-1852": -0.0698944867543071,
+            "rembrandt_batavernas-trohetsed-1662": -0.06152572930473643,
+            "charles-hinman_untitled-1972": -0.056992162569426075,
+            "giovanni-battista-tiepolo_last-communion-of-st-lucy-1748": -0.04014910886696865
+          }
+        },
+        "C7-incumbent": {
+          "wins": {
+            "dante-gabriel-rossetti_the-sermon-on-the-mount-1862": 0.38536044392262553,
+            "pietro-perugino_trinity-and-six-saints": 0.22913564442066853,
+            "paula-modersohn-becker_breast-feeding-mother": 0.2126816970782669,
+            "imi-knoebel_weiss-und-schwarz-4-2009": 0.2121183216748203,
+            "paul-cezanne_four-bathers-1880": 0.19168723227653783
+          },
+          "losses": {
+            "jack-tworkov_untitled-1955": -0.4751538994225204,
+            "benozzo-gozzoli_the-dance-of-salome-detail-1462-1": -0.4588526605337643,
+            "pierre-auguste-renoir_reading-the-part-1876": -0.4167715810755605,
+            "aleksey-savrasov_steppe-day-1852": -0.3788844379422866,
+            "rembrandt_batavernas-trohetsed-1662": -0.320642705778273
+          }
+        },
+        "C8-incumbent": {
+          "wins": {
+            "dante-gabriel-rossetti_the-sermon-on-the-mount-1862": 0.40356101786987425,
+            "imi-knoebel_weiss-und-schwarz-4-2009": 0.23589788734728023,
+            "paula-modersohn-becker_breast-feeding-mother": 0.22991640093032983,
+            "pietro-perugino_trinity-and-six-saints": 0.220127434595983,
+            "david-alfaro-siqueiros_portrait-of-dramatist-margarita-urueta-1947": 0.1997447551307956
+          },
+          "losses": {
+            "jack-tworkov_untitled-1955": -0.48170160774851734,
+            "benozzo-gozzoli_the-dance-of-salome-detail-1462-1": -0.45315806880795106,
+            "pierre-auguste-renoir_reading-the-part-1876": -0.4375899572734222,
+            "aleksey-savrasov_steppe-day-1852": -0.40409321027118816,
+            "rembrandt_batavernas-trohetsed-1662": -0.31914200330005876
+          }
+        },
+        "posthoc_best-incumbent": {
+          "wins": {
+            "paula-modersohn-becker_breast-feeding-mother": 0.07017439015924476,
+            "paul-cezanne_four-bathers-1880": 0.0634567187094186,
+            "imi-knoebel_weiss-und-schwarz-4-2009": 0.05991619926239204,
+            "dante-gabriel-rossetti_the-sermon-on-the-mount-1862": 0.053267634096323735,
+            "pietro-perugino_trinity-and-six-saints": 0.05259627944871531
+          },
+          "losses": {
+            "jack-tworkov_untitled-1955": -0.08770067237558532,
+            "charles-hinman_untitled-1972": -0.0669746371681037,
+            "aleksey-savrasov_steppe-day-1852": -0.06473310422492495,
+            "richard-diebenkorn_sausalito-1": -0.04773491794261098,
+            "rembrandt_batavernas-trohetsed-1662": -0.041564265094471475
+          }
+        },
+        "B6-A4": {
+          "wins": {
+            "dante-gabriel-rossetti_the-sermon-on-the-mount-1862": 0.30423214177730845,
+            "alfred-sisley_path-near-sevres-1879": 0.22030172210324334,
+            "maurice-prendergast_summer-outing": 0.19999486337910388,
+            "paul-cezanne_rock-in-the-forest-of-fontainbleau-1868": 0.1983206250167316,
+            "pierre-auguste-renoir_young-woman-in-a-straw-hat-1901": 0.18935421257701915
+          },
+          "losses": {
+            "jack-tworkov_untitled-1955": -0.3435269520498466,
+            "rembrandt_batavernas-trohetsed-1662": -0.1865899209695612,
+            "edouard-manet_the-head-of-christ": -0.18616063477906386,
+            "pierre-auguste-renoir_reading-the-part-1876": -0.17580595735799637,
+            "pierre-auguste-renoir_woman-s-head-5": -0.1538344669391869
+          }
+        },
+        "B6-cscva": {
+          "wins": {
+            "antonello-da-messina_portrait-of-a-man-1470": 0.2983300821458982,
+            "dante-gabriel-rossetti_the-sermon-on-the-mount-1862": 0.24253195183219928,
+            "paul-cezanne_rock-in-the-forest-of-fontainbleau-1868": 0.24004210439504048,
+            "franz-xaver-winterhalter_portrait-of-a-lady-with-a-fan": 0.22214243564484248,
+            "carlo-crivelli_two-apostles-1475": 0.20149020032354437
+          },
+          "losses": {
+            "jack-tworkov_untitled-1955": -0.5148121580156169,
+            "charles-hinman_untitled-1972": -0.2981942858679102,
+            "pieter-bruegel-the-elder_christ-carrying-the-cross-1564": -0.28005428823976736,
+            "martin-barre_66-7-a-1966": -0.24310673964550333,
+            "richard-diebenkorn_sausalito-1": -0.2404312451542444
+          }
+        },
+        "C6-B6": {
+          "wins": {
+            "john-singer-sargent_charles-deering-1917": 0.2611464654537723,
+            "dante-gabriel-rossetti_the-sermon-on-the-mount-1862": 0.2184570142407428,
+            "antonello-da-messina_portrait-of-a-man-1470": 0.1649856426182607,
+            "david-alfaro-siqueiros_portrait-of-dramatist-margarita-urueta-1947": 0.158842745391271,
+            "ad-reinhardt_yellow-painting-1949": 0.14021459719449178
+          },
+          "losses": {
+            "aleksey-savrasov_steppe-day-1852": -0.18315407462701833,
+            "viktor-vasnetsov_entertainment": -0.18196473461649987,
+            "pierre-auguste-renoir_the-agreement-1919": -0.1682737640633934,
+            "egon-schiele_melon-1905": -0.15948689797981508,
+            "edouard-manet_the-head-of-christ": -0.12391555172589094
+          }
+        },
+        "C7-C6": {
+          "wins": {
+            "aleksey-savrasov_steppe-day-1852": 0.07885127585402796,
+            "egon-schiele_portrait-of-an-old-man-johann-harms-1916": 0.04991027737264042,
+            "pierre-auguste-renoir_reading-the-part-1876": 0.040932345701925776,
+            "pierre-auguste-renoir_woman-s-head-5": 0.036124576107533224,
+            "giovanni-battista-tiepolo_last-communion-of-st-lucy-1748": 0.03023684420519468
+          },
+          "losses": {
+            "antonello-da-messina_portrait-of-a-man-1470": -0.11478481478430691,
+            "ivan-bilibin_illustration-for-the-russian-fairy-story-white-duck-1902(1)": -0.08678404953019103,
+            "egon-schiele_melon-1905": -0.07966623177067411,
+            "edouard-manet_the-head-of-christ": -0.0681730376973314,
+            "richard-diebenkorn_sausalito-1": -0.06735580588189083
+          }
+        },
+        "C8-C6": {
+          "wins": {
+            "aleksey-savrasov_steppe-day-1852": 0.053642503525126395,
+            "egon-schiele_portrait-of-an-old-man-johann-harms-1916": 0.032094435209953476,
+            "giovanni-battista-tiepolo_last-communion-of-st-lucy-1748": 0.02450001659350709,
+            "pierre-auguste-renoir_reading-the-part-1876": 0.020113969504064105,
+            "henri-de-toulouse-lautrec_portrait-of-berthe-bady-1897": 0.01956856367482873
+          },
+          "losses": {
+            "antonello-da-messina_portrait-of-a-man-1470": -0.08216540697302965,
+            "ivan-bilibin_illustration-for-the-russian-fairy-story-white-duck-1902(1)": -0.07682496994963295,
+            "edouard-manet_the-head-of-christ": -0.07457154389699955,
+            "egon-schiele_melon-1905": -0.06646003213613802,
+            "richard-diebenkorn_sausalito-1": -0.0645558069928488
+          }
+        }
+      },
+      "diversity": [
+        {
+          "a": "ridge",
+          "b": "cscva",
+          "prediction_r": 0.8541670013784459,
+          "centered_prediction_r": 0.8647655162313681,
+          "residual_r": 0.865485024484409,
+          "centered_residual_r": 0.9591778682470016,
+          "order_agreement": 0.8245353853915098
+        },
+        {
+          "a": "ridge",
+          "b": "incumbent",
+          "prediction_r": 0.9892350506073597,
+          "centered_prediction_r": 0.9930169429151378,
+          "residual_r": 0.9914725690135406,
+          "centered_residual_r": 0.997390952158769,
+          "order_agreement": 0.9537394418628216
+        },
+        {
+          "a": "ridge",
+          "b": "A4",
+          "prediction_r": 0.8792338175381849,
+          "centered_prediction_r": 0.8655469111256968,
+          "residual_r": 0.9089727557585834,
+          "centered_residual_r": 0.9599613385074514,
+          "order_agreement": 0.8302668610060135
+        },
+        {
+          "a": "ridge",
+          "b": "B6",
+          "prediction_r": 0.8829501211482143,
+          "centered_prediction_r": 0.8970961573200843,
+          "residual_r": 0.8946247034792438,
+          "centered_residual_r": 0.9675159052973237,
+          "order_agreement": 0.8411368419525134
+        },
+        {
+          "a": "ridge",
+          "b": "C6",
+          "prediction_r": 0.8933475641563351,
+          "centered_prediction_r": 0.8974903215524566,
+          "residual_r": 0.8964555961947798,
+          "centered_residual_r": 0.9644209171637875,
+          "order_agreement": 0.8585730729200802
+        },
+        {
+          "a": "ridge",
+          "b": "selected",
+          "prediction_r": 0.9808222961743662,
+          "centered_prediction_r": 0.9850882797679592,
+          "residual_r": 0.9843279505585734,
+          "centered_residual_r": 0.9949731631206787,
+          "order_agreement": 0.9344479825615406
+        },
+        {
+          "a": "cscva",
+          "b": "incumbent",
+          "prediction_r": 0.9210661051100805,
+          "centered_prediction_r": 0.9179694119388174,
+          "residual_r": 0.9233842589139994,
+          "centered_residual_r": 0.977090700974802,
+          "order_agreement": 0.870795943528688
+        },
+        {
+          "a": "cscva",
+          "b": "A4",
+          "prediction_r": 0.8980086910095458,
+          "centered_prediction_r": 0.9498478734553956,
+          "residual_r": 0.9090104106333291,
+          "centered_residual_r": 0.9877406174617797,
+          "order_agreement": 0.9483040744483325
+        },
+        {
+          "a": "cscva",
+          "b": "B6",
+          "prediction_r": 0.9039100204297816,
+          "centered_prediction_r": 0.9396974944826995,
+          "residual_r": 0.9086632812604717,
+          "centered_residual_r": 0.9826039421637744,
+          "order_agreement": 0.9247257931878813
+        },
+        {
+          "a": "cscva",
+          "b": "C6",
+          "prediction_r": 0.9077884419159513,
+          "centered_prediction_r": 0.9170063573624285,
+          "residual_r": 0.9084587056342182,
+          "centered_residual_r": 0.9712364330232529,
+          "order_agreement": 0.8937011522529509
+        },
+        {
+          "a": "cscva",
+          "b": "selected",
+          "prediction_r": 0.9303409869591637,
+          "centered_prediction_r": 0.9297555819789032,
+          "residual_r": 0.9320752956585044,
+          "centered_residual_r": 0.9800650499747552,
+          "order_agreement": 0.8891136929955002
+        },
+        {
+          "a": "incumbent",
+          "b": "A4",
+          "prediction_r": 0.911135763524802,
+          "centered_prediction_r": 0.9068047784445905,
+          "residual_r": 0.9330393439536795,
+          "centered_residual_r": 0.9745509253649611,
+          "order_agreement": 0.8714913499993234
+        },
+        {
+          "a": "incumbent",
+          "b": "B6",
+          "prediction_r": 0.9155794747679398,
+          "centered_prediction_r": 0.9293399014623419,
+          "residual_r": 0.9219538204823704,
+          "centered_residual_r": 0.9789249055239856,
+          "order_agreement": 0.8676805400404576
+        },
+        {
+          "a": "incumbent",
+          "b": "C6",
+          "prediction_r": 0.9244571503604068,
+          "centered_prediction_r": 0.924320592156724,
+          "residual_r": 0.923303653743445,
+          "centered_residual_r": 0.9736940694926897,
+          "order_agreement": 0.8790614670326393
+        },
+        {
+          "a": "incumbent",
+          "b": "selected",
+          "prediction_r": 0.9963101076439174,
+          "centered_prediction_r": 0.9965062434503441,
+          "residual_r": 0.996785850345481,
+          "centered_residual_r": 0.9989397365881297,
+          "order_agreement": 0.9664960722123701
+        },
+        {
+          "a": "A4",
+          "b": "B6",
+          "prediction_r": 0.963290273603768,
+          "centered_prediction_r": 0.9595621109138849,
+          "residual_r": 0.9654329470717876,
+          "centered_residual_r": 0.9871339210871389,
+          "order_agreement": 0.9334470510770274
+        },
+        {
+          "a": "A4",
+          "b": "C6",
+          "prediction_r": 0.9415510495795524,
+          "centered_prediction_r": 0.921137851954812,
+          "residual_r": 0.9434246325474677,
+          "centered_residual_r": 0.9709959802647345,
+          "order_agreement": 0.8938502348304388
+        },
+        {
+          "a": "A4",
+          "b": "selected",
+          "prediction_r": 0.9301135768176091,
+          "centered_prediction_r": 0.9217927001332826,
+          "residual_r": 0.9471333061227558,
+          "centered_residual_r": 0.9779790364716511,
+          "order_agreement": 0.8886352381656918
+        },
+        {
+          "a": "B6",
+          "b": "C6",
+          "prediction_r": 0.9849912828553729,
+          "centered_prediction_r": 0.9802385464140859,
+          "residual_r": 0.985373335072937,
+          "centered_residual_r": 0.9924254098465738,
+          "order_agreement": 0.9410356824292606
+        },
+        {
+          "a": "B6",
+          "b": "selected",
+          "prediction_r": 0.9433944595401395,
+          "centered_prediction_r": 0.9526248013810402,
+          "residual_r": 0.9469683307879329,
+          "centered_residual_r": 0.9858175220102922,
+          "order_agreement": 0.89648816235557
+        },
+        {
+          "a": "C6",
+          "b": "selected",
+          "prediction_r": 0.9537704002099555,
+          "centered_prediction_r": 0.9529632348178967,
+          "residual_r": 0.951104782147998,
+          "centered_residual_r": 0.9831516490358653,
+          "order_agreement": 0.9125653948202698
+        }
+      ],
+      "selected_gain_by_baseline_quality": {
+        "ridge": -0.36215226068471146,
+        "cscva": -0.07405055982012188,
+        "incumbent": -0.3047559850078912
+      },
+      "selected_gain_slices": {
+        "low_ridge": 0.013654634880040036,
+        "high_ridge": -0.003288789298390042,
+        "low_cscva": 0.005837919139983842,
+        "high_cscva": 0.004728355050385542
+      }
+    }
+  },
+  "oracles_analysis_only": {
+    "full": {
+      "ridge": {
+        "gold_mean": {
+          "unclipped_pearson": 0.4654623278503296,
+          "bounded_pearson": 0.46930999809809504,
+          "bounded_log_loss": 0.6538959092724519,
+          "out_of_range_rows": 66
+        },
+        "gold_deviation_rms": {
+          "unclipped_pearson": 0.46546232785032965,
+          "bounded_pearson": 0.4644282281083849,
+          "bounded_log_loss": 0.8093504221341764,
+          "out_of_range_rows": 87
+        },
+        "gold_deviations": {
+          "unclipped_pearson": 1.0,
+          "bounded_pearson": 0.9964457205979116,
+          "bounded_log_loss": 0.6263132225316969,
+          "out_of_range_rows": 67
+        },
+        "gold_order": {
+          "unclipped_pearson": 0.9753068703777099,
+          "bounded_pearson": 0.9753068703777099,
+          "bounded_log_loss": 0.6875231360574996,
+          "out_of_range_rows": 0
+        }
+      },
+      "incumbent": {
+        "gold_mean": {
+          "unclipped_pearson": 0.4703387872416294,
+          "bounded_pearson": 0.47348994432422553,
+          "bounded_log_loss": 0.6531086125482206,
+          "out_of_range_rows": 63
+        },
+        "gold_deviation_rms": {
+          "unclipped_pearson": 0.4703387872416294,
+          "bounded_pearson": 0.46987553425554096,
+          "bounded_log_loss": 0.7882780022146825,
+          "out_of_range_rows": 76
+        },
+        "gold_deviations": {
+          "unclipped_pearson": 1.0,
+          "bounded_pearson": 0.9972212150936249,
+          "bounded_log_loss": 0.6153911848066324,
+          "out_of_range_rows": 62
+        },
+        "gold_order": {
+          "unclipped_pearson": 0.9738227341007792,
+          "bounded_pearson": 0.9738227341007795,
+          "bounded_log_loss": 0.6812430157239584,
+          "out_of_range_rows": 0
+        }
+      },
+      "C6": {
+        "gold_mean": {
+          "unclipped_pearson": 0.4459570175727771,
+          "bounded_pearson": 0.4514180156006524,
+          "bounded_log_loss": 0.6551447134687115,
+          "out_of_range_rows": 56
+        },
+        "gold_deviation_rms": {
+          "unclipped_pearson": 0.4459570175727772,
+          "bounded_pearson": 0.43847080736903854,
+          "bounded_log_loss": 0.8220760117338806,
+          "out_of_range_rows": 107
+        },
+        "gold_deviations": {
+          "unclipped_pearson": 1.0,
+          "bounded_pearson": 0.9956924042917741,
+          "bounded_log_loss": 0.6308632616909938,
+          "out_of_range_rows": 106
+        },
+        "gold_order": {
+          "unclipped_pearson": 0.9734217702736533,
+          "bounded_pearson": 0.9734217702736533,
+          "bounded_log_loss": 0.6845237824948157,
+          "out_of_range_rows": 0
+        }
+      },
+      "selected": {
+        "gold_mean": {
+          "unclipped_pearson": 0.47281837661624826,
+          "bounded_pearson": 0.47658059356199584,
+          "bounded_log_loss": 0.652400561597842,
+          "out_of_range_rows": 59
+        },
+        "gold_deviation_rms": {
+          "unclipped_pearson": 0.4728183766162482,
+          "bounded_pearson": 0.47231715661116946,
+          "bounded_log_loss": 0.7859147543160396,
+          "out_of_range_rows": 75
+        },
+        "gold_deviations": {
+          "unclipped_pearson": 1.0,
+          "bounded_pearson": 0.997210579207177,
+          "bounded_log_loss": 0.6140891402533666,
+          "out_of_range_rows": 63
+        },
+        "gold_order": {
+          "unclipped_pearson": 0.9743718402603478,
+          "bounded_pearson": 0.9743718402603478,
+          "bounded_log_loss": 0.6791877179687288,
+          "out_of_range_rows": 0
+        }
+      }
+    },
+    "like": {
+      "ridge": {
+        "gold_mean": {
+          "unclipped_pearson": 0.44121993567089607,
+          "bounded_pearson": 0.4438757466593299,
+          "bounded_log_loss": 0.6681697966526988,
+          "out_of_range_rows": 56
+        },
+        "gold_deviation_rms": {
+          "unclipped_pearson": 0.4412199356708962,
+          "bounded_pearson": 0.4426451407641542,
+          "bounded_log_loss": 0.8344214130259998,
+          "out_of_range_rows": 69
+        },
+        "gold_deviations": {
+          "unclipped_pearson": 1.0,
+          "bounded_pearson": 0.9962843572989456,
+          "bounded_log_loss": 0.65209448800071,
+          "out_of_range_rows": 51
+        },
+        "gold_order": {
+          "unclipped_pearson": 0.9717213995385617,
+          "bounded_pearson": 0.9717213995385617,
+          "bounded_log_loss": 0.7103655912113547,
+          "out_of_range_rows": 0
+        }
+      },
+      "incumbent": {
+        "gold_mean": {
+          "unclipped_pearson": 0.4487511260120376,
+          "bounded_pearson": 0.4505257524471825,
+          "bounded_log_loss": 0.6673612279379091,
+          "out_of_range_rows": 55
+        },
+        "gold_deviation_rms": {
+          "unclipped_pearson": 0.4487511260120376,
+          "bounded_pearson": 0.45076558665629257,
+          "bounded_log_loss": 0.8140867422823769,
+          "out_of_range_rows": 57
+        },
+        "gold_deviations": {
+          "unclipped_pearson": 1.0,
+          "bounded_pearson": 0.9971000776675806,
+          "bounded_log_loss": 0.6369250586939182,
+          "out_of_range_rows": 53
+        },
+        "gold_order": {
+          "unclipped_pearson": 0.9706419328074163,
+          "bounded_pearson": 0.9706419328074163,
+          "bounded_log_loss": 0.7030568198215328,
+          "out_of_range_rows": 0
+        }
+      },
+      "C6": {
+        "gold_mean": {
+          "unclipped_pearson": 0.43774412426591836,
+          "bounded_pearson": 0.44211439568072824,
+          "bounded_log_loss": 0.6691706926849449,
+          "out_of_range_rows": 49
+        },
+        "gold_deviation_rms": {
+          "unclipped_pearson": 0.43774412426591836,
+          "bounded_pearson": 0.43270055957754455,
+          "bounded_log_loss": 0.8490128722016603,
+          "out_of_range_rows": 83
+        },
+        "gold_deviations": {
+          "unclipped_pearson": 1.0,
+          "bounded_pearson": 0.9954324677336237,
+          "bounded_log_loss": 0.6461231178327946,
+          "out_of_range_rows": 80
+        },
+        "gold_order": {
+          "unclipped_pearson": 0.9687579462748891,
+          "bounded_pearson": 0.9687579462748889,
+          "bounded_log_loss": 0.7064312503984551,
+          "out_of_range_rows": 0
+        }
+      },
+      "selected": {
+        "gold_mean": {
+          "unclipped_pearson": 0.4540412856647515,
+          "bounded_pearson": 0.4565393091037245,
+          "bounded_log_loss": 0.6664127090703743,
+          "out_of_range_rows": 55
+        },
+        "gold_deviation_rms": {
+          "unclipped_pearson": 0.4540412856647515,
+          "bounded_pearson": 0.4548223043459505,
+          "bounded_log_loss": 0.8139603575867003,
+          "out_of_range_rows": 60
+        },
+        "gold_deviations": {
+          "unclipped_pearson": 1.0,
+          "bounded_pearson": 0.9970086591190445,
+          "bounded_log_loss": 0.6349490498387661,
+          "out_of_range_rows": 45
+        },
+        "gold_order": {
+          "unclipped_pearson": 0.9712279939127957,
+          "bounded_pearson": 0.9712279939127956,
+          "bounded_log_loss": 0.7008851478082769,
+          "out_of_range_rows": 0
+        }
+      }
+    }
+  },
+  "flat_differs_from_hierarchical_n": 181,
+  "flat_max_abs_difference": 1.0000000000287557e-06
+}

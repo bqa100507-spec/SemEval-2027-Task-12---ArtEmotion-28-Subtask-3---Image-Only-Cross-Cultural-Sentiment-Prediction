@@ -2,6 +2,8 @@
 
 **Active competition incumbent** — EXP-036, 75% Corrected Ridge and 25% CS-CVA. Owner-reported Development Contrast **0.4703** (submission **#1065924**). Use the [Evaluation runbook](docs/exp036_evaluation.md) for verified image-only packaging. Corrected Ridge is the primary fallback. [Verified closure](reports/exp036_final.md)
 
+**Experimental Development candidates** — EXP-037's original C6 blend scored **0.472818**. A separately archived post-hoc blend scored **0.473143** in full Development, with lower Evaluation-like Contrast. Qwen eligibility remains unresolved. [Closure and diagnostics](reports/exp037_final.md) · [Stored candidate inference](docs/exp037_evaluation.md)
+
 **Historical TASK-024 status.** EXP-022 and TASK-023 are closed. EL8 was a production NO-GO after its owner-reported hosted Development result of 0.4537 compared with 0.4643 for E50+L. The [closure report](reports/exp022_final_closure.md) and [research index](docs/research_index.md) preserve those artifacts and decisions.
 
 Image-only cross-cultural sentiment prediction for SemEval 2027 Task 12. The historical release **E50+L** combines CLIP-B, SigLIP 2 Base and CLIP-L. The owner reported Development Contrast **0.4643** for submission **#1046158**. Use the [release manifest](docs/competition_release.md) for its unchanged fallback inference.

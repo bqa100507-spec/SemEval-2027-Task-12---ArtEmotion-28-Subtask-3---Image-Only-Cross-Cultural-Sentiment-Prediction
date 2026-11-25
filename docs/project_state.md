@@ -1,6 +1,6 @@
 # SemEval-2027 ST3 project state
 
-Updated 24 November 2026. **The active incumbent is the EXP-036 ensemble, 75% Corrected Ridge and 25% epoch-5 CS-CVA.** Corrected Ridge is the primary fallback. E50+L remains the historical released fallback, with E50 and CLIP available explicitly. [Experiment registry](experiment_registry.md) · [Evaluation inference](exp036_evaluation.md) · [E50+L release](competition_release.md)
+Updated 26 November 2026. **The active incumbent is the EXP-036 ensemble, 75% Corrected Ridge and 25% epoch-5 CS-CVA.** Corrected Ridge is the primary fallback. E50+L remains the historical released fallback, with E50 and CLIP available explicitly. [Experiment registry](experiment_registry.md) · [Evaluation inference](exp036_evaluation.md) · [E50+L release](competition_release.md)
 
 ## Hosted Development
 
@@ -40,7 +40,9 @@ P2 uses five grouped folds over 1,335 official training paintings and 13,600 pai
 
 ## Completed experiments
 
-- **EXP-036 — closed as the selected competition candidate.** Kaggle completed six epochs. Epoch-5 standalone scored **0.437632 / 0.742911**. The frozen 75/25 blend gained **+0.004876 Contrast** and reduced Macro Log Loss by **0.010597 bits** versus Corrected Ridge on Development. The selected deployment bundle is in `runs/exp036/deployment/`. Fresh CS-CVA GPU replay and the hidden Evaluation result remain unmeasured. [Closure report](../reports/exp036_final.md)
+- **EXP-037 — complete and artifact-verified, experimental.** Original C6 blend: **0.472818 / 0.728088** full and **0.454041 / 0.750275** Evaluation-like. Separately selected post-hoc 65/15/20: **0.473143 / 0.729246** full and **0.453667 / 0.751549** Evaluation-like. Both are local Development results with unresolved Qwen eligibility. The incumbent stays EXP-036. [Closure](../reports/exp037_final.md) · [Deployment](exp037_evaluation.md)
+
+- **EXP-036 — closed as the selected competition candidate.** Kaggle completed six epochs. Epoch-5 standalone scored **0.437632 / 0.742911**. The frozen 75/25 blend gained **+0.004876 Contrast** and reduced Macro Log Loss by **0.010597 bits** versus Corrected Ridge on Development. The deployment bundle is in `runs/exp036/deployment/`. Fresh CS-CVA GPU inference passed on two new synthetic artworks. Hidden Evaluation remains unmeasured. [Closure report](../reports/exp036_final.md) · [Smoke test](exp037_evaluation.md#closure-replay)
 
 - **EXP-035 — Kaggle fold-3 pilot complete, scientific NO-GO for five-fold expansion.** Both four-epoch arms selected epoch 1. Test-like Contrast / Macro Log Loss was **0.441386 / 0.721157** for frozen Qwen residuals and **0.441396 / 0.721156** for merger LoRA, versus **0.441599 / 0.721110** for Corrected Ridge. Both corrections were small, and the paired Contrast intervals span zero. [Verified final report](../reports/exp035_cultural_residual.md#final-kaggle-outcome)
 
@@ -48,7 +50,9 @@ P2 uses five grouped folds over 1,335 official training paintings and 13,600 pai
 
 Default to a single resumable Kaggle run on the full authorized official training split. Use official Development for checkpoint selection and bounded model or blend selection. Prioritize Contrast, track Macro Log Loss, and preserve the risks of Development reuse in the record. Development gold remains scorer-only and hidden Evaluation annotations remain out of scope. Every completed fit produces its validated standalone ZIP and applicable ensemble ZIPs. Five-fold and nested CV are opt-in. The owner retains upload control. [Workflow and upload-safe packaging standard](experiment_workflow_standard.md)
 
-## Blocked and proposed work
+## Active, blocked and proposed work
+
+- **EXP-038 — design recommendation pending owner review.** A VLM-free spatial branch with a shared cultural interaction basis is proposed. The evidence points to errors in image-specific ordering and highly correlated centered residuals. Implementation and training remain outside the closure. [Cultural diagnostic](../reports/exp037_cultural_diagnostic.md) · [Design recommendation](../reports/exp038_design_recommendation.md)
 
 - **DINOv3 — access pending.** The official ViT-B/16 gate returned authenticated HTTP 403 for the pinned weights and config. Hugging Face approval is pending in the project record. A valid checkpoint preflight, feature extraction and outer evaluation are all unmeasured. Preserve the existing runner and its frozen scope. [Track 2 access receipt and runner](experiment_registry.md#competition-candidates-and-controls)
 - **EXP-034 — paused, proposal only.** No implementation or run is recorded. The latest possible CPU-only direction is a whole-image color, tone and coarse-composition branch. It is an untested idea. More Qwen Pearson fine-tuning was declined in the latest audit. [Diagnostics and proposals](experiment_registry.md#diagnostics-and-strategy)
