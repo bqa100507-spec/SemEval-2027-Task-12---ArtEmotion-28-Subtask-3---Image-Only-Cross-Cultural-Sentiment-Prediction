@@ -338,6 +338,8 @@ def audit(args):
         best = z.read("exp037_best_submission.zip")
         require(best == z.read("C/selected/exp037c_ensemble_submission.zip") == args.best.read_bytes(),
                 "Best archive is not byte-identical to selected C or owner download")
+        if args.stage_c_ensemble:
+            require(best == args.stage_c_ensemble.read_bytes(), "The separate Stage C download differs")
         ridge = zip_prediction_bytes(args.ridge.read_bytes(), dev)
         cscva = zip_prediction_bytes(prior.read("exp036_standalone_submission.zip"),dev)
         pd.testing.assert_frame_equal(incumbent,mixed(dev,[(.75,ridge),(.25,cscva)]))
@@ -357,14 +359,15 @@ def audit(args):
         panel.pairs.to_csv(args.output/"training_counts.csv",index=False)
         write(args.output/"intercepts.json",{f"{stage}{e}":states[f"{stage}{e}"]["heads.interaction.bias"].tolist()
               for stage,(_,e,_,_) in STAGES.items()})
-        for path in (args.results,args.best):
+        for path in filter(None, (args.results,args.best,args.stage_c_ensemble)):
             shutil.copyfile(path,args.output/path.name)
             require_hash(args.output/path.name,sha(path))
-        print("Verified both supplied archives, 18 epochs, all seven submission ZIPs and the official Development replay.")
+        print("Verified supplied archives, 18 epochs, all seven submission ZIPs and the official Development replay.")
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     for field in ("inputs","results","best","upstream","ridge","exp036_results","output"):
         parser.add_argument("--"+field.replace("_","-"),type=Path,required=True)
+    parser.add_argument("--stage-c-ensemble",type=Path)
     audit(parser.parse_args())

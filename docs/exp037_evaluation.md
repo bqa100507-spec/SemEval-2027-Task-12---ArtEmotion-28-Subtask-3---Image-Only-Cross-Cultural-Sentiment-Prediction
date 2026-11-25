@@ -57,4 +57,6 @@ python scripts/deploy_exp037.py prepare --results /path/to/exp037_results.zip \
 
 The `infer --replay` option uses the bundled Development prediction ZIPs and a pinned public Development tree specified with `--data-dir`. Supply the original saved EXP-036 component ZIPs for the recipe. CPU replay reproduced **both full prediction CSV members byte for byte**, including the six-decimal nested blend. The archived Kaggle worker had already replayed selected A/B/C checkpoints.
 
+Pass `--stage-c-ensemble /path/to/exp037c_ensemble_submission.zip` to `audit_exp037.py` to compare the separately downloaded Stage C ZIP with the sealed embedded copy.
+
 On 26 November 2026, fresh-pixel inference passed for the exact EXP-036 CS-CVA and EXP-037 C6 weights on an RTX 4060 Laptop GPU. The two new synthetic artworks yielded eight valid pairs per model, with variation across both image and language. End-to-end command times, including checkpoint read and model load, were 33.3 s for CS-CVA and 77.4 s for C6. Fresh Corrected Ridge CPU inference also passed on those artworks, and composing the real outputs produced validated eight-pair ZIPs for both EXP-037 recipes. These are portability smoke tests with no labels or quality score. The official hidden Evaluation inference run remains pending.
