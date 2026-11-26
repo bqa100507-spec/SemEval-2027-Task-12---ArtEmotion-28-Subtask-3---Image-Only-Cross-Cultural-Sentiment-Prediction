@@ -15,7 +15,8 @@ from threading import Thread
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from st3.exp036_io import export, read, write
-from st3.exp038_io import verify_both
+from st3.exp037_io import verify_inputs
+from st3.exp038_io import restore_overlay
 
 
 def command(args, deadline, log, env):
@@ -91,7 +92,10 @@ def launch(args, output, log):
 
 
 def main(args, output):
-    verify_both(args.base, args.overlay, args.base_sha, args.overlay_sha)
+    verify_inputs(args.base, args.base_sha)
+    # Mounted inputs stay read-only; nested archives are decoded and re-verified in working storage.
+    args.overlay = restore_overlay(args.overlay, args.overlay_sha, args.base_sha, Path("/kaggle/temp/exp038/overlay"))
+    print(f"Restored and verified the overlay at {args.overlay}", flush=True)
     log = output / f"exp038_launcher_{time.time_ns()}.log"
     try:
         launch(args, output, log)

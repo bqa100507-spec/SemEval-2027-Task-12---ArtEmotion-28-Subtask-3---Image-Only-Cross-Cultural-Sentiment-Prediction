@@ -32,53 +32,85 @@ E3_SNAPSHOT = ""    # Optional local snapshot of Qwen/Qwen3-VL-Embedding-2B at t
 SESSION_HOURS = 10.5
 """
 
-LOCATE = """import hashlib
+DEFS = """import hashlib
 import json
 import os
 from pathlib import Path, PurePosixPath
+import shutil
 import subprocess
 import sys
 import time
 from zipfile import ZipFile
 
-WORKER_SOURCE = "{source}"
-BASE_MANIFEST_SHA256 = "{base_manifest}"
-BASE_ARCHIVE_SHA256 = "{base_archive}"
-OVERLAY_MANIFEST_SHA256 = "{overlay_manifest}"
-OVERLAY_ARCHIVE_SHA256 = "{overlay_archive}"
+ARCHIVE_SUFFIXES = (".zip", ".tar", ".gz", ".tgz", ".7z", ".bz2", ".xz", ".whl")
+PATCH2 = ("This overlay predates the EXP-038 patch-2 packaging, which stores nested archives as .b64 text so that "
+          "Kaggle cannot expand them. Rebuild it with scripts/package_exp038.py from patch 2 or later and reattach it.")
 
 def sha256(path):
     with path.open("rb") as stream:
         return hashlib.file_digest(stream, "sha256").hexdigest()
 
 def verify_root(root, manifest_name, manifest_sha):
+    # Checks the stored (mounted) members exactly as packaged; .b64 members are decoded later by the launcher.
     manifest_path = root / manifest_name
     if sha256(manifest_path) != manifest_sha:
-        raise ValueError(f"Manifest checksum differs at {{manifest_path}}")
+        raise ValueError(f"Manifest checksum differs at {manifest_path}")
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     for name, expected in manifest["files"].items():
         relative = PurePosixPath(name)
         target = root / relative
-        if relative.is_absolute() or ".." in relative.parts or not target.is_file() or sha256(target) != expected:
-            raise ValueError(f"Missing or corrupt file {{target}}. Reattach the verified private dataset.")
+        if relative.is_absolute() or ".." in relative.parts:
+            raise ValueError(f"Unsafe manifest member {name}")
+        if target.is_dir() and name.lower().endswith(ARCHIVE_SUFFIXES):
+            raise ValueError(f"{target} is a directory, not the archive listed in the manifest: Kaggle expanded "
+                             f"a nested archive. {PATCH2}")
+        if not target.is_file() or sha256(target) != expected:
+            raise ValueError(f"Missing or corrupt file {target}. Reattach the verified private dataset.")
     return manifest
 
 def locate(mount, work, manifest_name, manifest_sha, archive_name, archive_sha, prefix):
-    found = [p.parent for p in sorted(mount.rglob(manifest_name)) if sha256(p) == manifest_sha]
-    found = [p for p in found if (p / "runtime").is_dir()]
-    if len(found) > 1:
-        raise ValueError(f"Several extracted copies of {{archive_name}} match. Attach only one.")
-    if found:
-        return found[0], verify_root(found[0], manifest_name, manifest_sha)
-    archives = [p for p in sorted(mount.rglob(archive_name)) if sha256(p) == archive_sha]
-    if len(archives) != 1:
-        raise FileNotFoundError(f"Attach exactly one private dataset with the pinned {{archive_name}}.")
-    target = work / manifest_sha[:16]
-    target.mkdir(parents=True, exist_ok=True)
-    with ZipFile(archives[0]) as archive:
-        archive.extractall(target)
-    root = target / prefix
-    return root, verify_root(root, manifest_name, manifest_sha)
+    # Layouts: (a) expanded by Kaggle, (b) the ZIP mounted intact, (c) any deeper recursive expansion.
+    manifests = sorted(p for p in mount.rglob(manifest_name) if p.is_file() and (p.parent / "runtime").is_dir())
+    expanded = [p.parent for p in manifests if sha256(p) == manifest_sha]
+    others = [p.parent for p in manifests if p.parent not in expanded]
+    archives = [p for p in sorted(mount.rglob(archive_name)) if p.is_file()]
+    intact = [p for p in archives if sha256(p) == archive_sha]
+    if len(expanded) > 1 or len(intact) > 1:
+        raise ValueError(f"Several copies of {archive_name} are attached ({expanded + intact}). Attach exactly one.")
+
+    def from_archive(path):
+        target = work / manifest_sha[:16]
+        shutil.rmtree(target, ignore_errors=True)
+        target.mkdir(parents=True)
+        with ZipFile(path) as archive:
+            archive.extractall(target)
+        return target / prefix
+
+    if expanded:
+        try:
+            return expanded[0], verify_root(expanded[0], manifest_name, manifest_sha)
+        except ValueError as error:
+            if not intact:
+                raise
+            try:
+                verify_root(from_archive(intact[0]), manifest_name, manifest_sha)
+                state = "verified"
+            except ValueError as second:
+                state = f"also failed: {second}"
+            raise ValueError(f"The expanded copy at {expanded[0]} failed verification: {error} The intact archive "
+                             f"{intact[0]} {state}. Nothing was selected automatically; attach only one copy.")
+    if intact:
+        root = from_archive(intact[0])
+        return root, verify_root(root, manifest_name, manifest_sha)
+    raise FileNotFoundError(f"Attach exactly one private dataset with the pinned {archive_name}. Found "
+                            f"{len(others)} expanded copies and {len(archives)} archives with other checksums.")
+"""
+
+LOCATE = """WORKER_SOURCE = "{source}"
+BASE_MANIFEST_SHA256 = "{base_manifest}"
+BASE_ARCHIVE_SHA256 = "{base_archive}"
+OVERLAY_MANIFEST_SHA256 = "{overlay_manifest}"
+OVERLAY_ARCHIVE_SHA256 = "{overlay_archive}"
 
 STARTED = time.time()
 MOUNT, OUTPUT = Path("/kaggle/input"), Path("/kaggle/working")
@@ -92,12 +124,13 @@ if probe is None or probe.returncode != 0 or "GPU 0" not in probe.stdout:
 print(probe.stdout.strip())
 base_root, base_manifest = locate(MOUNT, Path("/kaggle/temp/exp038_base"), "exp037_manifest.json",
                                   BASE_MANIFEST_SHA256, "exp037_inputs.zip", BASE_ARCHIVE_SHA256, "exp037_inputs")
-overlay_root, overlay_manifest = locate(MOUNT, Path("/kaggle/temp/exp038_overlay"), "exp038_manifest.json",
+overlay_root, overlay_manifest = locate(MOUNT, Path("/kaggle/temp/exp038_overlay_zip"), "exp038_manifest.json",
                                         OVERLAY_MANIFEST_SHA256, "exp038_inputs.zip", OVERLAY_ARCHIVE_SHA256,
                                         "exp038_inputs")
 if overlay_manifest["source"] != WORKER_SOURCE or overlay_manifest["base"]["manifest_sha256"] != BASE_MANIFEST_SHA256:
     raise ValueError("The overlay was prepared for a different worker or base dataset")
-print("Verified", len(base_manifest["files"]), "base files and", len(overlay_manifest["files"]), "overlay files")
+print("Verified", len(base_manifest["files"]), "base files and", len(overlay_manifest["files"]), "overlay files;",
+      len(overlay_manifest.get("encoded", {{}})), "archives are stored as .b64 and restored by the launcher")
 print("Populations:", overlay_manifest["population"])
 """
 
@@ -145,7 +178,7 @@ def cell(kind, text):
 def build(handoff, base_archive, base_manifest):
     pins = {"source": handoff["source"], "base_manifest": base_manifest, "base_archive": base_archive,
             "overlay_manifest": handoff["manifest_sha256"], "overlay_archive": handoff["archive_sha256"]}
-    cells = [cell("markdown", INTRO), cell("code", CONFIG), cell("code", LOCATE.format(**pins)),
+    cells = [cell("markdown", INTRO), cell("code", CONFIG), cell("code", DEFS), cell("code", LOCATE.format(**pins)),
              cell("code", LAUNCH), cell("code", SUMMARY), cell("markdown", OUTRO)]
     return {"cells": cells, "metadata": {"kaggle": {"accelerator": "gpu", "isInternetEnabled": True,
                                                     "language": "python"},

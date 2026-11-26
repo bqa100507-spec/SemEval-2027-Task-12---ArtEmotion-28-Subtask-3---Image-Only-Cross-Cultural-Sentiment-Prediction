@@ -63,7 +63,7 @@ def votes(rng, latent, n):
 def build(tmp, seed=0):
     rng = np.random.default_rng(seed)
     config, track1, neighborhood = configs()
-    base, overlay = tmp / "base", tmp / "overlay"
+    base, overlay = tmp / "base", tmp / "logical"
     for folder in (base, overlay):
         folder.mkdir(parents=True)
     p2 = [f"p{i:02d}" for i in range(50)]
@@ -209,14 +209,25 @@ def build(tmp, seed=0):
         "exp037_c6_standalone_csv_sha256": overlay_files["reference/exp037_c6_standalone/predictions.csv"],
         "caption_targets_sha256": files["training/targets.npz"]}
     config["references"] = refs
-    om = (json.dumps({"source": "fixture-source", "base": {"manifest_sha256": base_sha}, "files": overlay_files,
-                      "references": refs, "population": {}}, indent=2) + "\n").encode()
-    (overlay / "exp038_manifest.json").write_bytes(om)
     import shutil
 
+    from st3.exp038_io import encode_members, restore_overlay
+
     shutil.rmtree(scratch)
-    return {"base": base, "overlay": overlay, "base_sha": base_sha, "overlay_sha": digest(om), "config": config,
-            "track1": track1, "neighborhood": neighborhood}
+    put(overlay, "runtime/scripts/run_exp038.py", b"# fixture runtime\n", overlay_files)
+    members = {name: (overlay / name).read_bytes() for name in overlay_files}
+    stored, encoded = encode_members(members)
+    mounted = tmp / "mounted"
+    for name, content in stored.items():
+        (mounted / name).parent.mkdir(parents=True, exist_ok=True)
+        (mounted / name).write_bytes(content)
+    om = (json.dumps({"source": "fixture-source", "base": {"manifest_sha256": base_sha},
+                      "files": {name: digest(content) for name, content in sorted(stored.items())},
+                      "encoded": encoded, "references": refs, "population": {}}, indent=2) + "\n").encode()
+    (mounted / "exp038_manifest.json").write_bytes(om)
+    restored = restore_overlay(mounted, digest(om), base_sha, tmp / "overlay")
+    return {"base": base, "overlay": restored, "mounted": mounted, "logical": overlay, "base_sha": base_sha,
+            "overlay_sha": digest(om), "config": config, "track1": track1, "neighborhood": neighborhood}
 
 
 class MockBackend:

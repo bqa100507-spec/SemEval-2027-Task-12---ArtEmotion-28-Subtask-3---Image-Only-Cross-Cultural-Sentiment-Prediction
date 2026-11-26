@@ -31,7 +31,8 @@ from st3.competition_track1 import load_p2, load_protocol
 from st3.contrast_study import new_output
 from st3.exp036_io import read, sha, write
 from st3.exp037_io import safe_members, unpack_inputs, verify_inputs
-from st3.exp038_io import ARCHIVE_PREFIX, OVERLAY_MANIFEST, unpack_overlay, verify_overlay
+from st3.exp038_io import (ARCHIVE_PREFIX, OVERLAY_MANIFEST, archive_like, encode_members, restore_overlay,
+                           unpack_overlay)
 
 SOURCES = ["src/st3", "configs", "scripts", "requirements-exp035-kaggle.lock.txt",
            "requirements-exp036-kaggle.txt", "requirements-exp038-kaggle.txt"]
@@ -154,8 +155,11 @@ def package(args):
             for name in runtime.namelist():
                 if not name.endswith("/"):
                     members[f"runtime/{name}"] = runtime.read(name)
-        files = {name: digest(content) for name, content in sorted(members.items())}
-        manifest = {"experiment": "EXP-038", "source": source,
+        # Kaggle expands nested archives in uploaded datasets; store each one as base64 text instead.
+        stored, encoded = encode_members(members)
+        files = {name: digest(content) for name, content in sorted(stored.items())}
+        manifest = {"experiment": "EXP-038", "source": source, "encoded": encoded,
+                    "packaging": "patch-2: archive-like members are stored as .b64 text",
                     "base": {"zip_sha256": refs["base_inputs_zip_sha256"], "manifest_sha256": refs["base_manifest_sha256"]},
                     "files": files, "references": refs,
                     "population": base_manifest["population"] | {"p2_pairs": 13600, "p2_paintings": 1335},
@@ -164,19 +168,25 @@ def package(args):
                     "evaluation_data": "none"}
         content = (json.dumps(manifest, indent=2, sort_keys=True) + "\n").encode("ascii")
         archive = stage / "exp038_inputs.zip"
-        safe_members([*(ARCHIVE_PREFIX + name for name in members), ARCHIVE_PREFIX + OVERLAY_MANIFEST])
+        safe_members([*(ARCHIVE_PREFIX + name for name in stored), ARCHIVE_PREFIX + OVERLAY_MANIFEST])
         with ZipFile(archive, "w", compression=ZIP_DEFLATED, compresslevel=6) as z:
-            for name, payload in sorted(members.items()):
+            for name, payload in sorted(stored.items()):
                 z.writestr(ARCHIVE_PREFIX + name, payload)
             z.writestr(ARCHIVE_PREFIX + OVERLAY_MANIFEST, content)
+        with ZipFile(archive) as z:  # Recheck the whole written overlay, member by member.
+            bad = [name for name in z.namelist() if archive_like(name, z.read(name))]
+            if bad:
+                raise ValueError(f"Overlay ZIP contains archive-like members: {bad[:5]}")
         archive_sha, manifest_sha = sha(archive), digest(content)
         with tempfile.TemporaryDirectory() as check:
-            overlay = unpack_overlay(archive, Path(check), manifest_sha, archive_sha)
-            verify_overlay(overlay, manifest_sha, refs["base_manifest_sha256"])
+            mounted = unpack_overlay(archive, Path(check) / "mounted", manifest_sha, archive_sha)
+            restored = restore_overlay(mounted, manifest_sha, refs["base_manifest_sha256"], Path(check) / "restored")
+            receipt = read(restored / "restore_receipt.json")["restored"]
         (stage / OVERLAY_MANIFEST).write_bytes(content)
         write(stage / "exp038_handoff.json", {"archive_sha256": archive_sha, "manifest_sha256": manifest_sha,
                                               "archive_bytes": archive.stat().st_size, "source": source,
                                               "files": len(files), "feature_rows": feature_receipt["rows"],
+                                              "restored_archives": receipt,
                                               "base_zip_sha256": refs["base_inputs_zip_sha256"],
                                               "base_manifest_sha256": refs["base_manifest_sha256"]})
     print(json.dumps(read(args.output / "exp038_handoff.json"), indent=2))

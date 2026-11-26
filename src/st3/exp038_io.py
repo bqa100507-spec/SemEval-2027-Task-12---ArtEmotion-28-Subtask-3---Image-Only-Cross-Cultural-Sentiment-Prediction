@@ -29,18 +29,114 @@ class BudgetStop(TimeoutError):
 
 # Inputs.
 
-def verify_overlay(root, expected_manifest, base_manifest_sha):
+ARCHIVE_SUFFIXES = (".zip", ".tar", ".gz", ".tgz", ".7z", ".bz2", ".xz", ".whl")
+ZIP_MAGIC = b"PK\x03\x04"
+ENCODED_SUFFIX = ".b64"
+PATCH2 = ("This overlay predates the EXP-038 patch-2 packaging, which stores nested archives as .b64 text so that "
+          "Kaggle cannot expand them. Rebuild it with scripts/package_exp038.py from patch 2 or later and "
+          "reattach the new dataset.")
+
+
+def archive_like(name, content=None):
+    """True for archive extensions, or for content that starts with the ZIP magic (``.npz`` included)."""
+    return name.lower().endswith(ARCHIVE_SUFFIXES) or (content is not None and content[:4] == ZIP_MAGIC)
+
+
+def encode_members(members):
+    """Store every archive-like member as base64 text. Returns (stored members, encoded index)."""
+    import base64
+
+    stored, encoded = {}, {}
+    for name, content in sorted(members.items()):
+        if archive_like(name, content):
+            target = name + ENCODED_SUFFIX
+            text = base64.encodebytes(content)
+            stored[target] = text
+            encoded[name] = {"stored": target, "stored_sha256": hashlib.sha256(text).hexdigest(),
+                             "decoded_sha256": hashlib.sha256(content).hexdigest()}
+        else:
+            stored[name] = content
+    refuse_archives(stored)
+    return stored, encoded
+
+
+def refuse_archives(stored):
+    """No stored member may carry an archive extension or start with the ZIP magic bytes."""
+    bad = [name for name, content in stored.items() if archive_like(name, content)]
+    if bad:
+        raise ValueError(f"Overlay members must not be archives (Kaggle expands them): {bad[:5]}")
+
+
+def legacy_layout(root, files):
+    """A directory where the manifest lists an archive means Kaggle expanded a nested ZIP."""
+    for name in files:
+        path = root / relative(name)
+        if path.is_dir() and name.lower().endswith(ARCHIVE_SUFFIXES):
+            raise ValueError(f"{path} is a directory, not the archive listed in the manifest: Kaggle expanded a "
+                             f"nested archive. {PATCH2}")
+
+
+def verify_overlay(root, expected_manifest, base_manifest_sha, layout="restored"):
+    """``mounted``: stored members as packaged. ``restored``: encoded members decoded under logical names."""
     if sha(root / OVERLAY_MANIFEST) != expected_manifest:
         raise ValueError("EXP-038 overlay manifest checksum differs")
     manifest = read(root / OVERLAY_MANIFEST)
     safe_members([*manifest["files"], OVERLAY_MANIFEST])
-    check(root, manifest["files"])
+    legacy_layout(root, manifest["files"])
+    encoded = manifest.get("encoded", {})
+    if layout == "mounted":
+        check(root, manifest["files"])
+    else:
+        by_stored = {item["stored"]: (name, item) for name, item in encoded.items()}
+        for name, digest in manifest["files"].items():
+            if name in by_stored:
+                logical, item = by_stored[name]
+                path = root / relative(logical)
+                if not path.is_file() or sha(path) != item["decoded_sha256"]:
+                    raise ValueError(f"Missing or corrupt restored archive: {path}")
+            else:
+                check(root, {name: digest})
     if manifest["base"]["manifest_sha256"] != base_manifest_sha:
         raise ValueError("The overlay was prepared for a different EXP-037 base dataset")
     return manifest
 
 
+def restore_overlay(mounted, expected_manifest, base_manifest_sha, destination):
+    """Verify the read-only mounted overlay, then decode every .b64 member into working storage."""
+    import base64
+
+    manifest = verify_overlay(mounted, expected_manifest, base_manifest_sha, layout="mounted")
+    encoded = manifest.get("encoded", {})
+    if destination.exists():
+        shutil.rmtree(destination)
+    destination.mkdir(parents=True)
+    stored_names = {item["stored"] for item in encoded.values()}
+    for name in manifest["files"]:
+        if name in stored_names:
+            continue
+        target = destination / relative(name)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(mounted / relative(name), target)
+    restored = {}
+    for logical, item in sorted(encoded.items()):
+        source = mounted / relative(item["stored"])
+        content = base64.decodebytes(source.read_bytes())
+        digest = hashlib.sha256(content).hexdigest()
+        if digest != item["decoded_sha256"]:
+            raise ValueError(f"Decoded {source} has SHA-256 {digest}, expected {item['decoded_sha256']} "
+                             f"for {logical}")
+        target = destination / relative(logical)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(content)
+        restored[logical] = {"stored_sha256": item["stored_sha256"], "decoded_sha256": digest}
+    shutil.copyfile(mounted / OVERLAY_MANIFEST, destination / OVERLAY_MANIFEST)
+    verify_overlay(destination, expected_manifest, base_manifest_sha)
+    write(destination / "restore_receipt.json", {"mounted": str(mounted), "restored": restored})
+    return destination
+
+
 def unpack_overlay(archive, destination, expected_manifest, expected_archive):
+    """Extract an intact overlay ZIP; the result is the mounted layout (restore it before use)."""
     if sha(archive) != expected_archive:
         raise ValueError("Overlay ZIP checksum differs")
     with ZipFile(archive) as z:

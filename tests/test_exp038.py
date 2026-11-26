@@ -484,7 +484,7 @@ def test_launcher_and_worker_never_touch_colab_and_notebook_defaults():
     notebook = build_exp038_notebook.build(handoff, "d" * 64, "e" * 64)
     config = "".join(notebook["cells"][1]["source"])
     assert "AUTHORIZE_RUN = False" in config and 'RESUME_INPUT = ""' in config
-    code = "".join(notebook["cells"][2]["source"])
+    code = "".join("".join(c["source"]) for c in notebook["cells"] if c["cell_type"] == "code")
     assert all(value in code for value in ("a" * 40, "b" * 64, "c" * 64, "d" * 64, "e" * 64))
     for cell in notebook["cells"]:
         if cell["cell_type"] == "code":
@@ -532,21 +532,6 @@ def test_deploy_prepare_and_infer_from_precomputed_features(built, tmp_path):
         assert io38.zip_member(deployed) == io38.zip_member(ctx.root / run_archives[name]["zip"]), name
     assert receipt["inputs_used"] == "artwork pixels and target language only"
     assert pop["dev"].shape[0] == receipt["pairs"]
-
-
-def test_overlay_accepted_as_intact_zip_and_as_extracted_directory(built, tmp_path):
-    from zipfile import ZIP_DEFLATED
-
-    archive = tmp_path / "exp038_inputs.zip"
-    with ZipFile(archive, "w", compression=ZIP_DEFLATED) as z:
-        for path in sorted(built["overlay"].rglob("*")):
-            if path.is_file():
-                z.write(path, io38.ARCHIVE_PREFIX + path.relative_to(built["overlay"]).as_posix())
-    root = io38.unpack_overlay(archive, tmp_path / "x", built["overlay_sha"], sha(archive))
-    assert io38.verify_overlay(root, built["overlay_sha"], built["base_sha"])["files"] == \
-        io38.verify_overlay(built["overlay"], built["overlay_sha"], built["base_sha"])["files"]
-    with pytest.raises(ValueError, match="checksum"):
-        io38.unpack_overlay(archive, tmp_path / "y", built["overlay_sha"], "0" * 64)
 
 
 # Patch 1: E3 is optional; E4 depends on E3; C1 survives a Qwen failure.
@@ -633,3 +618,165 @@ def test_mandatory_set_excludes_qwen():
     budget = json.loads((ROOT / "configs/exp038.json").read_text())["budget"]
     assert budget["mandatory"] == ["R0", "E1", "E2", "C1"]
     assert budget["skip_order"] == ["cscva_seed_3", "cscva_seed_2", "E4"] and budget["e4_cap_seconds"] == 10800
+
+
+# Patch 2: the overlay survives Kaggle's recursive ZIP expansion.
+
+def overlay_zip(built, tmp_path):
+    from zipfile import ZIP_DEFLATED
+
+    archive = tmp_path / "upload" / "exp038_inputs.zip"
+    archive.parent.mkdir(parents=True)
+    with ZipFile(archive, "w", compression=ZIP_DEFLATED) as z:
+        for path in sorted(built["mounted"].rglob("*")):
+            if path.is_file():
+                z.write(path, io38.ARCHIVE_PREFIX + path.relative_to(built["mounted"]).as_posix())
+    return archive
+
+
+def notebook_functions():
+    import build_exp038_notebook
+
+    scope = {}
+    exec(build_exp038_notebook.DEFS, scope)
+    return scope
+
+
+def kaggle_expand(archive, mount):
+    """Unzip, then keep replacing any archive-like member by a directory of its contents, as Kaggle does."""
+    import zipfile
+
+    with ZipFile(archive) as z:
+        z.extractall(mount)
+    while True:
+        nested = [p for p in mount.rglob("*") if p.is_file() and zipfile.is_zipfile(p)
+                  and p.name.lower().endswith(io38.ARCHIVE_SUFFIXES)]
+        if not nested:
+            return
+        for path in nested:
+            scratch = path.with_name(path.name + ".tmpdir")
+            with ZipFile(path) as z:
+                z.extractall(scratch)
+            path.unlink()
+            scratch.rename(path)
+
+
+def logical_archives(built):
+    return {name: (built["logical"] / name).read_bytes() for name in
+            read(built["mounted"] / "exp038_manifest.json")["encoded"]}
+
+
+def test_overlay_has_no_archive_like_members_and_records_both_hashes(built):
+    manifest = read(built["mounted"] / "exp038_manifest.json")
+    assert not [p for p in built["mounted"].rglob("*") if p.is_file() and io38.archive_like(p.name, p.read_bytes())]
+    for name, item in manifest["encoded"].items():
+        assert item["stored"] == name + ".b64" and manifest["files"][item["stored"]] == item["stored_sha256"]
+        assert item["decoded_sha256"] == sha(built["logical"] / name)
+    assert "reference/corrected_ridge_submission.zip" in manifest["encoded"]
+    assert "features/base_features.npz" in manifest["encoded"]
+
+
+def test_simulated_kaggle_recursive_expansion_locates_and_restores(built, tmp_path):
+    archive = overlay_zip(built, tmp_path)
+    mount = tmp_path / "input" / "datasets" / "owner" / "exp038-inputs"
+    kaggle_expand(archive, mount)
+    nb = notebook_functions()
+    root, manifest = nb["locate"](tmp_path / "input", tmp_path / "work", "exp038_manifest.json", built["overlay_sha"],
+                                  "exp038_inputs.zip", sha(archive), "exp038_inputs")
+    assert root == mount / "exp038_inputs"
+    restored = io38.restore_overlay(root, built["overlay_sha"], built["base_sha"], tmp_path / "restored")
+    for name, content in logical_archives(built).items():
+        assert (restored / name).read_bytes() == content
+    assert io38.verify_overlay(restored, built["overlay_sha"], built["base_sha"])["files"] == manifest["files"]
+    assert not list(root.rglob("*.zip"))
+
+
+def test_intact_overlay_zip_mounted_alone_passes(built, tmp_path):
+    archive = overlay_zip(built, tmp_path)
+    nb = notebook_functions()
+    root, _ = nb["locate"](tmp_path / "upload", tmp_path / "work", "exp038_manifest.json", built["overlay_sha"],
+                           "exp038_inputs.zip", sha(archive), "exp038_inputs")
+    restored = io38.restore_overlay(root, built["overlay_sha"], built["base_sha"], tmp_path / "restored")
+    for name, content in logical_archives(built).items():
+        assert (restored / name).read_bytes() == content
+    mounted = io38.unpack_overlay(archive, tmp_path / "x", built["overlay_sha"], sha(archive))
+    io38.restore_overlay(mounted, built["overlay_sha"], built["base_sha"], tmp_path / "restored2")
+    with pytest.raises(ValueError, match="checksum"):
+        io38.unpack_overlay(archive, tmp_path / "y", built["overlay_sha"], "0" * 64)
+
+
+def test_expanded_copy_failure_reports_the_intact_archive_state(built, tmp_path):
+    import shutil
+
+    archive = overlay_zip(built, tmp_path)
+    mount = tmp_path / "input"
+    shutil.copytree(built["mounted"], mount / "expanded" / "exp038_inputs")
+    (mount / "zipped").mkdir(parents=True)
+    shutil.copyfile(archive, mount / "zipped" / "exp038_inputs.zip")
+    victim = next((mount / "expanded/exp038_inputs/reference").glob("*.b64"))
+    victim.write_text("tampered")
+    nb = notebook_functions()
+    with pytest.raises(ValueError, match="intact archive .* verified. Nothing was selected"):
+        nb["locate"](mount, tmp_path / "work", "exp038_manifest.json", built["overlay_sha"], "exp038_inputs.zip",
+                     sha(archive), "exp038_inputs")
+
+
+def test_corrupt_b64_or_wrong_decoded_hash_fails_with_the_exact_path(built, tmp_path):
+    import base64
+    import hashlib
+    import shutil
+
+    mounted = tmp_path / "m"
+    shutil.copytree(built["mounted"], mounted)
+    stored = mounted / "reference/fixed_ridge_submission.zip.b64"
+    original = stored.read_bytes()
+    stored.write_bytes(original[:-8] + b"AAAAAAA\n")
+    with pytest.raises(ValueError, match=r"Missing or corrupt artifact: .*fixed_ridge_submission\.zip\.b64"):
+        io38.restore_overlay(mounted, built["overlay_sha"], built["base_sha"], tmp_path / "r1")
+    # Valid stored hash, but the text decodes to different ZIP bytes than the manifest records.
+    other = base64.encodebytes(b"PK\x03\x04 not the original archive")
+    stored.write_bytes(other)
+    manifest = read(mounted / "exp038_manifest.json")
+    manifest["files"]["reference/fixed_ridge_submission.zip.b64"] = hashlib.sha256(other).hexdigest()
+    content = json.dumps(manifest, indent=2).encode()
+    (mounted / "exp038_manifest.json").write_bytes(content)
+    with pytest.raises(ValueError, match=r"Decoded .*fixed_ridge_submission\.zip\.b64 has SHA-256"):
+        io38.restore_overlay(mounted, hashlib.sha256(content).hexdigest(), built["base_sha"], tmp_path / "r2")
+
+
+def test_packager_refuses_archive_members():
+    with pytest.raises(ValueError, match="must not be archives"):
+        io38.refuse_archives({"reference/a.ZIP": b"text"})
+    with pytest.raises(ValueError, match="must not be archives"):
+        io38.refuse_archives({"reference/model.bin": b"PK\x03\x04rest"})
+    for name in ("x.tar", "x.tgz", "x.gz", "x.7z", "x.bz2", "x.xz", "x.whl"):
+        assert io38.archive_like(name)
+    stored, encoded = io38.encode_members({"a.npz": b"PK\x03\x04data", "b.json": b"{}"})
+    assert set(stored) == {"a.npz.b64", "b.json"} and set(encoded) == {"a.npz"}
+    source = (ROOT / "scripts/package_exp038.py").read_text(encoding="utf-8")
+    assert "encode_members(members)" in source and "archive_like(name, z.read(name))" in source
+
+
+def test_patch1_layout_with_expanded_nested_zip_names_patch2(built, tmp_path):
+    import hashlib
+    import shutil
+
+    legacy = tmp_path / "legacy"
+    shutil.copytree(built["logical"], legacy)
+    files = {p.relative_to(legacy).as_posix(): sha(p) for p in sorted(legacy.rglob("*")) if p.is_file()}
+    target = legacy / "reference/corrected_ridge_submission.zip"
+    import io
+
+    payload = target.read_bytes()
+    target.unlink()
+    with ZipFile(io.BytesIO(payload)) as z:
+        z.extractall(target)
+    content = json.dumps({"source": "s", "base": {"manifest_sha256": built["base_sha"]}, "files": files,
+                          "references": {}, "population": {}}).encode()
+    (legacy / "exp038_manifest.json").write_bytes(content)
+    digest = hashlib.sha256(content).hexdigest()
+    with pytest.raises(ValueError, match="is a directory.*patch-2 packaging"):
+        io38.restore_overlay(legacy, digest, built["base_sha"], tmp_path / "out")
+    nb = notebook_functions()
+    with pytest.raises(ValueError, match="is a directory.*patch-2 packaging"):
+        nb["verify_root"](legacy, "exp038_manifest.json", digest)

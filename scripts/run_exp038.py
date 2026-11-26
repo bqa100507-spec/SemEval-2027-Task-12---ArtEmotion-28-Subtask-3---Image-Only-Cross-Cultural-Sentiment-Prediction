@@ -1049,7 +1049,11 @@ def cpu_validate(args):
     """Local or audit replay of every R0 check in Validate, without GPU work or model downloads."""
     clock = Clock(time.time(), 10, 0)
     args.output.mkdir(parents=True, exist_ok=True)
-    ctx = Context(base=args.base, overlay=args.overlay, root=args.output, output=args.output,
+    from st3.exp038_io import restore_overlay
+
+    # --overlay is the extracted or Kaggle-mounted layout; decode it like the launcher does.
+    overlay = restore_overlay(args.overlay, args.overlay_sha, args.base_sha, args.output / "tmp_overlay_restored")
+    ctx = Context(base=args.base, overlay=overlay, root=args.output, output=args.output,
                   base_sha=args.base_sha, overlay_sha=args.overlay_sha, clock=clock)
     ctx.identity = {"cpu_validate": True}
     tick = time.time()
