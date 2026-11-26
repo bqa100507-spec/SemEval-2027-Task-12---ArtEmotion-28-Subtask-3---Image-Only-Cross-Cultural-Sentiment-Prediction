@@ -332,7 +332,7 @@ def replay_r0_p2(gold, parts, r0_frame, track1_oof, corrected_oof_sha, metrics, 
                 ("fixed", "fixed", track1_metrics[scope]["systems"]["fixed"]["pooled"]),
                 ("corrected", "corrected", neighborhood_metrics[scope]["pooled"]["corrected"])):
             source = parts if column == "fixed" else r0_frame
-            values = aligned_values(subset, source, [column]).ravel()
+            values = subset[KEYS].merge(source[KEYS + [column]], on=KEYS, validate="one_to_one")[column].to_numpy()
             result = score(subset[KEYS + ["k", "n"]], subset[KEYS].assign(p_positive=values))
             for key in ("cultural_contrast", "log_loss"):
                 if abs(result[key] - expected[key]) > 1e-12:

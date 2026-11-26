@@ -1,5 +1,7 @@
 # EXP-038 recommendation — shared visual factors for cultural deviations
 
+> **SUPERSEDED (2026-11-26).** EXP-003 showed rank-2/4/8/16 interactions losing to the full interaction on CLIP-B (0.394/0.406/0.387/0.367 vs 0.436), so a rank-8 shared basis risks repeating that failure. The approved EXP-038 is the [cultural-deviation ensemble](../docs/exp038_kaggle.md). This file is kept as the historical recommendation.
+
 **Recommended for owner review.** Use a VLM-free SigLIP2 visual branch with explicit global sentiment, training-only language priors and a small shared basis for image-dependent cultural deviations. A matched control should keep the same visual training and fit a regularized full interaction readout. The question is whether sharing response factors improves within-painting ordering and provides residual diversity beyond Ridge and EXP-036.
 
 ### Evidence and ranked directions

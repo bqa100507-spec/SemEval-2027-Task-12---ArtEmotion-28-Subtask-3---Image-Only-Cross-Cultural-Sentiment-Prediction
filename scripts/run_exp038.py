@@ -10,7 +10,6 @@ subcommands) through a backend object, which tests replace with a deterministic 
 
 import argparse
 import json
-import os
 import platform
 import shutil
 import subprocess

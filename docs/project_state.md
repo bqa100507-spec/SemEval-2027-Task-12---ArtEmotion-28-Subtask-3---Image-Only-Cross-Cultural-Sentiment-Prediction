@@ -6,6 +6,7 @@ Updated 26 November 2026. **The active incumbent is the EXP-036 ensemble, 75% Co
 
 | System | Hosted Contrast | Submission | Repository status |
 | --- | ---: | ---: | --- |
+| EXP-037 original C6 blend | 0.4728 | #1068597 | Owner-reported 2026-11-26, matches local 0.472818; Qwen eligibility unresolved; incumbent decision is the owner's |
 | **EXP-036 ensemble** | **0.4703** | **#1065924** | Active incumbent, local Development replay 0.470339 / 0.729709 |
 | Corrected Ridge | 0.4655 | #1063064 | Primary fallback, local Development replay 0.465462 / 0.740305 |
 | E50+L | 0.4643 | #1046158 | Released production fallback |
@@ -52,7 +53,7 @@ Default to a single resumable Kaggle run on the full authorized official trainin
 
 ## Active, blocked and proposed work
 
-- **EXP-038 — design recommendation pending owner review.** A VLM-free spatial branch with a shared cultural interaction basis is proposed. The evidence points to errors in image-specific ordering and highly correlated centered residuals. Implementation and training remain outside the closure. [Cultural diagnostic](../reports/exp037_cultural_diagnostic.md) · [Design recommendation](../reports/exp038_design_recommendation.md)
+- **EXP-038 — approved 2026-11-26, implementation in progress (prepared and tested on CPU; no GPU run).** Cultural-deviation ensemble: frozen SigLIP2 So400m (E1), MetaCLIP 2 worldwide ViT-H/14 (E2) and Qwen3-VL-Embedding-2B neutral (E3) and language-instructed (E4) features, each through the unchanged Track 1 full-interaction ridge, mixed 50/50 with Fixed Ridge and corrected with the frozen neighborhood formula. Pre-registered candidates C1 (VLM-free), C2 and C3 face a frozen P2 gate against Corrected Ridge (+0.004 filtered Contrast, positive paired lower bound, 4/5 fold wins, positive trimmed gain, no full regression, Log Loss within +0.005 bits). Development is reporting only. The earlier shared-basis design is superseded. [Runbook](exp038_kaggle.md) · [Evaluation inference](exp038_evaluation.md) · [Superseded recommendation](../reports/exp038_design_recommendation.md)
 
 - **DINOv3 — access pending.** The official ViT-B/16 gate returned authenticated HTTP 403 for the pinned weights and config. Hugging Face approval is pending in the project record. A valid checkpoint preflight, feature extraction and outer evaluation are all unmeasured. Preserve the existing runner and its frozen scope. [Track 2 access receipt and runner](experiment_registry.md#competition-candidates-and-controls)
 - **EXP-034 — paused, proposal only.** No implementation or run is recorded. The latest possible CPU-only direction is a whole-image color, tone and coarse-composition branch. It is an untested idea. More Qwen Pearson fine-tuning was declined in the latest audit. [Diagnostics and proposals](experiment_registry.md#diagnostics-and-strategy)
