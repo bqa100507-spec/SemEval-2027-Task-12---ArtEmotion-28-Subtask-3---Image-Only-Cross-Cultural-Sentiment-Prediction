@@ -37,6 +37,7 @@ from st3.exp038_io import (BlockedCache, BudgetStop, Clock, artwork, base_featur
 STAGES = ("Setup", "Validate", "Benchmark", "Feature extraction", "CS-CVA seeds", "P2 evaluation",
           "Full refit and Development scoring", "Submission validation", "Export", "Release")
 EXIT_BUDGET, EXIT_TIMEOUT = 75, 76
+OPTIONAL_ARMS = ("E3", "E4")  # A Qwen failure must not discard the VLM-free C1.
 PACKAGES = ("torch", "torchvision", "transformers", "numpy", "scipy", "pandas", "safetensors", "Pillow",
             "huggingface-hub", "qwen-vl-utils", "threadpoolctl")
 
@@ -434,9 +435,18 @@ def stage_benchmark(ctx, backend, status):
         for arm in ("E1", "E2", "E3", "E4"):
             status.item(arm)
             sample = benchmark_items(pairs if arm == "E4" else images, 32, ctx.config["diagnostic_seed"])
-            result["arms"][arm] = backend.benchmark(arm, sample)
-            if not result["arms"][arm]["deterministic_within_1e-3"]:
-                raise RuntimeError(f"{arm} failed the two-pass determinism check: {result['arms'][arm]}")
+            if arm == "E4" and "failed" in result["arms"].get("E3", {}):
+                result["arms"][arm] = {"skipped_dependency": "E3 benchmark failed"}
+                continue
+            try:
+                result["arms"][arm] = backend.benchmark(arm, sample)
+                if not result["arms"][arm]["deterministic_within_1e-3"]:
+                    raise RuntimeError(f"{arm} failed the two-pass determinism check: {result['arms'][arm]}")
+            except Exception as error:
+                if arm not in OPTIONAL_ARMS:
+                    raise
+                result["arms"][arm] = {"failed": f"{type(error).__name__}: {error}"}
+                ctx.log(f"Benchmark {arm}: FAILED_OPTIONAL ({result['arms'][arm]['failed']})")
         status.item("CS-CVA preflight")
         result["cscva"] = backend.cscva(ctx.config["cscva"]["new_seeds"][0], ctx.root / "tmp_cscva_preflight",
                                         ctx.clock.work_deadline(), preflight=True)
@@ -476,6 +486,10 @@ def forecast(ctx, bench, validate):
     for arm in ("E1", "E2", "E3", "E4"):
         if (ctx.root / "features" / arm / "seal.json").is_file():
             continue
+        if "items_per_second" not in arms[arm]:
+            continue  # Failed or dependency-skipped at benchmark; never forecast.
+        if arm == "E4" and "E3" not in pieces and not (ctx.root / "features/E3/seal.json").is_file():
+            continue
         items = counts["pairs"] if arm == "E4" else counts["images"]
         pieces[arm] = items / arms[arm]["items_per_second"] + load
     rate = bench["cscva"]["paintings_per_second"]
@@ -492,9 +506,10 @@ def forecast(ctx, bench, validate):
     return pieces
 
 
-def stage_features(ctx, backend, status, plan):
+def stage_features(ctx, backend, status, plan, bench=None):
     results = {}
     budget = ctx.config["budget"]
+    bench_arms = (bench or {}).get("arms", {})
     for arm in ("E1", "E2", "E3", "E4"):
         status.item(arm)
         folder = ctx.root / "features" / arm
@@ -505,26 +520,38 @@ def stage_features(ctx, backend, status, plan):
             status.piece(arm, "COMPLETE", "sealed cache reused")
             results[arm] = "COMPLETE"
             continue
+        if arm == "E4" and results.get("E3") != "COMPLETE":
+            reason = f"E4 needs E3 (E3 {results.get('E3')}); its budget is not spent"
+            status.piece(arm, "SKIPPED_DEPENDENCY", reason)
+            results[arm] = "SKIPPED_DEPENDENCY"
+            continue
         if arm in plan["skipped"]:
             status.piece(arm, "BUDGET_SKIPPED", plan["skipped"][arm])
             results[arm] = "BUDGET_SKIPPED"
             continue
-        if arm != "E4":
+        if "failed" in bench_arms.get(arm, {}):
+            status.piece(arm, "FAILED_OPTIONAL", f"benchmark: {bench_arms[arm]['failed']}")
+            results[arm] = "FAILED_OPTIONAL"
+            progress(ctx)
+            continue
+        if arm not in OPTIONAL_ARMS:
             backend.extract(arm, items, folder, identity, ctx.clock.work_deadline())
         else:
             later = sum(v for k, v in plan["forecast_seconds"].items()
                         if k not in plan["skipped"] and k.startswith(("cscva", "cpu", "export")))
-            deadline = min(ctx.clock.work_deadline() - plan["margin"] * later,
-                           time.time() + budget["e4_cap_seconds"])
-            cap = time.time() + budget["e4_cap_seconds"]
+            deadline = ctx.clock.work_deadline() - plan["margin"] * later
+            cap = None
+            if arm == "E4":
+                deadline = min(deadline, time.time() + budget["e4_cap_seconds"])
+                cap = min(time.time() + budget["e4_cap_seconds"], deadline)
             try:
-                backend.extract(arm, items, folder, identity, deadline, cap_deadline=min(cap, deadline))
+                backend.extract(arm, items, folder, identity, deadline, cap_deadline=cap)
             except (BudgetStop, TimeoutError) as error:
                 status.piece(arm, "BUDGET_STOP", str(error))
                 results[arm] = "BUDGET_STOP"
                 progress(ctx)
                 continue
-            except Exception as error:  # E4 is optional; C3 is reported as failed instead of stopping C1/C2.
+            except Exception as error:  # Optional arm: C2/C3 become unavailable instead of stopping C1.
                 status.piece(arm, "FAILED_OPTIONAL", f"{type(error).__name__}: {error}")
                 results[arm] = "FAILED_OPTIONAL"
                 progress(ctx)
@@ -596,12 +623,8 @@ def stage_p2(ctx, status):
                                   ctx.refs["corrected_oof_sha256"], metrics, ctx.config["test_like_excluded"])
     systems = ["R0_fixed", "R0_corrected", *arms, *[f"{c}_mix" for c in candidates], *candidates]
     report, paintings, gates = science.p2_report(pop["gold"], frame, systems, candidates, ctx.config)
-    for name in ctx.config["candidates"]:
-        if name not in gates:
-            missing = sorted(set(ctx.config["candidates"][name]) - set(arms))
-            gates[name] = {"status": "BUDGET_SKIPPED", "passed": False,
-                           "reason": f"arm(s) {missing} unavailable: "
-                                     f"{read(ctx.root / 'status.json')['pieces'].get(missing[0], {})}"}
+    for name, reason in unavailable_candidates(ctx, arms).items():
+        gates[name] = reason
     diagnostics, languages, painting_deltas = science.p2_diagnostics(pop["gold"], frame, arms, candidates, ctx.config)
     selected = science.select(gates, ctx.config["complexity_order"], ctx.config["gate"]["tie_tolerance"])
     shutil.rmtree(folder, ignore_errors=True)
@@ -619,6 +642,29 @@ def stage_p2(ctx, status):
                                   "decision": "GO" if selected else "NO_GO"})
     seal(folder, ctx.identity)
     return read(folder / "gates.json")
+
+
+def unavailable_candidates(ctx, arms):
+    """Every candidate whose arms are missing, with the arm state that removed it."""
+    pieces = read(ctx.root / "status.json")["pieces"]
+    out = {}
+    for name, parts in ctx.config["candidates"].items():
+        missing = [arm for arm in parts if arm not in arms]
+        if not missing:
+            continue
+        if "E3" in arms:
+            # E3 present and only E4 missing: the earlier E4 behavior is unchanged.
+            out[name] = {"status": "BUDGET_SKIPPED", "passed": False,
+                         "reason": f"arm(s) {missing} unavailable: {pieces.get(missing[0], {})}"}
+            continue
+        e3 = pieces.get("E3", {}).get("state")
+        if "E4" in parts:
+            reason = f"NOT_AVAILABLE (E3/E4 {e3}/{pieces.get('E4', {}).get('state')})"
+        else:
+            reason = f"NOT_AVAILABLE (E3 {e3})"
+        out[name] = {"status": "NOT_AVAILABLE", "passed": False, "reason": reason,
+                     "arm_states": {arm: pieces.get(arm) for arm in missing}}
+    return out
 
 
 def cscva_frames(ctx):
@@ -763,7 +809,16 @@ def stage_submissions(ctx, status, gates, scores, pieces):
     selection = recipe | {"coefficients": ctx.config["blends"] | ctx.config["mix"], "components_sha256": components,
                           "best_sha256": sha(best), "eligibility": eligibility,
                           "development_used_for_selection": False}
+    unavailable = {name: g.get("reason") for name, g in gates["gates"].items()
+                   if g.get("status") in {"NOT_AVAILABLE", "BUDGET_SKIPPED"}}
+    expected = [*science.ARMS, *ctx.config["candidates"],
+                *[f"{kind}_{base}_{cs}" for kind in ("B1", "B2") for base in ("R0", *ctx.config["candidates"])
+                  for cs in ("original", "cscva3")]]
+    missing_zips = {name: "components unavailable" for name in expected if name not in scores["archives"]}
+    selection |= {"unavailable_candidates": unavailable, "unavailable_zips": missing_zips}
     decision = {"decision": recipe["decision"], "selected": selected, "gates": gates["gates"],
+                "unavailable_candidates": unavailable, "available_zips": sorted(scores["archives"]),
+                "unavailable_zips": missing_zips,
                 "selection_rule": "highest filtered P2 Contrast among passing candidates; within 0.001 the simpler "
                                   "(C1 < C2 < C3)", "pieces": pieces,
                 "reasons": {name: ([k for k, ok in g.get("checks", {}).items() if not ok] or g.get("reason") or "pass")
@@ -840,8 +895,8 @@ def run_pipeline(ctx, backend):
         ctx.log(f"Budget plan: {json.dumps(plan)}")
         status.done(STAGES[2])
         status.begin(STAGES[3])
-        stage_features(ctx, backend, status, plan)
-        for arm in ("E1", "E2", "E3"):
+        stage_features(ctx, backend, status, plan, bench)
+        for arm in [a for a in ctx.config["budget"]["mandatory"] if a in science.ARMS]:
             if status.state["pieces"].get(arm, {}).get("state") != "COMPLETE":
                 raise RuntimeError(f"Mandatory arm {arm} is unavailable")
         status.done(STAGES[3])

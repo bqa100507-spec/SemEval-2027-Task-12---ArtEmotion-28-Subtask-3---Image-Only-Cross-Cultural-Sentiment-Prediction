@@ -222,8 +222,9 @@ def build(tmp, seed=0):
 class MockBackend:
     """Deterministic stand-in for every GPU child: no models, no downloads."""
 
-    def __init__(self, ctx, rates=None, fail=None, seed_folder_hook=None):
+    def __init__(self, ctx, rates=None, fail=None, nan_arms=()):
         self.ctx = ctx
+        self.nan_arms = set(nan_arms)
         self.rates = rates or {"E1": 1e4, "E2": 1e4, "E3": 1e4, "E4": 1e4}
         self.fail = fail or {}
         self.calls = []
@@ -262,7 +263,15 @@ class MockBackend:
         spec = self.ctx.config["arms"][arm]
         if arm == "E4":
             spec = self.ctx.config["arms"]["E3"] | spec
-        gpu.extract(arm, spec, self.embed_for(arm, spec["width"]), [tuple(i) for i in items], folder, identity,
+        embed = self.embed_for(arm, spec["width"])
+        if arm in self.nan_arms:
+            clean = embed
+
+            def embed(images, instructions):
+                values = clean(images, instructions)
+                values[0, 0] = np.nan
+                return values
+        gpu.extract(arm, spec, embed, [tuple(i) for i in items], folder, identity,
                     self.ctx.config["chunk_items"], deadline, cap_deadline=cap_deadline)
 
     def cscva(self, seed, folder, deadline, preflight=False):

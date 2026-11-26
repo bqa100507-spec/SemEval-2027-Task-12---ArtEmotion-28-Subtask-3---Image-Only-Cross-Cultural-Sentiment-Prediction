@@ -217,10 +217,14 @@ def plan_budget(forecast, remaining, budget):
         return margin * sum(v for k, v in forecast.items() if k not in skipped)
 
     for piece in budget["skip_order"]:
+        if "E3" in skipped and "E4" in forecast and "E4" not in skipped:
+            skipped["E4"] = "SKIPPED_DEPENDENCY: E4 needs E3, which is skipped"
         if total() <= remaining:
             break
         if piece in forecast and piece not in skipped:
             skipped[piece] = f"forecast {total():.0f}s exceeds remaining {remaining:.0f}s"
+    if "E3" in skipped and "E4" in forecast and "E4" not in skipped:
+        skipped["E4"] = "SKIPPED_DEPENDENCY: E4 needs E3, which is skipped"
     return {"forecast_seconds": forecast, "margin": margin, "remaining_seconds": remaining,
             "planned_seconds": total(), "skipped": skipped,
             "kept": [k for k in forecast if k not in skipped],

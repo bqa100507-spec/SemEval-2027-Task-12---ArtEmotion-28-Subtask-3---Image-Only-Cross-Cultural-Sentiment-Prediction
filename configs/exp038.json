@@ -126,7 +126,7 @@
     "persistence_reserve_seconds": 1200,
     "e4_cap_seconds": 10800,
     "skip_order": ["cscva_seed_3", "cscva_seed_2", "E4"],
-    "mandatory": ["R0", "E1", "E2", "E3", "C1", "C2"],
+    "mandatory": ["R0", "E1", "E2", "C1"],
     "progress_interval_seconds": 900,
     "forecast_margin": 1.25
   },

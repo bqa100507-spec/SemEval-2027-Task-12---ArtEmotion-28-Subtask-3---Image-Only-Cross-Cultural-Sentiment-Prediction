@@ -547,3 +547,89 @@ def test_overlay_accepted_as_intact_zip_and_as_extracted_directory(built, tmp_pa
         io38.verify_overlay(built["overlay"], built["overlay_sha"], built["base_sha"])["files"]
     with pytest.raises(ValueError, match="checksum"):
         io38.unpack_overlay(archive, tmp_path / "y", built["overlay_sha"], "0" * 64)
+
+
+# Patch 1: E3 is optional; E4 depends on E3; C1 survives a Qwen failure.
+
+def assert_c1_only_run(ctx, e3_state):
+    pieces = read(ctx.root / "status.json")["pieces"]
+    assert read(ctx.root / "status.json")["state"] == "COMPLETE"
+    assert pieces["E3"]["state"] == e3_state and pieces["E4"]["state"] == "SKIPPED_DEPENDENCY"
+    gates = read(ctx.root / "p2/gates.json")["gates"]
+    assert gates["C1"]["status"] in {"PASS", "FAIL"}
+    assert gates["C2"] == gates["C2"] | {"status": "NOT_AVAILABLE", "reason": f"NOT_AVAILABLE (E3 {e3_state})"}
+    assert gates["C3"]["reason"] == f"NOT_AVAILABLE (E3/E4 {e3_state}/SKIPPED_DEPENDENCY)"
+    decision, selection = read(ctx.root / "decision.json"), read(ctx.root / "selection.json")
+    for record in (decision, selection):
+        assert set(record["unavailable_candidates"]) == {"C2", "C3"}
+        assert {"C2", "C3", "E3", "E4", "B2_C2_cscva3", "B1_C3_original"} <= set(record["unavailable_zips"])
+    archives = read(ctx.root / "development/scores.json")["archives"]
+    assert {"C1", "B1_C1_cscva3", "B2_C1_original", "E1", "E2"} <= set(archives)
+    assert not {"C2", "C3", "E3", "E4"} & set(archives)
+    out = ctx.output
+    assert (out / "exp038_SUCCESS.json").is_file() and (out / "exp038_C1_submission.zip").is_file()
+    assert not (out / "exp038_C2_submission.zip").exists()
+    if decision["decision"] == "NO_GO":
+        assert sha(out / "exp038_best_submission.zip") == ctx.refs["exp037_original_blend_zip_sha256"]
+
+
+def test_e3_exception_is_optional_and_c1_survives(built, tmp_path):
+    run_exp038, ctx, backend = run(built, tmp_path, {"fail": {"E3": RuntimeError("FP16 overflow")}})
+    run_exp038.run_pipeline(ctx, backend)
+    assert_c1_only_run(ctx, "FAILED_OPTIONAL")
+    assert "RuntimeError: FP16 overflow" in read(ctx.root / "status.json")["pieces"]["E3"]["reason"]
+    assert not [c for c in backend.calls if c[:2] == ("extract", "E4")]
+
+
+def test_e3_nan_embedding_takes_the_same_path(built, tmp_path):
+    run_exp038, ctx, backend = run(built, tmp_path, {"nan_arms": ["E3"]})
+    run_exp038.run_pipeline(ctx, backend)
+    assert_c1_only_run(ctx, "FAILED_OPTIONAL")
+    assert "FloatingPointError" in read(ctx.root / "status.json")["pieces"]["E3"]["reason"]
+
+
+def test_e3_budget_skip_drops_e4_from_forecast_and_run(built, tmp_path, monkeypatch):
+    run_exp038, ctx, backend = run(built, tmp_path)
+    original = run_exp038.plan_budget
+
+    def e3_first(forecast, remaining, budget):
+        return original(forecast, 0., budget | {"skip_order": ["E3"]})
+
+    monkeypatch.setattr(run_exp038, "plan_budget", e3_first)
+    run_exp038.run_pipeline(ctx, backend)
+    plan = read(ctx.root / "budget_plan.json")
+    assert plan["skipped"]["E4"].startswith("SKIPPED_DEPENDENCY")
+    assert "E4" not in plan["kept"]
+    assert not [c for c in backend.calls if c[0] == "extract" and c[1] in {"E3", "E4"}]
+    assert_c1_only_run(ctx, "BUDGET_SKIPPED")
+
+
+def test_e3_complete_e4_fails_keeps_previous_behavior(built, tmp_path):
+    run_exp038, ctx, backend = run(built, tmp_path, {"fail": {"E4": RuntimeError("E4 crash")}})
+    run_exp038.run_pipeline(ctx, backend)
+    pieces = read(ctx.root / "status.json")["pieces"]
+    assert pieces["E3"]["state"] == "COMPLETE" and pieces["E4"]["state"] == "FAILED_OPTIONAL"
+    gates = read(ctx.root / "p2/gates.json")["gates"]
+    assert gates["C1"]["status"] in {"PASS", "FAIL"} and gates["C2"]["status"] in {"PASS", "FAIL"}
+    assert gates["C3"]["status"] == "BUDGET_SKIPPED"
+    assert set(read(ctx.root / "decision.json")["unavailable_candidates"]) == {"C3"}
+
+
+def test_e2_failure_stops_the_run_with_a_diagnostic(built, tmp_path):
+    run_exp038, ctx, backend = run(built, tmp_path, {"fail": {"E2": RuntimeError("MetaCLIP load failed")}})
+    with pytest.raises(RuntimeError, match="MetaCLIP load failed"):
+        run_exp038.run_pipeline(ctx, backend)
+    status = read(ctx.root / "status.json")
+    assert status["state"] == "FAILED" and status["stage"] == "Feature extraction" and status["item"] == "E2"
+    assert status["reason"] == "RuntimeError: MetaCLIP load failed"
+    out = ctx.output
+    with ZipFile(out / "exp038_diagnostic.zip") as z:
+        info = json.loads(z.read("exp038_diagnostic.json"))
+    assert info["failed_stage"] == "Feature extraction" and info["submission_claimed"] is False
+    assert not (out / "exp038_SUCCESS.json").exists() and not (out / "exp038_best_submission.zip").exists()
+
+
+def test_mandatory_set_excludes_qwen():
+    budget = json.loads((ROOT / "configs/exp038.json").read_text())["budget"]
+    assert budget["mandatory"] == ["R0", "E1", "E2", "C1"]
+    assert budget["skip_order"] == ["cscva_seed_3", "cscva_seed_2", "E4"] and budget["e4_cap_seconds"] == 10800

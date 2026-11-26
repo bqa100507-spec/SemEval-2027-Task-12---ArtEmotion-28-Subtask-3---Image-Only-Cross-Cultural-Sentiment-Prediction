@@ -17,6 +17,7 @@ Stages: Setup → Validate → Benchmark → Feature extraction → CS-CVA seeds
 Development scoring → Submission validation → Export → Release. Validate replays the R0 references on CPU and
 hashes every model file before any GPU work; a failed replay stops the run. The benchmark forecast may skip, in
 order, CS-CVA seed 3, CS-CVA seed 2, then E4 (C3), and records why. Development is reporting only.
+E3 and E4 (Qwen3-VL-Embedding) are optional: if E3 fails or is skipped, E4 is skipped as a dependency, C2/C3 are listed as unavailable, and the run still completes with the VLM-free C1 and its ZIPs.
 
 Keep everything private. When the run ends, save a version or download from **Output**: `exp038_results.zip`,
 `exp038_best_submission.zip` and their `.sha256` files (or `exp038_diagnostic.zip` after a failure, and
