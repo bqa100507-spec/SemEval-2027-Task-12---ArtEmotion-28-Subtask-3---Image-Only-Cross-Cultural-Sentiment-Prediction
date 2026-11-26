@@ -51,9 +51,9 @@ Stage order: **Setup → Validate → Benchmark → Feature extraction → CS-CV
 
 | Pin | Value |
 | --- | --- |
-| Worker source (embedded in the overlay) | `8a0f1439b01fa330118b022ccc6deb7039edbba2` |
-| Overlay `runs/exp038/handoff/exp038_inputs.zip` SHA-256 | `a8dd9e9aba8ebefce7c439e35b2bc3113f47d5cac8f8c1d18a1cf31740f78434` (24,542,012 bytes, 204 files) |
-| Overlay manifest SHA-256 | `5c6bdd79f649049f5a377b32a2744bcfe2154dbcb65aa94018d6a942ebb8884f` |
+| Worker source (embedded in the overlay) | `8b42a10775f0bfa88c4266855f21bce1fb834e94` |
+| Overlay `runs/exp038/handoff/exp038_inputs.zip` SHA-256 | `c3adc3b5104bc914f9aa1a003d6c5f41b706a16dc460a0c36f4781b24598370d` (24,543,206 bytes, 204 files) |
+| Overlay manifest SHA-256 | `b3303f035a5765941284d2a8398f0cb6ead2f67f0286c246ea50f2b607a2d202` |
 | Base ZIP / manifest SHA-256 | `eaf16b9301cb131fbdf61a1b86fb191d3617b2141e39398f0c3b12bcf57ffce2` / `026720f406c02236aeaf5bfdc806853816323b66267f81f0e3e2dbbfe1ce7e0e` |
 
 ## Local verification before handoff
