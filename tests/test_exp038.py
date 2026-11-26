@@ -780,3 +780,25 @@ def test_patch1_layout_with_expanded_nested_zip_names_patch2(built, tmp_path):
     nb = notebook_functions()
     with pytest.raises(ValueError, match="is a directory.*patch-2 packaging"):
         nb["verify_root"](legacy, "exp038_manifest.json", digest)
+
+
+# Patch 3: every hash pin is well formed.
+
+def test_config_hash_pins_are_well_formed():
+    config = json.loads((ROOT / "configs/exp038.json").read_text())
+    assert io38.check_config_pins(config)
+    blobs = [v for arm in config["arms"].values() for v in arm.get("metadata_git_blobs", {}).values()]
+    assert blobs and all(len(v) == 40 for v in blobs)
+    assert config["arms"]["E3"]["metadata_git_blobs"]["special_tokens_map.json"] == \
+        "ac23c0aaa2434523c494330aeb79c58395378103"
+    import copy
+
+    for mutate in (lambda c: c["arms"]["E3"]["metadata_git_blobs"].update({"x": "ac23c0aa2434523c494330aeb79c58395378103"}),
+                   lambda c: c["arms"]["E2"]["weights_sha256"].update({"x": "A" * 64}),
+                   lambda c: c["references"].update({"corrected_oof_sha256": "f" * 63}),
+                   lambda c: c["references"]["track1_inner_oof_sha256"].update({"1": "0" * 65})):
+        broken = copy.deepcopy(config)
+        mutate(broken)
+        with pytest.raises(ValueError, match="Malformed hash pins"):
+            io38.check_config_pins(broken)
+    assert "check_config_pins(config)" in (ROOT / "scripts/package_exp038.py").read_text(encoding="utf-8")

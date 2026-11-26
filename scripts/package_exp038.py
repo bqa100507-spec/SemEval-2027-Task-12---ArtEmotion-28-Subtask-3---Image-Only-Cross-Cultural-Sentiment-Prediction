@@ -31,8 +31,8 @@ from st3.competition_track1 import load_p2, load_protocol
 from st3.contrast_study import new_output
 from st3.exp036_io import read, sha, write
 from st3.exp037_io import safe_members, unpack_inputs, verify_inputs
-from st3.exp038_io import (ARCHIVE_PREFIX, OVERLAY_MANIFEST, archive_like, encode_members, restore_overlay,
-                           unpack_overlay)
+from st3.exp038_io import (ARCHIVE_PREFIX, OVERLAY_MANIFEST, archive_like, check_config_pins, encode_members,
+                           restore_overlay, unpack_overlay)
 
 SOURCES = ["src/st3", "configs", "scripts", "requirements-exp035-kaggle.lock.txt",
            "requirements-exp036-kaggle.txt", "requirements-exp038-kaggle.txt"]
@@ -95,6 +95,7 @@ def features_table(project, refs, base_manifest, train_names, dev):
 def package(args):
     project = args.project.resolve()
     config = read(ROOT / "configs/exp038.json")
+    check_config_pins(config)  # Refuse to build with a truncated or malformed hash pin.
     refs = config["references"]
     source = subprocess.check_output(["git", "rev-parse", f"{args.source}^{{commit}}"], cwd=ROOT, text=True).strip()
     tree = subprocess.check_output(["git", "archive", "--format=zip", source, *SOURCES], cwd=ROOT)

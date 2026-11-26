@@ -59,7 +59,7 @@
         "video_preprocessor_config.json": "e32b1d90356f74457edbfca27aa1e121dab7cdc7",
         "tokenizer_config.json": "1d4fba2de0e94e8f97e08927cfb7d084160c2880",
         "chat_template.jinja": "a0b161f8af53a32ce7e659103babce500990a863",
-        "special_tokens_map.json": "ac23c0aa2434523c494330aeb79c58395378103",
+        "special_tokens_map.json": "ac23c0aaa2434523c494330aeb79c58395378103",
         "added_tokens.json": "b54f9135e44c1e81047e8d05cb027af8bc039eed",
         "vocab.json": "4783fe10ac3adce15ac8f358ef5462739852c569",
         "merges.txt": "31349551d90c7606f325fe0f11bbb8bd5fa0d7c7"

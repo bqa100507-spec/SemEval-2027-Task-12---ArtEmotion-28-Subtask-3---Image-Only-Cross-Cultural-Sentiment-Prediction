@@ -409,3 +409,32 @@ class Clock:
 
     def work_deadline(self):
         return self.deadline - self.reserve
+
+
+def check_config_pins(config):
+    """Every git blob pin is 40 lowercase hex characters and every *_sha256 pin is 64."""
+    import re
+
+    problems = []
+
+    def visit(node, path):
+        if isinstance(node, dict):
+            for key, value in node.items():
+                where = f"{path}.{key}" if path else key
+                if key == "metadata_git_blobs":
+                    problems.extend(f"{where}.{k}" for k, v in value.items()
+                                    if not (isinstance(v, str) and re.fullmatch(r"[0-9a-f]{40}", v)))
+                elif key.endswith("_sha256"):
+                    values = value.items() if isinstance(value, dict) else [("", value)]
+                    problems.extend(f"{where}{'.' + k if k else ''}" for k, v in values
+                                    if not (isinstance(v, str) and re.fullmatch(r"[0-9a-f]{64}", v)))
+                else:
+                    visit(value, where)
+        elif isinstance(node, list):
+            for i, value in enumerate(node):
+                visit(value, f"{path}[{i}]")
+
+    visit(config, "")
+    if problems:
+        raise ValueError(f"Malformed hash pins in configs/exp038.json: {problems}")
+    return True
