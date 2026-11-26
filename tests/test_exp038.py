@@ -532,3 +532,18 @@ def test_deploy_prepare_and_infer_from_precomputed_features(built, tmp_path):
         assert io38.zip_member(deployed) == io38.zip_member(ctx.root / run_archives[name]["zip"]), name
     assert receipt["inputs_used"] == "artwork pixels and target language only"
     assert pop["dev"].shape[0] == receipt["pairs"]
+
+
+def test_overlay_accepted_as_intact_zip_and_as_extracted_directory(built, tmp_path):
+    from zipfile import ZIP_DEFLATED
+
+    archive = tmp_path / "exp038_inputs.zip"
+    with ZipFile(archive, "w", compression=ZIP_DEFLATED) as z:
+        for path in sorted(built["overlay"].rglob("*")):
+            if path.is_file():
+                z.write(path, io38.ARCHIVE_PREFIX + path.relative_to(built["overlay"]).as_posix())
+    root = io38.unpack_overlay(archive, tmp_path / "x", built["overlay_sha"], sha(archive))
+    assert io38.verify_overlay(root, built["overlay_sha"], built["base_sha"])["files"] == \
+        io38.verify_overlay(built["overlay"], built["overlay_sha"], built["base_sha"])["files"]
+    with pytest.raises(ValueError, match="checksum"):
+        io38.unpack_overlay(archive, tmp_path / "y", built["overlay_sha"], "0" * 64)
