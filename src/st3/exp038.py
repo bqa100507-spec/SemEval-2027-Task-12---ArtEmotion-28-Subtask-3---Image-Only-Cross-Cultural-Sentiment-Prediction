@@ -286,8 +286,9 @@ def evaluate_p2(gold, features, delta, arms, config, track1, neighborhood, expec
         heads, fits = fit_all(train, features, delta, arms, track1)
         outer = predict_frame(heads, keys, features, delta, candidates)
         inner, details = crossfit(train, features, delta, arms, track1, int(fold), candidates)
-        if details["r0_components_sha256"] != expected_inner[str(int(fold))]:
-            raise ReplayError(f"Fold {fold} failed exact replay of the Track 1 inner component probabilities")
+        # Diagnostic only: the outer OOF tolerance check covers the same computation across platforms.
+        details["r0_inner_hash_expected"] = expected_inner[str(int(fold))]
+        details["r0_inner_hash_matched"] = details["r0_components_sha256"] == expected_inner[str(int(fold))]
         bank_set = banks(train, inner, visual, candidates, neighborhood["minimum_bank_languages"])
         for system, bank in bank_set.items():
             if set(bank.visual.index) & set(keys.painting):
@@ -300,8 +301,8 @@ def evaluate_p2(gold, features, delta, arms, config, track1, neighborhood, expec
                                "outer_keys_sha256": frame_sha(keys),
                                "bank_paintings": {k: len(v.visual) for k, v in bank_set.items()},
                                "seconds": perf_counter() - tick}
-        log(f"P2 fold {fold}: R0 inner replay matched; scored {len(keys)} held-out pairs in "
-            f"{perf_counter() - tick:.1f}s")
+        log(f"P2 fold {fold}: R0 inner hash {'matched' if details['r0_inner_hash_matched'] else 'differs (diagnostic)'}; "
+            f"scored {len(keys)} held-out pairs in {perf_counter() - tick:.1f}s")
     frame = pd.concat(outputs, ignore_index=True).sort_values(KEYS, ignore_index=True)
     frame = frame.merge(gold[KEYS + ["fold"]], on=KEYS, validate="one_to_one")
     r0 = pd.concat(r0_details, ignore_index=True).sort_values(KEYS, ignore_index=True)
@@ -314,17 +315,34 @@ def csv_text(frame):
     return frame.to_csv(index=False, lineterminator="\n", float_format="%.6f")
 
 
-def replay_r0_p2(gold, parts, r0_frame, track1_oof, corrected_oof_sha, metrics, excluded):
-    """Fixed Ridge rows exact, Corrected Ridge CSV bytes exact, pooled metrics to 1e-12."""
+def measure(check, mine, saved, threshold):
+    """One tolerance check: hard ReplayError above the threshold, otherwise a receipt."""
+    mine, saved = np.asarray(mine, dtype=float), np.asarray(saved, dtype=float)
+    if mine.shape != saved.shape:
+        raise ReplayError(f"{check}: shape {mine.shape} differs from the reference {saved.shape}")
+    difference = np.abs(mine - saved)
+    if not np.isfinite(difference).all():
+        raise ReplayError(f"{check}: nonfinite values")
+    worst = float(difference.max()) if difference.size else 0.
+    receipt = {"check": check, "exact": bool(np.array_equal(mine, saved)), "rows": int(difference.size),
+               "rows_differing": int((difference > 0).sum()), "max_abs_difference": worst, "threshold": threshold}
+    if worst > threshold:
+        raise ReplayError(f"{check}: max |difference| {worst:.3g} exceeds {threshold:g} "
+                          f"({int((difference > threshold).sum())} of {difference.size} rows above it, "
+                          f"{receipt['rows_differing']} differing)")
+    return receipt
+
+
+def replay_r0_p2(gold, parts, r0_frame, track1_oof, corrected_oof, corrected_oof_sha, metrics, excluded, tolerance):
+    """Fixed Ridge rows and Corrected Ridge rows within tolerance, pooled metrics within tolerance."""
+    checks = []
     for column in (*ENCODERS, "fixed"):
-        mine = aligned_values(gold, parts, [column]).ravel()
-        saved = aligned_values(gold, track1_oof, [column]).ravel()
-        if not np.array_equal(mine, saved):
-            differences = int((mine != saved).sum())
-            raise ReplayError(f"Fixed Ridge OOF replay differs in {differences} {column} rows")
+        checks.append(measure(f"P2 Fixed Ridge OOF {column}", aligned_values(gold, parts, [column]).ravel(),
+                              aligned_values(gold, track1_oof, [column]).ravel(), tolerance["probability"]))
+    for column in ("ridge", "corrected"):
+        checks.append(measure(f"P2 Corrected Ridge OOF {column}", aligned_values(gold, r0_frame, [column]).ravel(),
+                              aligned_values(gold, corrected_oof, [column]).ravel(), tolerance["probability"]))
     digest = hashlib.sha256(csv_text(r0_frame).encode()).hexdigest()
-    if digest != corrected_oof_sha:
-        raise ReplayError(f"Corrected Ridge OOF CSV replay differs: {digest}")
     track1_metrics, neighborhood_metrics = metrics
     observed = {}
     for scope, subset in scopes(gold, excluded):
@@ -335,10 +353,12 @@ def replay_r0_p2(gold, parts, r0_frame, track1_oof, corrected_oof_sha, metrics, 
             values = subset[KEYS].merge(source[KEYS + [column]], on=KEYS, validate="one_to_one")[column].to_numpy()
             result = score(subset[KEYS + ["k", "n"]], subset[KEYS].assign(p_positive=values))
             for key in ("cultural_contrast", "log_loss"):
-                if abs(result[key] - expected[key]) > 1e-12:
-                    raise ReplayError(f"{system} {scope} {key} replay differs: {result[key]} vs {expected[key]}")
+                checks.append(measure(f"P2 pooled {system} {scope} {key}", [result[key]], [expected[key]],
+                                      tolerance["pooled"]))
             observed[f"{system}_{scope}"] = {key: result[key] for key in ("cultural_contrast", "log_loss")}
-    return {"fixed_rows": len(gold), "corrected_csv_sha256": digest, "pooled": observed}
+    return {"fixed_rows": len(gold), "checks": checks, "exact": all(c["exact"] for c in checks),
+            "corrected_csv_sha256": digest, "corrected_csv_sha256_matches_reference": digest == corrected_oof_sha,
+            "pooled": observed}
 
 
 def scopes(frame, excluded):

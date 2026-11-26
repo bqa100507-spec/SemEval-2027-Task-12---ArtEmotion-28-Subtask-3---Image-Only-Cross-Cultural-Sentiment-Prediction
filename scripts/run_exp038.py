@@ -10,6 +10,7 @@ subcommands) through a backend object, which tests replace with a deterministic 
 
 import argparse
 import json
+import os
 import platform
 import shutil
 import subprocess
@@ -321,6 +322,7 @@ def stage_validate(ctx, backend, status):
     tick = time.time()
     r0 = r0_p2(ctx)
     receipts["r0_p2"] = r0 | {"seconds": time.time() - tick}
+    receipts["platform"] = platform_receipt(ctx)
     status.item("R0 Development replay")
     receipts["r0_development"] = r0_development(ctx)
     receipts["seconds"] = time.time() - started
@@ -336,6 +338,16 @@ def reference_frame(ctx, name):
     return pd.read_csv(ctx.overlay / "reference" / name)
 
 
+def platform_receipt(ctx):
+    from threadpoolctl import threadpool_info
+
+    return {"os": platform.platform(), "python": platform.python_version(),
+            "openblas_coretype": os.environ.get("OPENBLAS_CORETYPE"),
+            "ridge_threads": ctx.config["runtime"]["ridge_threads"],
+            "blas": [{k: info.get(k) for k in ("internal_api", "version", "architecture", "num_threads", "prefix")}
+                     for info in threadpool_info()]}
+
+
 def r0_p2(ctx):
     pop = population(ctx)
     from threadpoolctl import threadpool_limits
@@ -344,32 +356,42 @@ def r0_p2(ctx):
         frame, parts, r0, receipts, _ = science.evaluate_p2(
             pop["gold"], pop["features"], None, (), ctx.config, ctx.track1, ctx.neighborhood,
             ctx.refs["track1_inner_oof_sha256"], log=ctx.log)
+    result = p2_replay(ctx, parts, r0)
+    result["inner_hashes"] = {fold: {"matched": r["inner"]["r0_inner_hash_matched"],
+                                     "observed": r["inner"]["r0_components_sha256"]} for fold, r in receipts.items()}
+    return result
+
+
+def p2_replay(ctx, parts, r0):
+    pop = population(ctx)
     metrics = (read(ctx.overlay / "reference/track1_metrics.json"),
                read(ctx.overlay / "reference/corrected_metrics.json"))
     return science.replay_r0_p2(pop["gold"], parts, r0, reference_frame(ctx, "track1_oof.csv"),
-                                ctx.refs["corrected_oof_sha256"], metrics, ctx.config["test_like_excluded"])
+                                reference_frame(ctx, "corrected_oof.csv"), ctx.refs["corrected_oof_sha256"], metrics,
+                                ctx.config["test_like_excluded"], ctx.config["replay_tolerance"])
 
 
-def compare_bank(bank, path):
+def compare_bank(bank, path, threshold):
+    """Index, keys and shapes identical; numeric arrays within the tolerance."""
     with np.load(path, allow_pickle=False) as saved:
-        same = (saved["paintings"].tolist() == bank.visual.index.tolist()
-                and saved["languages"].tolist() == bank.votes.columns.tolist()
-                and np.array_equal(saved["numerator"], bank.numerator.to_numpy())
-                and np.array_equal(saved["votes"], bank.votes.to_numpy())
-                and np.array_equal(saved["visual"], bank.visual.to_numpy()))
-    return same
+        if (saved["paintings"].tolist() != bank.visual.index.tolist()
+                or saved["languages"].tolist() != bank.votes.columns.tolist()):
+            raise science.ReplayError("Corrected Ridge bank: painting index or language keys differ from the saved bank")
+        return [science.measure(f"Corrected Ridge bank {name}", frame.to_numpy(), saved[name], threshold)
+                for name, frame in (("numerator", bank.numerator), ("votes", bank.votes), ("visual", bank.visual))]
 
 
-def compare_heads(heads, path):
+def compare_heads(heads, path, threshold):
+    checks = []
     with np.load(path, allow_pickle=False) as saved:
-        out = {}
         for encoder in ENCODERS:
             head = heads[encoder]
-            pairs = {field: (np.asarray(getattr(head, field), dtype=float), saved[f"{encoder}:{field}"])
-                     for field in ("intercept", "language_intercepts", "shared", "deviations")}
-            out[encoder] = {"bitwise": all(np.array_equal(a, b) for a, b in pairs.values()),
-                            "max_abs_difference": max(float(np.abs(a - b).max()) for a, b in pairs.values())}
-    return out
+            if tuple(saved[f"{encoder}:languages"].tolist()) != tuple(head.languages):
+                raise science.ReplayError(f"Fixed Ridge {encoder} head languages differ")
+            for field in ("intercept", "language_intercepts", "shared", "deviations"):
+                checks.append(science.measure(f"Fixed Ridge head {encoder}.{field}", getattr(head, field),
+                                              saved[f"{encoder}:{field}"], threshold))
+    return checks
 
 
 def r0_development(ctx):
@@ -382,38 +404,45 @@ def r0_development(ctx):
                                                                ctx.neighborhood, {})
         frame, _ = science.development_predictions(heads, bank_set, visual, dev[data.KEYS], pop["features"], None,
                                                    {}, ctx.neighborhood)
-    check = replay_development(ctx, frame)
-    check["bank_identical"] = compare_bank(bank_set["R0"], ctx.overlay / "reference/corrected_bundle/bank.npz")
-    if not check["bank_identical"]:
-        raise science.ReplayError("The refitted Corrected Ridge deployment bank differs from the saved bank")
-    check["heads"] = compare_heads(heads, ctx.overlay / "reference/fixed_bundle/heads.npz")
-    return check
+    tolerance = ctx.config["replay_tolerance"]
+    result = replay_development(ctx, frame)
+    result["checks"] += compare_bank(bank_set["R0"], ctx.overlay / "reference/corrected_bundle/bank.npz",
+                                     tolerance["bank"])
+    result["checks"] += compare_heads(heads, ctx.overlay / "reference/fixed_bundle/heads.npz", tolerance["heads"])
+    result["exact"] = all(c["exact"] for c in result["checks"])
+    return result
 
 
 def replay_development(ctx, frame):
-    """Refitted R0 Development predictions and the two published compositions, byte for byte."""
+    """Refitted R0 Development predictions and the two published R0 compositions, within tolerance."""
     pop = population(ctx)
     dev = pop["dev"]
     reference = ctx.overlay / "reference"
+    threshold = ctx.config["replay_tolerance"]["probability"]
     corrected = science.system_frame(frame, "R0_corrected")
-    if science.csv_text(corrected).encode() != zip_member(reference / "corrected_ridge_submission.zip"):
-        raise science.ReplayError("Refitted Corrected Ridge Development predictions differ from the archived ZIP")
+    checks, members = [], {}
+    composed = science.blends({"R0": corrected},
+                              {"original": submission.validate_archive(reference / "exp036_standalone_submission.zip",
+                                                                       dev)},
+                              submission.read_predictions(reference / "exp037_c6_standalone/predictions.csv", dev),
+                              dev, ctx.config)
     scratch = ctx.root / "tmp_replay"
     shutil.rmtree(scratch, ignore_errors=True)
-    fixed = write_submission(science.system_frame(frame, "R0_fixed"), dev, scratch, "fixed")
-    if zip_member(fixed) != zip_member(reference / "fixed_ridge_submission.zip"):
-        raise science.ReplayError("Refitted Fixed Ridge Development predictions differ from the archived ZIP")
-    cscva = submission.validate_archive(reference / "exp036_standalone_submission.zip", dev)
-    c6 = submission.read_predictions(reference / "exp037_c6_standalone" / "predictions.csv", dev)
-    composed = science.blends({"R0": corrected}, {"original": cscva}, c6, dev, ctx.config)
-    for name, target in (("B1_R0_original", "exp036_ensemble_submission.zip"),
-                         ("B2_R0_original", "exp037_best_submission.zip")):
-        archive = write_submission(composed[name], dev, scratch, name)
-        if zip_member(archive) != zip_member(reference / target):
-            raise science.ReplayError(f"{name} does not reproduce {target}")
+    for label, mine, target in (("Development R0_fixed", science.system_frame(frame, "R0_fixed"),
+                                 "fixed_ridge_submission.zip"),
+                                ("Development R0_corrected", corrected, "corrected_ridge_submission.zip"),
+                                ("Development B1_R0_original vs EXP-036 ensemble", composed["B1_R0_original"],
+                                 "exp036_ensemble_submission.zip"),
+                                ("Development B2_R0_original vs EXP-037 original blend", composed["B2_R0_original"],
+                                 "exp037_best_submission.zip")):
+        saved = submission.validate_archive(reference / target, dev)
+        ours = science.canonical(mine, dev)
+        checks.append(science.measure(label, ours.p_positive.to_numpy(), saved.p_positive.to_numpy(), threshold))
+        archive = write_submission(ours, dev, scratch, f"replay_{len(checks)}")
+        members[target] = zip_member(archive) == zip_member(reference / target) or \
+            science.csv_text(ours).encode() == zip_member(reference / target)
     shutil.rmtree(scratch, ignore_errors=True)
-    return {"corrected_member_identical": True, "fixed_member_identical": True,
-            "exp036_ensemble_identical": True, "exp037_original_blend_identical": True}
+    return {"checks": checks, "member_bytes_identical": members, "exact": all(c["exact"] for c in checks)}
 
 
 def benchmark_items(items, count, seed):
@@ -619,8 +648,11 @@ def stage_p2(ctx, status):
             ctx.refs["track1_inner_oof_sha256"], log=ctx.log)
     metrics = (read(ctx.overlay / "reference/track1_metrics.json"),
                read(ctx.overlay / "reference/corrected_metrics.json"))
-    replay = science.replay_r0_p2(pop["gold"], parts, r0, reference_frame(ctx, "track1_oof.csv"),
-                                  ctx.refs["corrected_oof_sha256"], metrics, ctx.config["test_like_excluded"])
+    replay = p2_replay(ctx, parts, r0)
+    # Gate integrity: the reference is the R0_corrected computed in this run, never the archived CSV.
+    on_platform = science.aligned_values(pop["gold"], r0, ["corrected"]).ravel()
+    if not np.array_equal(science.aligned_values(pop["gold"], frame, ["R0_corrected"]).ravel(), on_platform):
+        raise RuntimeError("The gate reference is not the on-platform R0_corrected")
     systems = ["R0_fixed", "R0_corrected", *arms, *[f"{c}_mix" for c in candidates], *candidates]
     report, paintings, gates = science.p2_report(pop["gold"], frame, systems, candidates, ctx.config)
     for name, reason in unavailable_candidates(ctx, arms).items():
@@ -635,6 +667,8 @@ def stage_p2(ctx, status):
     painting_deltas.to_csv(folder / "painting_deltas.csv", index=False, lineterminator="\n")
     languages.to_csv(folder / "language_deltas.csv", index=False, lineterminator="\n")
     write(folder / "metrics.json", {"report": report, "replay": replay, "fold_receipts": receipts,
+                                    "gate_reference": "on-platform R0_corrected computed in this run; the archived "
+                                                      "Corrected Ridge CSV is used only for the tolerance replay",
                                     "arms": list(arms), "candidates": {k: list(v) for k, v in candidates.items()},
                                     "seconds": time.time() - tick})
     write(folder / "diagnostics.json", diagnostics)
@@ -726,8 +760,8 @@ def stage_development(ctx, status, gates):
         frame, _ = science.development_predictions(heads, bank_set, visual, dev[data.KEYS], features, delta,
                                                    candidates, ctx.neighborhood)
     replay = replay_development(ctx, frame)
-    if not compare_bank(bank_set["R0"], ctx.overlay / "reference/corrected_bundle/bank.npz"):
-        raise science.ReplayError("The refitted Corrected Ridge deployment bank differs from the saved bank")
+    replay["checks"] += compare_bank(bank_set["R0"], ctx.overlay / "reference/corrected_bundle/bank.npz",
+                                     ctx.config["replay_tolerance"]["bank"])
     shutil.rmtree(folder, ignore_errors=True)
     folder.mkdir(parents=True)
     frame.to_csv(folder / "predictions.csv", index=False, lineterminator="\n", float_format="%.6f")
@@ -752,10 +786,14 @@ def stage_development(ctx, status, gates):
         raise ValueError("Unexpected Development scoring columns")
     canonical = {name: submission.validate_archive(ctx.root / item["zip"], dev) for name, item in archives.items()}
     reference = ctx.overlay / "reference"
-    references = {"EXP036_ensemble": submission.validate_archive(reference / "exp036_ensemble_submission.zip", dev),
-                  "EXP037_original_blend": submission.validate_archive(reference / "exp037_best_submission.zip", dev)}
-    scores = science.development_scores(gold, canonical | references, ctx.config["test_like_excluded"])
-    intervals = science.development_intervals(gold, {k: v for k, v in canonical.items() if k.startswith("B")},
+    # Paired deltas use on-platform recomputations; the archived hosted ZIPs are reported only as references.
+    archived = {"EXP036_ensemble_archived": submission.validate_archive(reference / "exp036_ensemble_submission.zip", dev),
+                "EXP037_original_blend_archived": submission.validate_archive(reference / "exp037_best_submission.zip",
+                                                                              dev)}
+    references = {"EXP036_ensemble": canonical["B1_R0_original"], "EXP037_original_blend": canonical["B2_R0_original"]}
+    scores = science.development_scores(gold, canonical | archived, ctx.config["test_like_excluded"])
+    intervals = science.development_intervals(gold, {k: v for k, v in canonical.items()
+                                                     if k.startswith("B") and "_R0_" not in k},
                                               references, ctx.config["test_like_excluded"],
                                               ctx.config["diagnostic_seed"])
     save_bundle(folder / "bundle", heads, bank_set, features, sorted(pop["train"].painting.unique()), candidates, ctx)
@@ -1060,6 +1098,8 @@ def cpu_validate(args):
     receipts = {"r0_p2": r0_p2(ctx)}
     receipts["r0_p2"]["seconds"] = time.time() - tick
     receipts["r0_development"] = r0_development(ctx)
+    receipts["platform"] = platform_receipt(ctx)
+    receipts["exact"] = receipts["r0_p2"]["exact"] and receipts["r0_development"]["exact"]
     write(args.output / "cpu_validate.json", receipts)
     print(json.dumps(receipts, indent=2))
 

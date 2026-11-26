@@ -408,24 +408,62 @@ def test_failed_optional_seed_falls_back_to_original_cscva(built, tmp_path, monk
     assert selection["submission"] == "B2_C1_original" and "original single" in selection["cscva_note"]
 
 
-def test_failed_r0_replay_stops_before_gpu_and_never_claims_a_submission(built, tmp_path):
+def tampered(built, tmp_path, name, change):
+    """Copy the restored overlay, rewrite one reference file and re-pin its manifest hash."""
     import copy
     import hashlib
     import shutil
 
-    import run_exp038
-
     overlay = tmp_path / "overlay"
     shutil.copytree(built["overlay"], overlay)
+    change(overlay / name)
     manifest = read(overlay / "exp038_manifest.json")
-    manifest["references"]["corrected_oof_sha256"] = "0" * 64
+    manifest["files"][name] = sha(overlay / name)
     content = (json.dumps(manifest, indent=2) + chr(10)).encode()
     (overlay / "exp038_manifest.json").write_bytes(content)
-    config = copy.deepcopy(built["config"])
-    config["references"] = manifest["references"]
-    ctx = fx.context(built, tmp_path, overlay=overlay, overlay_sha=hashlib.sha256(content).hexdigest(), config=config)
+    return fx.context(built, tmp_path, overlay=overlay, overlay_sha=hashlib.sha256(content).hexdigest(),
+                      config=copy.deepcopy(built["config"]))
+
+
+def shift_column(column, delta, rows=None):
+    def change(path):
+        frame = pd.read_csv(path)
+        index = frame.index if rows is None else frame.index[:rows]
+        frame.loc[index, column] = (frame.loc[index, column] + delta).clip(0, 1).round(6)
+        frame.to_csv(path, index=False, lineterminator=chr(10), float_format="%.6f")
+    return change
+
+
+def test_exact_replay_passes_with_exact_true(built, tmp_path):
+    import run_exp038
+
+    ctx = fx.context(built, tmp_path)
+    p2, dev = run_exp038.r0_p2(ctx), run_exp038.r0_development(ctx)
+    assert p2["exact"] and dev["exact"] and p2["corrected_csv_sha256_matches_reference"]
+    assert all(c["exact"] and c["rows_differing"] == 0 and c["threshold"] > 0 for c in p2["checks"] + dev["checks"])
+    assert all(h["matched"] for h in p2["inner_hashes"].values())
+    names = {c["check"] for c in p2["checks"] + dev["checks"]}
+    assert {"P2 Fixed Ridge OOF fixed", "P2 Corrected Ridge OOF corrected", "Development R0_corrected",
+            "Development B2_R0_original vs EXP-037 original blend", "Corrected Ridge bank visual"} <= names
+    assert any(n.startswith("Fixed Ridge head clip.") for n in names)
+
+
+def test_linux_sized_perturbation_passes_with_measured_difference(built, tmp_path):
+    import run_exp038
+
+    ctx = tampered(built, tmp_path, "reference/track1_oof.csv", shift_column("fixed", 5e-6))
+    result = run_exp038.r0_p2(ctx)
+    check = next(c for c in result["checks"] if c["check"] == "P2 Fixed Ridge OOF fixed")
+    assert not result["exact"] and not check["exact"] and check["rows_differing"] > 0
+    assert check["max_abs_difference"] == pytest.approx(5e-6, abs=1e-9) and check["threshold"] == 2e-5
+
+
+def test_large_row_difference_fails_and_names_the_check(built, tmp_path):
+    import run_exp038
+
+    ctx = tampered(built, tmp_path, "reference/corrected_oof.csv", shift_column("corrected", 5e-5, rows=1))
     backend = fx.MockBackend(ctx)
-    with pytest.raises(science.ReplayError, match="Corrected Ridge OOF"):
+    with pytest.raises(science.ReplayError, match=r"P2 Corrected Ridge OOF corrected: .* \(1 of \d+ rows above it"):
         run_exp038.run_pipeline(ctx, backend)
     status = read(ctx.root / "status.json")
     assert status["state"] == "FAILED" and status["stage"] == "Validate"
@@ -436,6 +474,54 @@ def test_failed_r0_replay_stops_before_gpu_and_never_claims_a_submission(built, 
     with ZipFile(out / "exp038_diagnostic.zip") as z:
         info = json.loads(z.read("exp038_diagnostic.json"))
     assert info["failed_stage"] == "Validate" and info["submission_claimed"] is False
+
+
+def test_pooled_metric_off_by_1e5_fails(built, tmp_path):
+    import run_exp038
+
+    def change(path):
+        metrics = json.loads(path.read_text())
+        metrics["filtered"]["systems"]["fixed"]["pooled"]["cultural_contrast"] += 1e-5
+        path.write_text(json.dumps(metrics))
+
+    ctx = tampered(built, tmp_path, "reference/track1_metrics.json", change)
+    with pytest.raises(science.ReplayError, match="P2 pooled fixed filtered cultural_contrast"):
+        run_exp038.r0_p2(ctx)
+
+
+def test_bank_with_different_keys_fails_even_with_zero_numeric_difference(built, tmp_path):
+    import run_exp038
+    from st3.competition_neighborhood import ResidualBank
+
+    with np.load(built["overlay"] / "reference/corrected_bundle/bank.npz") as saved:
+        paintings, languages = saved["paintings"].tolist(), saved["languages"].tolist()
+        frames = [pd.DataFrame(saved[k], index=paintings, columns=None if k == "visual" else languages)
+                  for k in ("visual", "numerator", "votes")]
+    same = ResidualBank(*frames)
+    assert all(c["exact"] for c in run_exp038.compare_bank(same, built["overlay"] / "reference/corrected_bundle/bank.npz", 1e-4))
+    renamed = ResidualBank(*[f.rename(index={paintings[0]: "other"}) for f in frames])
+    with pytest.raises(science.ReplayError, match="painting index or language keys"):
+        run_exp038.compare_bank(renamed, built["overlay"] / "reference/corrected_bundle/bank.npz", 1e-4)
+
+
+def test_gate_uses_the_on_platform_r0_not_the_archived_reference(built, tmp_path):
+    import run_exp038
+
+    ctx = tampered(built, tmp_path, "reference/corrected_oof.csv", shift_column("corrected", 5e-6))
+    run_exp038.run_pipeline(ctx, fx.MockBackend(ctx))
+    oof = pd.read_csv(ctx.root / "p2/oof.csv")
+    archived = pd.read_csv(ctx.overlay / "reference/corrected_oof.csv")
+    pristine = pd.read_csv(built["overlay"] / "reference/corrected_oof.csv")
+    gold = pd.read_csv(ctx.overlay / "p2/pairs.csv")
+    ours = science.aligned_values(gold, oof, ["R0_corrected"]).ravel()
+    assert np.array_equal(ours, science.aligned_values(gold, pristine, ["corrected"]).ravel())
+    assert not np.array_equal(ours, science.aligned_values(gold, archived, ["corrected"]).ravel())
+    metrics = read(ctx.root / "p2/metrics.json")
+    assert metrics["gate_reference"].startswith("on-platform R0_corrected")
+    scores = read(ctx.root / "development/scores.json")
+    assert set(scores["intervals"]["full"]) and all(k.endswith(("EXP036_ensemble", "EXP037_original_blend"))
+                                                    for k in scores["intervals"]["full"])
+    assert "EXP037_original_blend_archived" in scores["scores"]
 
 
 def test_missing_inputs_are_rejected(built, tmp_path):

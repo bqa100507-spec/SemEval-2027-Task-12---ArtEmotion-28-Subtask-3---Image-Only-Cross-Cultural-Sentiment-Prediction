@@ -110,6 +110,13 @@
     "tie_tolerance": 0.001
   },
   "diagnostic_seed": 203805,
+  "replay_tolerance": {
+    "note": "Cross-platform R0 replay (Windows-built references, Linux Kaggle). Each threshold is about 4x or more above the measured Linux-Windows difference.",
+    "probability": 2e-05,
+    "pooled": 1e-06,
+    "heads": 0.0001,
+    "bank": 0.0001
+  },
   "cscva": {
     "config": "configs/exp036.json",
     "original_seed": 203036,
