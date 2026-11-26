@@ -1,0 +1,79 @@
+{
+  "model": "Qwen/Qwen3-VL-4B-Instruct",
+  "revision": "ebb281ec70b05090aa6165b016eac8ec08e71b17",
+  "license": "Apache-2.0",
+  "weight_sha256": {
+    "model-00001-of-00002.safetensors": "30a01a0556622645a3cce87b655bbbbbc1f170c196099f1b666c93202c3339a9",
+    "model-00002-of-00002.safetensors": "046296a2a387efb43b0c997d5833c789604d168834f6e0d3064bf7bb13d002a6"
+  },
+  "git_blobs": {
+    "README.md": "542417095b66d3fc13be22bbf6722928787b8ef4",
+    "chat_template.json": "e49e75bdda104c8de941eb20e0b3765184fb27bc",
+    "config.json": "22be8bb79043d39840ca5e70d7a2dab80311602c",
+    "generation_config.json": "e116347d7ef42621c7a5957f82c015c38d939c1f",
+    "merges.txt": "20024bfe7c83998e9aeaf98a0cd6a2ce6306c2f0",
+    "model.safetensors.index.json": "3b52de97496e2f4501dfa92a87642f60db3e22a1",
+    "preprocessor_config.json": "2ea84a437d448ff71b08df68fdd949d5cc4ebb64",
+    "tokenizer.json": "c6cc1014128b19d1fc46b1d30a23e3b1d35db421",
+    "tokenizer_config.json": "d3d3763207692c78780f4bf42d4dadf49a5c8012",
+    "video_preprocessor_config.json": "3ba673a5ad7d4d13f54155ecd38b2a94a6dac8fe",
+    "vocab.json": "4783fe10ac3adce15ac8f358ef5462739852c569"
+  },
+  "runtime": {
+    "torch": "2.7.1+cu126",
+    "transformers": "4.57.6",
+    "accelerate": "1.6.0",
+    "bitsandbytes": "0.48.2",
+    "tokenizers": "0.22.2",
+    "huggingface-hub": "0.36.0",
+    "torchvision": "0.22.1+cu126",
+    "Pillow": "11.2.1"
+  },
+  "fields": [
+    "entities",
+    "scene",
+    "style_atmosphere",
+    "visual_cues",
+    "uncertain_context"
+  ],
+  "prompt": "Describe the artwork using pixels only. Return one JSON object with exactly these string keys: entities, scene, style_atmosphere, visual_cues, uncertain_context. Use at most 14 words in each field. List visible entities and actions, then the depicted scene. For style and atmosphere use observable paint, composition, or light. For visual cues name concrete details such as gestures, color contrasts, or spatial relationships. For possible social or symbolic context start with \"uncertain:\" and link it to a visible clue, or write \"none\". Avoid titles, artist names, demographic or nationality guesses, and viewer reactions. Use English. No markdown or text outside the JSON object.",
+  "vision": {
+    "min_pixels": 65536,
+    "max_pixels": 262144
+  },
+  "generation": {
+    "do_sample": false,
+    "num_beams": 1,
+    "max_new_tokens": 224,
+    "use_cache": true
+  },
+  "quantization": "nf4_double_quant_fp16",
+  "attention": "eager",
+  "preflight": {
+    "images": 6,
+    "seed": 204101,
+    "max_seconds": 300,
+    "memory_headroom_mib": 512
+  },
+  "max_full_extraction_seconds": 7200,
+  "incumbent_oof_sha256": "fc8273e3a05438f2058d41d47e5743102afd6b450cc86beb6c2b049bde3095fd",
+  "incumbent_metrics_sha256": "7ba632ec0abf487e26b02ca8480a30370785458fb3163603c6258739a4ce7199",
+  "fixed_bundle_manifest_sha256": "1d211fc70c27d5ababaf6b7f05afa75c498854c4201b6039e333891d5016185a",
+  "fixed_bundle_heads_sha256": "9105a0623867916c046dfd3ec4e1fa9fb6854c2d69068570c3b169bf47c89e76",
+  "predictor": {
+    "tfidf_min_df": 2,
+    "tfidf_max_features": 12000,
+    "svd_components": 256,
+    "svd_seed": 204102,
+    "joint_share": 0.25
+  },
+  "decision": {
+    "min_filtered_gain": 0.005,
+    "min_full_gain": 0.002,
+    "min_fold_wins": 4,
+    "max_log_loss_delta": 0.005,
+    "bootstrap_draws": 10000,
+    "bootstrap_seed": 203204,
+    "trim_fraction": 0.05
+  }
+}

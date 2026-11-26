@@ -1,0 +1,22 @@
+{
+  "seed": 205035,
+  "fold": 3,
+  "epochs": 4,
+  "head_width": 32,
+  "residual_limit": 0.5,
+  "center_weight": 1.0,
+  "residual_weight": 0.1,
+  "head_lr": 0.001,
+  "adapter_lr": 0.0001,
+  "weight_decay": 0.01,
+  "clip_norm": 1.0,
+  "adapter_rank": 8,
+  "adapter_alpha": 16,
+  "prompt": "Inspect this artwork.",
+  "preflight_artworks": 24,
+  "preflight_seconds": 300,
+  "cumulative_gpu_seconds": 5400,
+  "runtime_margin": 1.35,
+  "memory_margin_mib": 512,
+  "inner_log_loss_margin": 0.005
+}

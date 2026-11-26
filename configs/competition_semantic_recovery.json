@@ -1,0 +1,11 @@
+{
+  "historical_preflight_sha256": "f7722128d4cfa50be59a1afa36a0d429bce4272380c9dab8f9fedfd467e8c7f6",
+  "batch_size": 3,
+  "attention": "sdpa",
+  "max_new_tokens": 72,
+  "prompt": "Describe this artwork from pixels. Return only a compact JSON object with string keys e, s, a, v, u. e: visible entities/actions. s: visible scene/social setting. a: painted style/light/mood. v: emotional visual cues such as gesture or color. u: 'none' or 'uncertain: ...' for possible meaning tied to a visible detail. English, short fragments, at most 4 words per field (7 for u). No titles, names, demographic guesses or viewer reactions.",
+  "reprofile_sample_indices": [0, 3],
+  "benchmark_wall_seconds": 720,
+  "full_gpu_budget_seconds": 7200,
+  "projection_margin": 1.25
+}

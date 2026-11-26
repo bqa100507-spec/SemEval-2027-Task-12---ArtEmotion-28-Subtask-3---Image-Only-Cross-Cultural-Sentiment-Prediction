@@ -1,0 +1,485 @@
+{
+  "status": "PREFLIGHT_AND_PILOT_PASS_SCREEN_NOT_RUN_RESOURCE_HANDOFF",
+  "source_commit": "f0d2ac65d875a0875e8b280bc6065545611198e3",
+  "pr": "https://github.com/bqa100507-spec/SemEval-2027-Task-12---ArtEmotion-28-Subtask-3---Image-Only-Cross-Cultural-Sentiment-Prediction/pull/21",
+  "identity": {
+    "config_sha256": "2cadc132f17c4256d8efe1958fa27cc5beac813fd648864a546c33ccf1e8d775",
+    "input_manifest_sha256": "fa2f7c4528b49925c400216037a64381bc6a0b35a1b3b11458a6bcbfda924337",
+    "device": "cuda",
+    "python": "3.12.10",
+    "versions": {
+      "torch": "2.7.1+cu126",
+      "transformers": "4.49.0",
+      "numpy": "2.2.6",
+      "pandas": "2.2.3",
+      "scikit-learn": "1.6.1",
+      "Pillow": "11.2.1"
+    },
+    "gpu": "NVIDIA GeForce RTX 4060 Laptop GPU",
+    "cuda": "12.6",
+    "allow_tf32": false,
+    "cudnn_allow_tf32": true,
+    "matmul_precision": "highest"
+  },
+  "manifests_sha256": {
+    "inputs": "fa2f7c4528b49925c400216037a64381bc6a0b35a1b3b11458a6bcbfda924337",
+    "preflight": "fe6daa6893a31307b88bcd6fac863ee30c8a896bec2e8c2185648c23eaa8d760",
+    "pilot": "72cfbb8908271bdfbfda28a26f23d88b1f20ee92b19c89365b95a39ad0ab3a64"
+  },
+  "preflight": {
+    "status": "PASS",
+    "microbatch": 4,
+    "effective_paintings": 4,
+    "gradient_accumulation": 1,
+    "gpu_name": "NVIDIA GeForce RTX 4060 Laptop GPU",
+    "total_vram_bytes": 8585216000,
+    "free_before_model_load_bytes": 7451181056,
+    "base_sha256": "bcc1248fea4f234458dd994556d8970f12ce2814185c9db0357b6198aa011f67",
+    "adapter_parameters": 294912,
+    "initial_head_sha256": {
+      "F0": "030a8bf9dea54431eb747c4d30a504a6338a364f450ae62512b50d86efd9bb1e",
+      "F8": "030a8bf9dea54431eb747c4d30a504a6338a364f450ae62512b50d86efd9bb1e",
+      "L0": "030a8bf9dea54431eb747c4d30a504a6338a364f450ae62512b50d86efd9bb1e",
+      "L8": "030a8bf9dea54431eb747c4d30a504a6338a364f450ae62512b50d86efd9bb1e"
+    },
+    "protected_files": 2483,
+    "seconds": 29.477834800025448,
+    "frozen_visual_parameters": 87849216,
+    "frozen_visual_bytes": 351396864,
+    "locked_annotation_rows_retained": 0,
+    "development_gold_accessed": false,
+    "vision_precision": "fp32",
+    "head_precision": "fp16_cuda"
+  },
+  "parity": {
+    "frozen_vs_cache": {
+      "shape": [
+        16,
+        512
+      ],
+      "norm_max_error": 1.1920928955078125e-07,
+      "cosine_min": 0.9999999403953552,
+      "max_abs_error": 2.384185791015625e-07,
+      "mean_l2_shift": 8.369257784579531e-07
+    },
+    "zero_lora_vs_frozen": {
+      "shape": [
+        16,
+        512
+      ],
+      "norm_max_error": 1.1920928955078125e-07,
+      "cosine_min": 1.0,
+      "max_abs_error": 0.0,
+      "mean_l2_shift": 0.0
+    },
+    "encoder": {
+      "checkpoint_revision": "3d74acf9a28c67741b2f4f2ea7635f0aaf6f0268",
+      "assets_sha256": {
+        "config.json": "b575ef3c36f2a057fa19e221650105052d61cc9c1a972ec15019c6261ec98770",
+        "preprocessor_config.json": "910e70b3956ac9879ebc90b22fb3bc8a75b6a0677814500101a4c072bd7857bd",
+        "pytorch_model.bin": "a63082132ba4f97a80bea76823f544493bffa8082296d62d71581a4feff1576f"
+      },
+      "processor": {
+        "_processor_class": null,
+        "do_resize": true,
+        "size": {
+          "shortest_edge": 224
+        },
+        "resample": 3,
+        "do_center_crop": true,
+        "crop_size": {
+          "height": 224,
+          "width": 224
+        },
+        "do_rescale": true,
+        "rescale_factor": 0.00392156862745098,
+        "do_normalize": true,
+        "image_mean": [
+          0.48145466,
+          0.4578275,
+          0.40821073
+        ],
+        "image_std": [
+          0.26862954,
+          0.26130258,
+          0.27577711
+        ],
+        "do_convert_rgb": true,
+        "image_processor_type": "CLIPImageProcessor"
+      },
+      "attention_class": "CLIPSdpaAttention",
+      "ignored_nonvisual_checkpoint_keys": 199
+    },
+    "fusion_width": 2048,
+    "fusion_normalization": "Each block unit L2; concatenate / float32(sqrt(3)); no second block normalization"
+  },
+  "pilot": {
+    "status": "PILOT_PASS",
+    "seconds": 73.36001790012233,
+    "epochs_per_condition": 1,
+    "held_out_performance_claim": false,
+    "protected_files_matched": 2483,
+    "runtime_projection": {
+      "method": "p90 historical selected epoch + fixed patience; measured full inner epoch / validation; 25% timing margin",
+      "planning_selected_epochs": 33,
+      "planning_selection_epochs": 43,
+      "per_model_seconds": {
+        "F0": 310.8841585825396,
+        "F8": 262.7591673855313,
+        "L0": 2171.3787808883344,
+        "L8": 2118.866075866174
+      },
+      "miniscreen_seconds": 4863.88818272258,
+      "screen_seconds": 19455.55273089032,
+      "screen_gpu_hours": 5.4043202030250885,
+      "maximum_epoch_miniscreen_seconds": 12783.179749599427,
+      "maximum_epoch_screen_gpu_hours": 14.203533055110475,
+      "screen_incremental_after_mini_seconds": 14591.664548167739,
+      "miniscreen_automatic_allowed": false,
+      "local_screen_within_gpu_budget": false,
+      "warning": "Matched grouped optimization may stop differently; this is a scheduling estimate, not a runtime guarantee."
+    }
+  },
+  "conditions": {
+    "F0": {
+      "epoch": {
+        "train_bce": 0.568661349848318,
+        "train_ce": 0.0,
+        "clipping_frequency": 0.17012448132780084,
+        "amp_retries": 0,
+        "seconds": 2.9734749998897314,
+        "paintings": 961,
+        "language_pairs": 9759,
+        "image_loading": 0.00011130073107779026,
+        "encoder_forward": 0.15873790183104575,
+        "head_forward": 1.014908199198544,
+        "head_backward": 0.6275658009108156,
+        "encoder_backward": 0.0,
+        "backward": 0.6275658009108156
+      },
+      "validation": {
+        "bce": 0.5321107351857655,
+        "seconds": 0.14855669997632504
+      },
+      "diagnostic_seconds": 0.1127432999201119,
+      "adapter_update_norm": 0.0,
+      "memory": {
+        "peak_process_rss_bytes": 1790296064,
+        "peak_cuda_allocated_bytes": 433844224,
+        "peak_cuda_reserved_bytes": 473956352
+      },
+      "optimizer_bytes": 1063664,
+      "images_per_second": 323.1908793703118,
+      "pairs_per_second": 3282.018513813603,
+      "inner_validation_probability_std": 0.18065665062992925,
+      "head_sha256": "ca9d6192bd20deadec3cef08dc25b219cd9285382defcab7d1b48fa1e039be81",
+      "gradients": {
+        "bce": 0.5760218501091003,
+        "ce": 2.0834648609161377,
+        "normalized_ce": 1.0019347667694092,
+        "head": {
+          "bce_norm": 1.0818106998895993,
+          "text_norm": 1.1861299065039128,
+          "scaled_text_norm": 0.0,
+          "scaled_ratio": 0.0,
+          "cosine": 0.031554174117227746,
+          "combined_norm": 1.0818106998895993,
+          "orthogonal_fraction": 0.9995020430673365,
+          "opposing_fraction": 0.0,
+          "zero_bce": false,
+          "zero_text": false
+        },
+        "clip_features_require_grad": false,
+        "lora": null,
+        "finite": true,
+        "gradient_names": "text_norm is CE8/ln(8); scaled_text_norm is coefficient*CE8/ln(8); eval-mode gradients before clipping"
+      },
+      "three_step_representation_shift": {
+        "shape": [
+          4,
+          512
+        ],
+        "norm_max_error": 5.960464477539063e-08,
+        "cosine_min": 1.0,
+        "max_abs_error": 2.384185791015625e-07,
+        "mean_l2_shift": 8.240824627137044e-07
+      }
+    },
+    "F8": {
+      "epoch": {
+        "train_bce": 0.5684156020587575,
+        "train_ce": 1.783580423037357,
+        "clipping_frequency": 0.1950207468879668,
+        "amp_retries": 0,
+        "seconds": 2.5208441999275237,
+        "paintings": 961,
+        "language_pairs": 9759,
+        "image_loading": 0.00010229810141026974,
+        "encoder_forward": 0.1292822987306863,
+        "head_forward": 0.6828675991855562,
+        "head_backward": 0.714288798160851,
+        "encoder_backward": 0.0,
+        "backward": 0.714288798160851
+      },
+      "validation": {
+        "bce": 0.5301589763702063,
+        "seconds": 0.09437120007351041
+      },
+      "diagnostic_seconds": 0.11413890006951988,
+      "adapter_update_norm": 0.0,
+      "memory": {
+        "peak_process_rss_bytes": 1794424832,
+        "peak_cuda_allocated_bytes": 433858048,
+        "peak_cuda_reserved_bytes": 473956352
+      },
+      "optimizer_bytes": 1071928,
+      "images_per_second": 381.2214971586223,
+      "pairs_per_second": 3871.3221548085276,
+      "inner_validation_probability_std": 0.18704085250980565,
+      "head_sha256": "5f082a114d7e32e1cc1dfffecf3713a568f70d8880b9068e5b6289956d0c630f",
+      "gradients": {
+        "bce": 0.5754960179328918,
+        "ce": 1.572969913482666,
+        "normalized_ce": 0.7564386129379272,
+        "head": {
+          "bce_norm": 1.0961467299549918,
+          "text_norm": 0.8812215811639655,
+          "scaled_text_norm": 0.08812215811639657,
+          "scaled_ratio": 0.08039266615338522,
+          "cosine": 0.2336247631610989,
+          "combined_norm": 1.120016540105121,
+          "orthogonal_fraction": 0.97232683293115,
+          "opposing_fraction": 0.0,
+          "zero_bce": false,
+          "zero_text": false
+        },
+        "clip_features_require_grad": false,
+        "lora": null,
+        "finite": true,
+        "gradient_names": "text_norm is CE8/ln(8); scaled_text_norm is coefficient*CE8/ln(8); eval-mode gradients before clipping"
+      },
+      "three_step_representation_shift": {
+        "shape": [
+          4,
+          512
+        ],
+        "norm_max_error": 5.960464477539063e-08,
+        "cosine_min": 1.0,
+        "max_abs_error": 2.384185791015625e-07,
+        "mean_l2_shift": 8.240824627137044e-07
+      }
+    },
+    "L0": {
+      "epoch": {
+        "train_bce": 0.5684754105735446,
+        "train_ce": 0.0,
+        "clipping_frequency": 0.17427385892116182,
+        "amp_retries": 0,
+        "seconds": 20.94281420018524,
+        "paintings": 961,
+        "language_pairs": 9759,
+        "image_loading": 8.005896900780499,
+        "encoder_forward": 4.6183050975669175,
+        "head_forward": 0.5962400019634515,
+        "head_backward": 0.8218927006237209,
+        "encoder_backward": 5.033851199783385,
+        "backward": 5.855743900407106
+      },
+      "validation": {
+        "bce": 0.5303611999747978,
+        "seconds": 1.4063238000962883
+      },
+      "diagnostic_seconds": 0.21444239979609847,
+      "adapter_update_norm": 1.3075344562530518,
+      "memory": {
+        "peak_process_rss_bytes": 1954504704,
+        "peak_cuda_allocated_bytes": 546857984,
+        "peak_cuda_reserved_bytes": 616562688
+      },
+      "optimizer_bytes": 3423152,
+      "images_per_second": 45.886860801711165,
+      "pairs_per_second": 465.98322014973905,
+      "inner_validation_probability_std": 0.17742179761587482,
+      "head_sha256": "68054ce9025ffcdd110f737aeb379c12870a5c0c674fee6495cef6c78a690fcb",
+      "gradients": {
+        "bce": 0.5665705800056458,
+        "ce": 2.0840091705322266,
+        "normalized_ce": 1.0021965503692627,
+        "head": {
+          "bce_norm": 1.0012931328361363,
+          "text_norm": 1.1670282831895895,
+          "scaled_text_norm": 0.0,
+          "scaled_ratio": 0.0,
+          "cosine": 0.027751296296891464,
+          "combined_norm": 1.0012931328361363,
+          "orthogonal_fraction": 0.9996148586099759,
+          "opposing_fraction": 0.0,
+          "zero_bce": false,
+          "zero_text": false
+        },
+        "clip_features_require_grad": true,
+        "lora": {
+          "bce_norm": 0.2896821839219315,
+          "text_norm": 0.04874632169034247,
+          "scaled_text_norm": 0.0,
+          "scaled_ratio": 0.0,
+          "cosine": 0.5958885336165004,
+          "combined_norm": 0.2896821839219315,
+          "orthogonal_fraction": 0.8030671550402102,
+          "opposing_fraction": 0.0,
+          "zero_bce": false,
+          "zero_text": false
+        },
+        "finite": true,
+        "gradient_names": "text_norm is CE8/ln(8); scaled_text_norm is coefficient*CE8/ln(8); eval-mode gradients before clipping"
+      },
+      "three_step_representation_shift": {
+        "shape": [
+          4,
+          512
+        ],
+        "norm_max_error": 5.960464477539063e-08,
+        "cosine_min": 0.9982321858406067,
+        "max_abs_error": 0.026596374809741974,
+        "mean_l2_shift": 0.0327378548681736
+      }
+    },
+    "L8": {
+      "epoch": {
+        "train_bce": 0.5682234679126984,
+        "train_ce": 1.7832627297495727,
+        "clipping_frequency": 0.2074688796680498,
+        "amp_retries": 0,
+        "seconds": 20.480053700041026,
+        "paintings": 961,
+        "language_pairs": 9759,
+        "image_loading": 7.892913999967277,
+        "encoder_forward": 4.378051900304854,
+        "head_forward": 0.7211401020176709,
+        "head_backward": 0.8115542989689857,
+        "encoder_backward": 4.847599599743262,
+        "backward": 5.659153898712248
+      },
+      "validation": {
+        "bce": 0.5283447951294296,
+        "seconds": 1.2929020998999476
+      },
+      "diagnostic_seconds": 0.1783727000001818,
+      "adapter_update_norm": 1.313658595085144,
+      "memory": {
+        "peak_process_rss_bytes": 1960288256,
+        "peak_cuda_allocated_bytes": 546871808,
+        "peak_cuda_reserved_bytes": 616562688
+      },
+      "optimizer_bytes": 3431416,
+      "images_per_second": 46.92370508765194,
+      "pairs_per_second": 476.5124224249691,
+      "inner_validation_probability_std": 0.18352274845623925,
+      "head_sha256": "410ff53164cb1f813500f4c953b652066ed4b26bb7c64b5ac8bad7453c37aad1",
+      "gradients": {
+        "bce": 0.5660169720649719,
+        "ce": 1.562063217163086,
+        "normalized_ce": 0.751193642616272,
+        "head": {
+          "bce_norm": 1.0053660073651296,
+          "text_norm": 0.8263617776586427,
+          "scaled_text_norm": 0.08263617776586428,
+          "scaled_ratio": 0.08219511815645902,
+          "cosine": 0.21689047476485107,
+          "combined_norm": 1.0264637822134808,
+          "orthogonal_fraction": 0.976195944447772,
+          "opposing_fraction": 0.0,
+          "zero_bce": false,
+          "zero_text": false
+        },
+        "clip_features_require_grad": true,
+        "lora": {
+          "bce_norm": 0.32632412970082253,
+          "text_norm": 0.1921076055866748,
+          "scaled_text_norm": 0.01921076055866748,
+          "scaled_ratio": 0.058870180934153145,
+          "cosine": 0.9655339533392878,
+          "combined_norm": 0.34490901639922256,
+          "orthogonal_fraction": 0.26027713105266476,
+          "opposing_fraction": 0.0,
+          "zero_bce": false,
+          "zero_text": false
+        },
+        "finite": true,
+        "gradient_names": "text_norm is CE8/ln(8); scaled_text_norm is coefficient*CE8/ln(8); eval-mode gradients before clipping"
+      },
+      "three_step_representation_shift": {
+        "shape": [
+          4,
+          512
+        ],
+        "norm_max_error": 5.960464477539063e-08,
+        "cosine_min": 0.9982338547706604,
+        "max_abs_error": 0.026277843862771988,
+        "mean_l2_shift": 0.03271060436964035
+      }
+    }
+  },
+  "protected_files_matched": 2483,
+  "production_e50l_csv_sha256": "162875b641407efea3bf28d1d147c2d9a3dd3dc2faed8863f9438bee517199a3",
+  "handoff": {
+    "archive": "runs/exp022_visual_lora/exp022_colab_inputs.zip",
+    "sha256": "bbedbe2ad7e426040aebb63366ea5978e03d6483503b8ac9c88af14238a3d156",
+    "bytes": 705080786,
+    "bundle_manifest_sha256": "e75a180270518f4a315b88b925e801dcbc61240639e003a54473516a80bed1af",
+    "input_manifest_sha256": "fa2f7c4528b49925c400216037a64381bc6a0b35a1b3b11458a6bcbfda924337"
+  },
+  "screening_decision": null,
+  "held_out_metrics": null,
+  "new_real_screening_checkpoints": 0,
+  "windows_tests": {
+    "passed": 197,
+    "skipped": 1
+  },
+  "no_locked_or_development_gold": true,
+  "frozen_checkpoint_assets_verified": {
+    "siglip2": {
+      "model": "google/siglip2-base-patch16-224",
+      "revision": "75de2d55ec2d0b4efc50b3e9ad70dba96a7b2fa2",
+      "assets": {
+        "config.json": {
+          "sha256": "fe8b5fe6d5734360678fd71c11c21e1ea3364bd8598d34295d9206335973ffd7",
+          "bytes": 253
+        },
+        "preprocessor_config.json": {
+          "sha256": "9b36b57ebaf20f09bf4c22100ccc21877ea6bfe5aead0c00c59f8af8ccefacfc",
+          "bytes": 394
+        },
+        "model.safetensors": {
+          "sha256": "612923381c76ec5a9bed335d1c48827e3f2e506ac31b044b63b2031fadee6a0b",
+          "bytes": 1500800904
+        }
+      }
+    },
+    "clip_large": {
+      "model": "openai/clip-vit-large-patch14",
+      "revision": "32bd64288804d66eefd0ccbe215aa642df71cc41",
+      "assets": {
+        "config.json": {
+          "sha256": "8a09b467700c58138c29d53c605b34ebc69beaadd13274a8a2af8ad2c2f4032a",
+          "bytes": 4519
+        },
+        "preprocessor_config.json": {
+          "sha256": "910e70b3956ac9879ebc90b22fb3bc8a75b6a0677814500101a4c072bd7857bd",
+          "bytes": 316
+        },
+        "model.safetensors": {
+          "sha256": "a2bf730a0c7debf160f7a6b50b3aaf3703e7e88ac73de7a314903141db026dcb",
+          "bytes": 1710540580
+        }
+      }
+    }
+  },
+  "ci": {
+    "run": "https://github.com/bqa100507-spec/SemEval-2027-Task-12---ArtEmotion-28-Subtask-3---Image-Only-Cross-Cultural-Sentiment-Prediction/actions/runs/43436145097",
+    "source_commit": "f0d2ac65d875a0875e8b280bc6065545611198e3",
+    "passed": 196,
+    "skipped": 2,
+    "conclusion": "success"
+  }
+}

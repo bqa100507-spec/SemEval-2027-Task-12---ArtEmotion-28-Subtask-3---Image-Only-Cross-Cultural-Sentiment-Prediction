@@ -1,0 +1,23 @@
+{
+  "model": "jiangchengchengNLP/EmotionCLIP",
+  "revision": "367bd3dbe08afa4e5e021b8b2617cc65a2409194",
+  "assets_sha256": {
+    "EmotionCLIP.pth": "78a3fd5ed67ebbd34ce6af0c79baaf152e8d57763307c3a5240eb5614b2dba68",
+    "EmotionCLIP.py": "cd5c4c6f4c044943f178bc7d6d75ac1d2756e4bc931cba161fa6fad02a496c53",
+    "preprocess.pkl": "51ff0f1d35da9d25c16b5a82957cfb43b76d01a94084c501ec4a9180dc4b53aa"
+  },
+  "clip_tokenizer": {
+    "model": "openai/clip-vit-base-patch32",
+    "revision": "3d74acf9a28c67741b2f4f2ea7635f0aaf6f0268",
+    "sha256": "b556ac8c99757ffb677208af34bc8c6721572114111a6e0aaf5fa69ff0b8d842"
+  },
+  "labels": ["amusement", "anger", "awe", "contentment", "disgust", "excitement", "fear", "sadness", "neutral"],
+  "prompt": "This picture conveys a sense of {}",
+  "batch_size": 16,
+  "gpu_ceiling_seconds": 600,
+  "blend_share": 0.2,
+  "min_test_like_gain": 0.002,
+  "min_fold_wins": 4,
+  "max_loss_regression": 0.005,
+  "competition_eligibility": "UNCERTAIN"
+}

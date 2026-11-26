@@ -1,0 +1,82 @@
+{
+  "exp032_source": "61ee4be9d629533cc5b03ef6bd8f925ac04dcc1e",
+  "p2_input_sha256": {
+    "training/pairs.csv": "50798ddac6d9bda709c53b0ab7fc5ff2bfc6fbc33a4e581c1ab5c45f94d57534",
+    "training/protocol.csv": "869b2fe227fb614d83827d8124a80bd02c5f7677482bf64ae7098856b9c70eed",
+    "history/exp022_R0.csv": "7cc728cd8b50ef828afa5cbaa8ef73c095ec5465664e54c7899d2cbc88039161",
+    "visual/features.npz": "17374581aa7b65dd9a24542b18e0a8449388b6b04262fc18d4da235d9ce68896",
+    "visual/provenance.json": "0782ff838dd1ee0af795979d2fdcaafd9f336da518b71613d400de28153065f4",
+    "visual/image_hashes.json": "4574c178e2e67e8e2d8c85117625195a6c7acf454280e979b99cb859023afa7e"
+  },
+  "p2": {
+    "fold_pair_counts": [
+      2764,
+      2724,
+      2721,
+      2692,
+      2699
+    ],
+    "paintings_per_fold": 267,
+    "sealed_paintings": 236,
+    "languages": 25
+  },
+  "feature_widths": {
+    "clip": 512,
+    "siglip2": 768,
+    "clip_large": 768
+  },
+  "archive_sha256": {
+    "metrics.json": "7f776b696ab2e5d53574dda18bcd8779df6ab36ea1c807308063dba273a6cc6d",
+    "run.json": "165dfd7638791d5877030624d20867d581125e9bb111eee899db2ce6d114f4e4",
+    "oof_E50_L.csv": "c85673f83a36022414292cf915a3dcab6a2502cf861f444d2fbf6a041128e874",
+    "oof_no_graph.csv": "226d2d4b6079548c98a0b6d6540457aacc715905ad7b623787dbe885d08a476c",
+    "oof_learned_graph.csv": "356edfdb510573f59ea2d1d9124a1f388d51c52c5bf753c8d60ae26fcec6837c"
+  },
+  "official_training": {
+    "revision": "cf7cc444cf56617f3b8417497c6930ad172c5c99",
+    "annotations_sha256": "070194c3f786a8116e1a02bbe30bea8ac1d4f42404b4a56649bc667a489b7787",
+    "paintings": 1571,
+    "pairs": 16019
+  },
+  "production_cache_manifests": {
+    "e50": "743c7b24aa50fb62dc3b0427e143e5c4410ff2bb27294ba21c3f23423aef89bd",
+    "clip_large": "76a0d74f41f9b27c74b0a9974575b5ba4b5fa9cca830a4cbe3ad9449924f0330"
+  },
+  "ridge": {
+    "reference_c": 0.3,
+    "gtol": 1e-08,
+    "ftol": 1e-13,
+    "maxiter": 1600,
+    "max_final_gradient": 5e-07,
+    "deviation_ratio": 0.5
+  },
+  "fixed_weights": [
+    0.25,
+    0.25,
+    0.5
+  ],
+  "inner_folds": 3,
+  "inner_seed": 203201,
+  "threads": 2,
+  "test_like_excluded": [
+    "English",
+    "Arabic",
+    "Chinese"
+  ],
+  "stack": {
+    "log_loss_weight": 0.1,
+    "ridge_weight": 0.005,
+    "maxiter": 300,
+    "ftol": 1e-13
+  },
+  "decision": {
+    "minimum_over_reference": 0.003,
+    "minimum_over_fixed": 0.002,
+    "maximum_log_loss_regression": 0.005,
+    "reference_fold_wins": 4,
+    "incremental_fold_wins": 3,
+    "bootstrap_draws": 10000,
+    "bootstrap_seed": 203204,
+    "trim_fraction": 0.05
+  }
+}

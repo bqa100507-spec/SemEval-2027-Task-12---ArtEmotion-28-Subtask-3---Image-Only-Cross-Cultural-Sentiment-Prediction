@@ -1,0 +1,15 @@
+{
+  "policy": "exp022-el8-final-v1",
+  "requires_owner_approval": true,
+  "training_revision": "eb4a7fac4ebe79971305b0b3de2c0e5102ea5f91",
+  "condition": "L8",
+  "seeds": [2027, 2028, 2029],
+  "training_paintings": 1335,
+  "inner_partition_fold_argument": 0,
+  "stopping": "Original hashed 10% inner partition, binary BCE, patience 10, maximum 100 epochs; fresh full-population refit for the selected epoch count",
+  "microbatch": 4,
+  "effective_paintings": 4,
+  "pixel_cache": "ram",
+  "locked_confirmation_access": false,
+  "development_scoring": false
+}

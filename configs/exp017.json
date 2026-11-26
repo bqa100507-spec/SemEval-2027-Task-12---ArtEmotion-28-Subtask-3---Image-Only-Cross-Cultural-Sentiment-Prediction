@@ -1,0 +1,77 @@
+{
+  "base_release": "2199868364ca315fed1b141d6e565528314ba5d5",
+  "upstream_revision": "cf7cc444cf56617f3b8417497c6930ad172c5c99",
+  "training_pairs": 16019,
+  "holdout_fraction": 0.15,
+  "holdout_seed": 17027,
+  "cv_folds": 5,
+  "cv_seed": 17028,
+  "early_stop_fraction": 0.1,
+  "early_stop_seed": 17029,
+  "hidden_width": 64,
+  "dropout": 0.2,
+  "seeds": [
+    2027,
+    2028,
+    2029
+  ],
+  "learning_rate": 0.001,
+  "weight_decay": 0.01,
+  "batch_size": 256,
+  "max_epochs": 150,
+  "gradient_clip": 1.0,
+  "patience": 15,
+  "target_dimensions": 64,
+  "text_weight": 0.1,
+  "auxiliary": "unit-normalized predictions and PCA targets; mean squared error over 64 coordinates; mean over paintings through inverse valid-pair-count weights; caption counts do not weight auxiliary loss",
+  "pca_solver": "randomized",
+  "pca_seed": 2027,
+  "minimum_pooled_contrast_gain": 0.003,
+  "minimum_incremental_gain": 0.002,
+  "minimum_fold_wins": 3,
+  "log_loss_guardrail_bits": 0.005,
+  "holdout_minimum_gain": 0.001,
+  "holdout_loss_guardrail_bits": 0.005,
+  "bootstrap_replicates": 10000,
+  "bootstrap_seed": 172027,
+  "teachers": {
+    "clip": {
+      "model": "openai/clip-vit-large-patch14",
+      "revision": "32bd64288804d66eefd0ccbe215aa642df71cc41",
+      "width": 768,
+      "max_length": 77,
+      "batch_size": 64,
+      "license": "MIT",
+      "status": "PRIMARY_EXISTING_RESOURCE",
+      "assets_sha256": {
+        "config.json": "8a09b467700c58138c29d53c605b34ebc69beaadd13274a8a2af8ad2c2f4032a",
+        "tokenizer.json": "a83e0809aa4c3af7208b2df632a7a69668c6d48775b3c3fe4e1b1199d1f8b8f4",
+        "tokenizer_config.json": "deef455e52fa5e8151e339add0582e4235f066009601360999d3a9cda83b1129",
+        "special_tokens_map.json": "f8c0d6c39aee3f8431078ef6646567b0aba7f2246e9c54b8b99d55c22b707cbf",
+        "merges.txt": "9fd691f7c8039210e0fced15865466c65820d09b63988b0174bfe25de299051a",
+        "vocab.json": "3f0c4f7d2086b61b38487075278ea9ed04edb53a03cbb045b86c27190fa8fb69",
+        "README.md": "de4274ec48590ab3aa1c239720ff55e99a37f4165c117ba3ad7af2b7df72687c",
+        "model.safetensors": "a2bf730a0c7debf160f7a6b50b3aaf3703e7e88ac73de7a314903141db026dcb"
+      },
+      "weight_bytes": 1710540580
+    },
+    "e5": {
+      "model": "intfloat/multilingual-e5-base",
+      "revision": "d128750597153bb5987e10b1c3493a34e5a4502a",
+      "width": 768,
+      "max_length": 512,
+      "batch_size": 64,
+      "license": "MIT",
+      "status": "RESEARCH_ONLY",
+      "assets_sha256": {
+        "config.json": "9dab198f24c8c0879e481cf7822005d5ecbceedbacb390ffafa594e28d31bac4",
+        "tokenizer.json": "62c24cdc13d4c9952d63718d6c9fa4c287974249e16b7ade6d5a85e7bbb75626",
+        "tokenizer_config.json": "efb5c0d09722e5fe59a462cd2a9976ee216d55b037597d997cd3fe833216da15",
+        "special_tokens_map.json": "06e405a36dfe4b9604f484f6a1e619af1a7f7d09e34a8555eb0b77b66318067f",
+        "README.md": "9d129cb0b912b55c7b5378f976a9c35ae4796c80466b659ad63930d8ca090fca",
+        "model.safetensors": "a18a44fad1d0b46ded15928144138cff1135d5cc8233bdd90be5f18822de09a7"
+      },
+      "weight_bytes": 1112201288
+    }
+  }
+}

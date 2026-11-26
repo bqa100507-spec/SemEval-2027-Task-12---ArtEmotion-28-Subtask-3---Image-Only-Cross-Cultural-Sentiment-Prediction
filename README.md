@@ -1,5 +1,8 @@
 # ArtEmotion-28 Subtask 3
 
+
+**Current research status (TASK-024): EXP-022 and TASK-023 are CLOSED; EL8 is NO_GO_FOR_PRODUCTION. E50+L remains the competition production model.** EL8's positive train-only CV result did not improve the owner-reported hosted Development result (0.4537 vs 0.4643). Its verified artifacts/history are retained. No EL8 retraining or promotion is pending. Read the [closure report](reports/exp022_final_closure.md), [complete research index](docs/research_index.md), [proposal-only EXP-023](reports/next_exp_proposal.md) and [future one-click workflow contract](docs/experiment_workflow_standard.md). Historical instructions below do not authorize new runs.
+
 Image-only cross-cultural sentiment prediction for SemEval 2027 Task 12. The competition release uses **E50+L**, the hosted-verified CLIP-B, SigLIP 2 Base and CLIP-L ensemble. The project owner reported Development Contrast **0.4643** for submission **#1046158**. Use the [competition release manifest and evaluation-day commands](docs/competition_release.md) for frozen inference.
 
 The sections below retain the original baseline setup and EXP-001–011 reproduction commands. The complete EXP-001–015 history is preserved on [archive/exp001-015-verified](https://github.com/bqa100507-spec/SemEval-2027-Task-12---ArtEmotion-28-Subtask-3---Image-Only-Cross-Cultural-Sentiment-Prediction/tree/archive/exp001-015-verified). [PR integration audit](docs/release016_pr_audit.json)
@@ -123,6 +126,33 @@ Use `prepare-e50` and `prepare-e50l` once to persist the verified heads. The ind
 
 Reuse the Task 001, EXP-002, EXP-006 and EXP-007 artifacts, then run `clip-large-cv` followed by `clip-large-dev` with `scripts/run_st3.py`. CV builds the pinned CLIP-L cache on CUDA and compares the four fixed systems on CPU. The second command evaluates a new candidate only if it clears the frozen gate. Both commands use `runs/exp010_clip_large/` by default. Use a shared new `--run-dir` for a repeat. [Protocol and results](reports/exp010_clip_large.md)
 
+## EXP-017 human-caption supervision
+
+The caption study compares matched BCE-only, CLIP-text and provisional multilingual-E5 students against refitted E50+L. It locks a new 15% confirmation holdout and uses five new grouped folds on the remaining original training paintings. Run `caption-audit`, the two `caption-extract --teacher clip/e5` commands, `caption-cv` and the guarded `caption-holdout` and `caption-dev` stages with `scripts/run_st3.py`. Use `caption-token-audit --teacher clip/e5` for all-training tokenizer diagnostics. [Frozen protocol and results](reports/exp017_text_supervision.md)
+
+## EXP-018 polarity-aware captions
+
+Use `scripts/run_exp018.ps1` with `-Stage Preflight`, `Audit`, `Pilot`, `CV`, `Verify`, `Confirm` or `Dev`. The owner completed the active run under `runs/exp018_polarity_captions/prepared/`: all 45 checkpoints passed deep replay, and the frozen decision is NO_GO. Its preparation report remains the historical handoff record; [EXP-019](reports/exp019_gradient_scaling.md) records the verified local completion and reused scores.
+
+## EXP-019: text scaling and gradient transfer
+
+EXP-019 completed locally with COMPETITION_NO_GO after all fifteen new checkpoints passed replay. Lambda=1.0 student pooled Contrast was 0.417569215; its ensemble scored 0.446633867. [EXP-020](reports/exp020_emotion_specific_captions.md) records the verified local evidence; the [EXP-019 report](reports/exp019_gradient_scaling.md) remains the original preparation record.
+
+## EXP-020: eight-emotion caption targets
+
+EXP-020 completed locally with COMPETITION_NO_GO after independent thirty-checkpoint/ten-target replay. E8 pooled Contrast was 0.439654679 versus A8 0.440223388; both ensembles fell below promotion. [EXP-021](reports/exp021_vote_distribution.md) records the verified local completion. The [EXP-020 report](reports/exp020_emotion_specific_captions.md) remains the historical preparation record.
+
+## EXP-021: annotation-only vote distribution
+
+Reliability audit and matched D0/D8 correctness pilot passed: **READY_FOR_LOCAL_RUN**. Eight empirical emotion counts reconstruct the binary votes exactly. No caption/text features or new checkpoint is used. Conservative preparation + eight-fit screening/replay estimate: 25.15 minutes, so Screening is an owner command:
+
+```powershell
+.\scripts\run_exp021.ps1 -Stage Screen
+.\scripts\run_exp021.ps1 -Stage ScreenVerify
+```
+
+For a fresh run, use `Preflight`, `Audit`, then `Pilot`. Only verified PILOT_PROMISING permits a separate `-Stage CV`, followed by `-Stage Verify`; the eight screening checkpoints are reused and only 22 missing fits are added. INCONCLUSIVE/UNPROMISING stops full CV. No confirmation, Development or LoRA stage exists. Paths, device and budgets are explicit options. [Audit assumptions, gradient/CE diagnostics, frozen gates and commands](reports/exp021_vote_distribution.md). Production E50+L remains unchanged.
+
 ## Independent checks
 
 ```powershell
@@ -132,3 +162,47 @@ Reuse the Task 001, EXP-002, EXP-006 and EXP-007 artifacts, then run `clip-large
 ```
 
 The local scorer implements the published specification. It also reports the starter kit's all-pairs Log Loss as a separate number. See [competition and provenance](docs/competition.md), [data audit](reports/data_audit.md), [baseline results](reports/baseline_dev.md), and [project state](docs/project_state.md).
+
+
+## EXP-022: controlled visual LoRA and vote supervision
+
+EXP-021 completed local five-fold CV and independent thirty-checkpoint replay with COMPETITION_NO_GO; [EXP-022](reports/exp022_visual_lora_vote_distribution.md) records the verified evidence without rewriting historical reports. The new F0/F8/L0/L8 factorial design matches painting-grouped batches, original student, vote objectives and seeds. Only the pinned CLIP-B visual q/v adapters can update; SigLIP2/CLIP-L remain cached and frozen. Production E50+L is unchanged.
+
+```powershell
+.\scripts\run_exp022.ps1 -Stage Preflight -Device cuda -MaxSeconds 600
+.\scripts\run_exp022.ps1 -Stage Pilot -Device cuda -MaxSeconds 900
+```
+
+Read the measured pilot forecast before starting MiniScreen. Training stops at completed-model boundaries; long stages require an explicit time budget. MiniScreenVerify is mandatory before Screen; ScreenVerify is mandatory before any separately owner-invoked CV. No five-fold run, locked scoring, Development scoring or upload is automatic. See the report for all stages, resource gates and [portable Colab commands](docs/exp022_colab.md).
+
+Measured EXP-022 outcome: preflight/pilot passed; MiniScreen 81.06-minute and Screen 5.40-GPU-hour forecasts triggered a resource handoff. No real screening or new held-out score exists. The validated private Colab bundle is prepared; see the report for exact hashes and the next command. Local tests: 197 passed / 1 skipped.
+
+
+## EXP-022 notebooks: Colab and Kaggle
+
+[Open in Colab](https://colab.research.google.com/github/bqa100507-spec/SemEval-2027-Task-12---ArtEmotion-28-Subtask-3---Image-Only-Cross-Cultural-Sentiment-Prediction/blob/0b4f0b89bc8835a11239664537a761c001238094/notebooks/EXP022_Colab.ipynb): upload `exp022_colab_inputs.zip` to MyDrive, select a GPU, then **Runtime → Run all** and authorize Drive.
+
+[Kaggle notebook](notebooks/EXP022_Kaggle.ipynb): import it into a private Kaggle Notebook, attach a private Dataset containing the same ZIP, enable one GPU and Internet, then **Run all**. Offline setup requires the separate checksum-pinned runtime kit prepared by the Colab helper. Kaggle never needs Drive.
+
+Both interfaces use frozen source `41ca0d4` and run **Preflight/Pilot only** by default. Review the benchmark before explicitly selecting and authorizing later stages. Checkpoint transfer requires matching runtime identities; partial models do not resume. See the [Colab](docs/exp022_colab.md) and [Kaggle](docs/exp022_kaggle.md) runbooks for logs, exports/restores, offline dependencies and exact pins. These notebooks have local structural/synthetic validation; **neither cloud GPU platform has been runtime-tested by this change**.
+
+
+## Exact pixel-cache execution update
+
+Current notebooks use execution source `eb4a7fac4ebe79971305b0b3de2c0e5102ea5f91` and helper `c3322759c1a216c69079cbdad1999f4bdaeff7ca` (SHA `c93e4df9997a68700773bca3dca4799e2f48c60e3e86e78180f6ad90c67ceb1e`). Earlier source pins above describe the preserved original workflow. Scientific configuration and acceptance gates are unchanged; the source identity intentionally changes for optional deterministic CPU FP32 pixel caching. New local checkouts use an `exp022-pixels-eb4a7fa` suffix, and runtime/source/cache-mode identities create separate persistent run directories. Do not restore or mix old completed fits into the new identity. Old execution sources and artifacts remain available. The original data ZIP and published input hashes are unchanged; old offline runtime kits need rebuilding for the new source/helper pins.
+
+`PIXEL_CACHE="ram"` runs **Preflight → PixelBenchmark → Pilot** during Run all. PixelBenchmark checks every cached image bitwise, BCE/CE gradients, optimizer updates and RNG, then counterbalances two complete inner-training epochs per reader/condition. It displays measured original/cached timings and revised forecasts on the actual runtime. It does not evaluate outer-fold scores or launch MiniScreen/Screen. Set `PIXEL_CACHE="off"` to retain uncached reads and skip the paired cache benchmark. RAM cache size is 803,819,520 bytes for 1,335 images; the default cap is 2 GiB, with 1 GiB free reserve plus 64 MiB scratch. Insufficient RAM stops explicitly; there is no silent fallback or lossy dtype change. Cache construction is per process and amortized across fits within a stage.
+
+Local RTX 4060 measurements showed 1.66×/1.60× full-epoch L0/L8 speedups and a 4.10→2.64 GPU-hour Screen forecast. **These are not L4 measurements.** The owner must Run all on L4 to measure whether that runtime now fits the unchanged four-hour gate. See the [pixel-cache report](../reports/exp022_pixel_cache.md) for exact profiles, parity and resource caveats.
+
+
+## TASK-0023: recovered EL8 and final-model preparation
+
+The complete L4 EXP-022 run has now been recovered and checksum-verified locally: 60 CV checkpoints, EL8 pooled training CV Contrast 0.452483161. This supersedes the earlier READY/no-screen status above without modifying historical records. E50+L remains production. Sealed prediction aggregation passed exactly; strict new image-backed L4-to-4060 parity failed (maximum EL8 error 0.000004). No final refit or Development scoring was performed.
+
+[Deployment report](reports/task023_el8_deployment.md) and [runbook](docs/el8_deployment.md) explain the explicit `predict --mode el8` path, complete archive recovery, and the owner-gated one-run final refit/verification/export workflow. The saved 15 L8 CV models are not a final three-seed model. A new final-fit policy, GPU-budget authorization and strict runtime replay PASS are required. [Colab](notebooks/EL8_FinalRefit_Colab.ipynb) and [Kaggle](notebooks/EL8_FinalRefit_Kaggle.ipynb) default to preparation with training off; no CV rerun or leaderboard upload is automatic.
+
+
+## TASK-0023 FINAL: one authorized run to a real Development ZIP
+
+Use the [final one-run instructions](reports/task023_final_one_run.md) and updated [Colab notebook](notebooks/EL8_FinalRefit_Colab.ipynb). Upload the private `el8_refit_handoff_v2.zip`, select L4, approve the policy/budgets in Configuration, and Run all once. The packaged input-only Development set has 849 pairs and 85 images, with complete verified frozen cache coverage. No gold labels are packaged or scored. Strict replay, preflight, missing final seeds, verification, real `predict --mode el8`, ZIP validation, persistent export and runtime release are automatic. A parity/input/budget failure stops safely and exports diagnostics. Training is off until explicit approval; no local GPU training or new L4 test was performed for this engineering change. EXP-022 stays closed and E50+L remains production.

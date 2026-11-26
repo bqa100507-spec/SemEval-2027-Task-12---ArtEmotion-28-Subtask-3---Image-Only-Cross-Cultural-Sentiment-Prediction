@@ -320,7 +320,8 @@ def main():
     prepare.add_argument("--exp007-dir", type=resolved_path, default=ROOT / "runs" / "exp007_fusion")
     predict.add_argument("--input", type=resolved_path, required=True)
     predict.add_argument("--output-dir", type=resolved_path, required=True)
-    predict.add_argument("--mode", choices=("e50l", "e50", "clip"), default="e50l")
+    predict.add_argument("--mode", choices=("e50l", "e50", "clip", "el8"), default="e50l")
+    predict.add_argument("--el8-model-dir", type=resolved_path, default=ROOT / "runs" / "el8_final" / "bundle")
     predict.add_argument("--device", choices=("auto", "cuda", "cpu"), default="auto")
     predict.add_argument("--clip-batch-size", type=int)
     predict.add_argument("--siglip2-batch-size", type=int)
@@ -331,7 +332,39 @@ def main():
     general_validate = commands.add_parser("validate-prediction", help="Validate a ZIP against an explicit ST3 input CSV")
     general_validate.add_argument("--input", type=resolved_path, required=True)
     general_validate.add_argument("archive", type=resolved_path)
+    for name in ("caption-audit", "caption-token-audit", "caption-extract", "caption-cv", "caption-holdout", "caption-dev"):
+        command = commands.add_parser(name, help="Run the frozen EXP-017 caption supervision stage")
+        command.add_argument("--run-dir", type=resolved_path, default=ROOT / "runs/exp017_text_supervision")
+        command.add_argument("--cache-dir", type=resolved_path, default=ROOT / "cache")
+        command.add_argument("--device", choices=("auto", "cuda", "cpu"), default="auto")
+        if name in ("caption-extract", "caption-token-audit"):
+            command.add_argument("--teacher", choices=("clip", "e5"), required=True)
+        if name == "caption-extract":
+            command.add_argument("--full-training", action="store_true")
+    for name in ("polarity-preflight", "polarity-audit", "polarity-pilot", "polarity-cv", "polarity-confirm", "polarity-dev", "polarity-verify"):
+        command = commands.add_parser(name, help="Run a bounded, resumable EXP-018 stage")
+        command.add_argument("--run-dir", type=resolved_path, default=ROOT / "runs/exp018_polarity_captions/prepared")
+        command.add_argument("--exp017-dir", type=resolved_path, default=ROOT / "runs/exp017_text_supervision")
+        command.add_argument("--data-dir", type=resolved_path, default=argparse.SUPPRESS)
+        command.add_argument("--cache-dir", type=resolved_path, default=ROOT / "cache")
+        command.add_argument("--device", choices=("auto", "cuda", "cpu"), default="auto")
+        command.add_argument("--max-seconds", type=float, default=0.)
+        command.add_argument("--deep-verify", action="store_true")
     args = parser.parse_args()
+
+    if args.command.startswith("polarity-"):
+        if args.max_seconds < 0 or (args.deep_verify and args.command != "polarity-verify"):
+            parser.error("Use a nonnegative time budget and restrict --deep-verify to polarity-verify")
+        from .polarity_cli import run_polarity
+
+        run_polarity(args)
+        return
+
+    if args.command.startswith("caption-"):
+        from .caption_study import run_caption
+
+        run_caption(args)
+        return
 
     if args.command == "prepare-e50":
         from .e50_heads import prepare_heads
@@ -347,7 +380,14 @@ def main():
         from .e50_inference import run_prediction, validate_input_archive
 
         if args.command == "predict":
-            run_prediction(args)
+            if args.mode == "el8":
+                from .el8_inference import run_el8
+                try:
+                    run_el8(args)
+                except (FileNotFoundError, ValueError, RuntimeError) as error:
+                    raise SystemExit("EL8 prediction blocked: " + str(error)) from None
+            else:
+                run_prediction(args)
         else:
             validate_input_archive(args)
         return
