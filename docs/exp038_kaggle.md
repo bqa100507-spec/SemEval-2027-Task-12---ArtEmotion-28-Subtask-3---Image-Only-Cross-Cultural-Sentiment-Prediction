@@ -51,14 +51,14 @@ Stage order: **Setup → Validate → Benchmark → Feature extraction → CS-CV
 
 | Pin | Value |
 | --- | --- |
-| Worker source (embedded in the overlay) | `85122b6b770bf31404c53602ea514094d2516fb9` |
-| Overlay `runs/exp038/handoff/exp038_inputs.zip` SHA-256 | `b9aeb02578b8299bf885139cac7dd9871b6df250c3947b381a0f1f575a448702` (24,541,593 bytes, 204 files) |
-| Overlay manifest SHA-256 | `36222457bac13e7b3abe8157261f400d060d68a283b0b7a3f47e70ecd35e794e` |
+| Worker source (embedded in the overlay) | `8a0f1439b01fa330118b022ccc6deb7039edbba2` |
+| Overlay `runs/exp038/handoff/exp038_inputs.zip` SHA-256 | `a8dd9e9aba8ebefce7c439e35b2bc3113f47d5cac8f8c1d18a1cf31740f78434` (24,542,012 bytes, 204 files) |
+| Overlay manifest SHA-256 | `5c6bdd79f649049f5a377b32a2744bcfe2154dbcb65aa94018d6a942ebb8884f` |
 | Base ZIP / manifest SHA-256 | `eaf16b9301cb131fbdf61a1b86fb191d3617b2141e39398f0c3b12bcf57ffce2` / `026720f406c02236aeaf5bfdc806853816323b66267f81f0e3e2dbbfe1ce7e0e` |
 
 ## Local verification before handoff
 
-`scripts/run_exp038.py cpu-validate`, run from the packaged overlay's own `runtime/` on the real base and overlay, reproduced on Windows CPU: all 13,600 Fixed Ridge OOF rows and every fold's inner component hash; the Corrected Ridge OOF CSV (`fc8273e3…`); pooled full / filtered Contrast and Log Loss to 1e-12 (Fixed 0.451702 / 0.709247 and 0.460043 / 0.718425; Corrected 0.454134 / 0.708500 and 0.463108 / 0.717479); the full-training Fixed Ridge heads and Corrected Ridge bank bit for bit; the Fixed and Corrected Development ZIP members; and both published compositions (EXP-036 ensemble, EXP-037 original blend) byte for byte. Kaggle Linux is a different platform, so Validate repeats these checks there before any GPU work. Wide-head convergence was checked on a real P2 fold with structured synthetic features: widths 1,152 and 2,048 and the E4 pair head converged in 207–292 iterations with gradient ≤ 2.4e-7 (limit 5e-7). `python -m pytest -q`: 401 passed, 5 skipped.
+`scripts/run_exp038.py cpu-validate`, run from the packaged overlay's own `runtime/` on the real base and overlay, reproduced on Windows CPU: all 13,600 Fixed Ridge OOF rows and every fold's inner component hash; the Corrected Ridge OOF CSV (`fc8273e3…`); pooled full / filtered Contrast and Log Loss to 1e-12 (Fixed 0.451702 / 0.709247 and 0.460043 / 0.718425; Corrected 0.454134 / 0.708500 and 0.463108 / 0.717479); the full-training Fixed Ridge heads and Corrected Ridge bank bit for bit; the Fixed and Corrected Development ZIP members; and both published compositions (EXP-036 ensemble, EXP-037 original blend) byte for byte. Kaggle Linux is a different platform, so Validate repeats these checks there before any GPU work. Wide-head convergence was checked on a real P2 fold with structured synthetic features: widths 1,152 and 2,048 and the E4 pair head converged in 207–292 iterations with gradient ≤ 2.4e-7 (limit 5e-7). `python -m pytest -q`: 402 passed, 5 skipped.
 
 ## Licenses and eligibility
 
