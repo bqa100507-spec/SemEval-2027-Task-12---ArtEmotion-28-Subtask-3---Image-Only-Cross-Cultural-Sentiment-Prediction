@@ -91,11 +91,21 @@ Checks that depend on a failed one are marked `SKIPPED_DEPENDENCY`.
 
 | Pin | Value |
 | --- | --- |
-| Worker source | _filled at packaging_ |
-| Overlay ZIP SHA-256 | _filled at packaging_ |
-| Overlay manifest SHA-256 | _filled at packaging_ |
+| Worker source (embedded in the overlay) | `471e400c077b689263851f77457227f1cc1db672` |
+| Overlay `runs/exp039/handoff/exp039_inputs.zip` SHA-256 | `7a98d970838e72489255926540fd4a3224f6c409d8f0ac40c456eec450a2491c` (53,501,170 bytes, 228 files) |
+| Overlay manifest SHA-256 | `6e2e53ad13e788baa8d4397f696bc00996f698e369a55f83ada955a8e513fc14` |
 | Base ZIP / manifest SHA-256 | `eaf16b9301cb131fbdf61a1b86fb191d3617b2141e39398f0c3b12bcf57ffce2` / `026720f406c02236aeaf5bfdc806853816323b66267f81f0e3e2dbbfe1ce7e0e` |
 | EXP-038 run-4 results / incumbent | `b80e7cda21ee9381b947c2a1707742d4bbf7dff44c864130185b71ccefbe9e09` / `62093a31da2cd1d864bad7b7818adf082524c09180e75ca0953d5177250ee4e6` |
+
+## Local verification before handoff
+
+`scripts/linux_preflight.py --experiment exp039 --allow-non-linux` ran `cpu-validate` on Windows 11 from the packaged overlay's own runtime, using the notebook's `locate` code, in two layouts: the intact ZIP and a simulated recursive Kaggle expansion. **Both layouts passed all 46 tolerance checks**, with identical results (receipt `runs/exp039/handoff/windows_cpu_validate.json`).
+
+- **R0 checks (33, all `exact=true`):** the R0 references were built on Windows, so this replay is bit-exact.
+- **C2 checks:** these compare against values the EXP-038 run produced on Kaggle Linux. They are within tolerance but not exact, with at most 8e-6 per row against the 2e-5 threshold (40%). The largest is the P2 E1 column.
+- **Expected on Linux:** the analysis side's Linux preflight should show the reverse pattern, with C2 near-exact and R0 within tolerance.
+
+`python -m pytest -q`: 432 passed, 5 skipped.
 
 ## Licenses and eligibility
 
