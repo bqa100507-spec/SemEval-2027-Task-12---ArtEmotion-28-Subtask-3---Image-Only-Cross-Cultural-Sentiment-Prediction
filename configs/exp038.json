@@ -1,0 +1,179 @@
+{
+  "experiment": "EXP-038",
+  "title": "Cultural-deviation ensemble of frozen CLIP-family and VLM-embedding interaction heads",
+  "owner_approval": "2026-11-26",
+  "eligibility": {
+    "vlm_free": ["R0_fixed", "R0_corrected", "E1", "E2", "C1", "B1_C1_original", "B1_C1_cscva3",
+                 "B1_R0_original", "B1_R0_cscva3"],
+    "unconfirmed_label": "UNCONFIRMED_QWEN_ST3"
+  },
+  "arms": {
+    "E1": {
+      "kind": "siglip2",
+      "model": "google/siglip2-so400m-patch14-384",
+      "revision": "e8e487298228002f3d8a82e0cd5c8ea9c567f57f",
+      "license": "Apache-2.0",
+      "weights_sha256": {
+        "model.safetensors": "9f4f4a49f908ef0c979bce8ff5a5c0e88882dc6c5dc4304387cbbd152558e2c2"
+      },
+      "metadata_git_blobs": {
+        "config.json": "7c1e0ed1759922fc4eb362d3b405958e829f364d",
+        "preprocessor_config.json": "e9e084ab5a0d74573432f1dcf11c1bdd8d9b3655"
+      },
+      "processor": "EXP-036 AutoImageProcessor, use_fast=False, 384 px",
+      "feature": "vision pooler_output under FP16 autocast, L2-normalized in FP32",
+      "width": 1152,
+      "batch": 16
+    },
+    "E2": {
+      "kind": "metaclip2",
+      "model": "facebook/metaclip-2-worldwide-huge-quickgelu",
+      "revision": "c139061af7b10fdb2e754b60d2b1182a3d5526c2",
+      "license": "CC-BY-NC-4.0",
+      "weights_sha256": {
+        "model-00001-of-00002.safetensors": "613cf23d7b12306a69ce77ece08379275af188c6cb46d5502a8e0e307c2dfcfb",
+        "model-00002-of-00002.safetensors": "41a5a3fe8de6fa1c1157b729a8263870182cb7625e7af3a25ba6a60d616d6a83"
+      },
+      "metadata_git_blobs": {
+        "config.json": "6367ff0fddb6efde80716f087df767dcc105dd30",
+        "preprocessor_config.json": "6b87f9bc7511073f32189607eaf7d534529b025d",
+        "model.safetensors.index.json": "fc4c68b049959b528cf4c205aa35a5ede27147cd"
+      },
+      "processor": "CLIPImageProcessor, use_fast=False, shortest edge 224 then 224 center crop",
+      "feature": "MetaClip2Model.get_image_features (projected image embeds, FP16 weights), L2-normalized in FP32",
+      "width": 1024,
+      "batch": 32
+    },
+    "E3": {
+      "kind": "qwen3_vl_embedding",
+      "model": "Qwen/Qwen3-VL-Embedding-2B",
+      "revision": "9f2f7e710d6d81056aa5c0a4f04764fec6bb7bda",
+      "license": "Apache-2.0",
+      "weights_sha256": {
+        "model.safetensors": "c73fa9caeddeb3ff831d46c085a7a5708343248ca777e90f2d486964464509c1",
+        "tokenizer.json": "def76fb086971c7867b829c23a26261e38d9d74e02139253b38aeb9df8b4b50a"
+      },
+      "metadata_git_blobs": {
+        "config.json": "e426469143f8255335f039fa32c959584558d1cc",
+        "preprocessor_config.json": "0dfe4c69669474dcbc3a9cb2880759b51c888973",
+        "video_preprocessor_config.json": "e32b1d90356f74457edbfca27aa1e121dab7cdc7",
+        "tokenizer_config.json": "1d4fba2de0e94e8f97e08927cfb7d084160c2880",
+        "chat_template.jinja": "a0b161f8af53a32ce7e659103babce500990a863",
+        "special_tokens_map.json": "ac23c0aaa2434523c494330aeb79c58395378103",
+        "added_tokens.json": "b54f9135e44c1e81047e8d05cb027af8bc039eed",
+        "vocab.json": "4783fe10ac3adce15ac8f358ef5462739852c569",
+        "merges.txt": "31349551d90c7606f325fe0f11bbb8bd5fa0d7c7"
+      },
+      "official_usage": "scripts/qwen3_vl_embedding.py at the pinned revision: system message carries the instruction, user message holds one image with min/max pixels, apply_chat_template(add_generation_prompt=True), qwen_vl_utils.process_vision_info(image_patch_size=16), processor(do_resize=False, padding=True, padding_side right), last non-padding token of last_hidden_state, L2 normalization",
+      "instruction": "Represent the emotion a viewer would feel looking at this artwork.",
+      "min_pixels": 4096,
+      "max_pixels": 262144,
+      "max_length": 8192,
+      "dtype": "float16",
+      "attention": "sdpa",
+      "width": 2048,
+      "batch": 8
+    },
+    "E4": {
+      "kind": "qwen3_vl_embedding_language",
+      "base": "E3",
+      "instruction_template": "Represent the emotion a {language}-speaking viewer would feel looking at this artwork.",
+      "feature": "E3 image features plus delta(i,l) = e(i,l) - e_neutral(i), both L2-normalized embeddings, delta not renormalized",
+      "pairs": "eligible official training pairs plus Development input pairs only",
+      "batch": 8
+    }
+  },
+  "chunk_items": 256,
+  "candidates": {
+    "C1": ["E1", "E2"],
+    "C2": ["E1", "E2", "E3"],
+    "C3": ["E1", "E2", "E4"]
+  },
+  "complexity_order": ["C1", "C2", "C3"],
+  "mix": {
+    "fixed_ridge_weight": 0.5,
+    "arm_mean_weight": 0.5,
+    "formula": "round6(0.5 * FixedRidge + 0.5 * mean(arms)) in probability space; FixedRidge is the Track 1 nested-rounded 0.25/0.25/0.50 blend"
+  },
+  "similarity": {
+    "R0": "original frozen space: concat(SigLIP2-Base, CLIP-L) / sqrt(2)",
+    "candidates": "every image encoder feeding the candidate (CLIP-B, SigLIP2-Base, CLIP-L and the arm image encoders; E4 contributes its E3 image features), each block L2-normalized, concatenated and divided by sqrt(number of blocks)"
+  },
+  "gate": {
+    "reference": "R0_corrected",
+    "minimum_filtered_gain": 0.004,
+    "minimum_fold_wins": 4,
+    "maximum_log_loss_delta": 0.005,
+    "bootstrap_seed": 203804,
+    "bootstrap_draws": 20000,
+    "trim_fraction": 0.05,
+    "tie_tolerance": 0.001
+  },
+  "diagnostic_seed": 203805,
+  "replay_tolerance": {
+    "note": "Cross-platform R0 replay (Windows-built references, Linux Kaggle). Each threshold is about 4x or more above the measured Linux-Windows difference.",
+    "probability": 2e-05,
+    "pooled": 1e-06,
+    "heads": 0.0001,
+    "bank": 0.0001
+  },
+  "cscva": {
+    "config": "configs/exp036.json",
+    "original_seed": 203036,
+    "new_seeds": [203836, 203936],
+    "freeze_epoch": 5,
+    "schedule_epochs": 6
+  },
+  "blends": {
+    "B1_cscva_weight": 0.25,
+    "B2_c6_weight": 0.20
+  },
+  "budget": {
+    "session_hours": 10.5,
+    "persistence_reserve_seconds": 1200,
+    "e4_cap_seconds": 10800,
+    "skip_order": ["cscva_seed_3", "cscva_seed_2", "E4"],
+    "mandatory": ["R0", "E1", "E2", "C1"],
+    "progress_interval_seconds": 900,
+    "forecast_margin": 1.25
+  },
+  "runtime": {
+    "python": "3.12.10",
+    "torch": "2.7.1+cu126",
+    "transformers": "4.57.6",
+    "qwen_vl_utils": "0.0.14",
+    "openblas_coretype": "Haswell",
+    "ridge_threads": 2
+  },
+  "references": {
+    "base_inputs_zip_sha256": "eaf16b9301cb131fbdf61a1b86fb191d3617b2141e39398f0c3b12bcf57ffce2",
+    "base_manifest_sha256": "026720f406c02236aeaf5bfdc806853816323b66267f81f0e3e2dbbfe1ce7e0e",
+    "p2_protocol_sha256": "869b2fe227fb614d83827d8124a80bd02c5f7677482bf64ae7098856b9c70eed",
+    "p2_pairs_sha256": "50798ddac6d9bda709c53b0ab7fc5ff2bfc6fbc33a4e581c1ab5c45f94d57534",
+    "track1_oof_sha256": "d57d56b83cb3fb68caccea2ed5762dd5938a0db024580085f86f72ccfea2930d",
+    "track1_metrics_sha256": "1aa52db94f65d5173bc46d6818e9ed1bcadebfcac0d218288c41462d09c62c45",
+    "track1_inner_oof_sha256": {
+      "1": "5e412a1261745e37918a5391a89ec1a30d9629cd41ec33826e7a31c0bcc86808",
+      "2": "ae0b3e5224df1a0f201c4f588a9ddd531bd5c24a0988a950b71eda0e302be14f",
+      "3": "ffccbead293d32977c6e30d13913e949699f863907c46f35cdbb27167012d02e",
+      "4": "46ee1bba38e5de317a466af24cef10bea3b9daaa36b7b359cea68698cc9efdf5",
+      "5": "83c2d4277e9a88defef7e47fa8a02efc7f90d63dd7004561a2ecfb6d4747b873"
+    },
+    "fixed_manifest_sha256": "1d211fc70c27d5ababaf6b7f05afa75c498854c4201b6039e333891d5016185a",
+    "exp037_c6_standalone_csv_sha256": "b84b8ae699492d9b53427554acf2c96601e77202a3133d467cd1c423458a5adc",
+    "exp037_results_zip_sha256": "852154e257a198f575dde6d47475aa80588aa48348b50792d47e34603bacb194",
+    "exp036_results_zip_sha256": "9c89585579a2af68e8589027d9f1269c1192bd4bf9373c99984f3e61fe554aa1",
+    "corrected_oof_sha256": "fc8273e3a05438f2058d41d47e5743102afd6b450cc86beb6c2b049bde3095fd",
+    "corrected_metrics_sha256": "7ba632ec0abf487e26b02ca8480a30370785458fb3163603c6258739a4ce7199",
+    "training_pair_sha256": "c7cf5585752d451c7ae13f427337a37cbe9c20ae0b28c7f686afed87a57a3e69",
+    "fixed_heads_sha256": "9105a0623867916c046dfd3ec4e1fa9fb6854c2d69068570c3b169bf47c89e76",
+    "corrected_bank_sha256": "e2cd9dd4ca3acc67320e8165279b1c2d8b36010c7c64dd12759e786163c4f08e",
+    "fixed_dev_zip_sha256": "d77f1bf6881afef898a73ea2a6d41c218dfccbd735295d8017509e3e09069b24",
+    "corrected_dev_zip_sha256": "39db05b31bb37a82c327a55c0d981af73db957e7133377308200218dfc67f958",
+    "exp036_standalone_zip_sha256": "d4feaa9dc09422eb78bf530b3cf9d36a6c76bcc2fc8e5cc50f57be5acdb25df1",
+    "exp036_ensemble_zip_sha256": "bd6752c9a8a60f7c3754053afe11eec0187172838e9c67d43880b9c41fb5b274",
+    "exp037_original_blend_zip_sha256": "b50861a1414fd863b4293bb6a8b3dd336bd6f2bc9071f8e20559b2774f4e1f33",
+    "caption_targets_sha256": "1df461afd51011e37a6b9af1e34e20c9d2983b4e5606fe2130bc2739b4b41cb8"
+  },
+  "test_like_excluded": ["English", "Arabic", "Chinese"]
+}

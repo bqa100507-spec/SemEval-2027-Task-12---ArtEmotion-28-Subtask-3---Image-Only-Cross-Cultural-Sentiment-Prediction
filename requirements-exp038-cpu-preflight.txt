@@ -1,0 +1,11 @@
+# CPU-only Linux preflight (scripts/linux_preflight.sh). Numeric versions match the Kaggle lock.
+numpy==2.2.6
+scipy==1.15.3
+pandas==2.2.3
+threadpoolctl==3.6.0
+pillow==11.2.1
+torch==2.7.1
+scikit-learn==1.6.1
+psutil==7.2.2
+tqdm==4.70.1
+requests==2.34.2

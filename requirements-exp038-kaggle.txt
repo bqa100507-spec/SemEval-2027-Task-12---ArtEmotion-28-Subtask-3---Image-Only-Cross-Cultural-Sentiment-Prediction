@@ -1,0 +1,3 @@
+# EXP-038 additions to the shared EXP-035 lock and EXP-036 requirements (Qwen3-VL-Embedding official usage).
+qwen-vl-utils==0.0.14
+av==15.1.0
