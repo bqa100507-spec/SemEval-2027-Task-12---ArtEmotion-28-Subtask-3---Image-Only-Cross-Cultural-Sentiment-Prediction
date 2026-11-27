@@ -100,9 +100,9 @@ Checks that depend on a failed one are marked `SKIPPED_DEPENDENCY`.
 
 | Pin | Value |
 | --- | --- |
-| Worker source (embedded in the overlay) | `471e400c077b689263851f77457227f1cc1db672` |
-| Overlay `runs/exp039/handoff/exp039_inputs.zip` SHA-256 | `7a98d970838e72489255926540fd4a3224f6c409d8f0ac40c456eec450a2491c` (53,501,170 bytes, 228 files) |
-| Overlay manifest SHA-256 | `6e2e53ad13e788baa8d4397f696bc00996f698e369a55f83ada955a8e513fc14` |
+| Worker source (embedded in the overlay) | `8f99b9fa74610b4b2f5f470b6a27dcc94d879d41` |
+| Overlay `runs/exp039/handoff/exp039_inputs.zip` SHA-256 | `4e918a8c44b6f762ee33420e61ad4f47a3fff33de82d31b4197471e88ba1ed36` (53,510,368 bytes, 233 files) |
+| Overlay manifest SHA-256 | `1ebcfca80a6e0eea5387be22bd4017b4b9807aa012395a67a78fce20fae9cad0` |
 | Base ZIP / manifest SHA-256 | `eaf16b9301cb131fbdf61a1b86fb191d3617b2141e39398f0c3b12bcf57ffce2` / `026720f406c02236aeaf5bfdc806853816323b66267f81f0e3e2dbbfe1ce7e0e` |
 | EXP-038 run-4 results / incumbent | `b80e7cda21ee9381b947c2a1707742d4bbf7dff44c864130185b71ccefbe9e09` / `62093a31da2cd1d864bad7b7818adf082524c09180e75ca0953d5177250ee4e6` |
 
@@ -114,7 +114,7 @@ Checks that depend on a failed one are marked `SKIPPED_DEPENDENCY`.
 - **C2 checks:** these compare against values the EXP-038 run produced on Kaggle Linux. They are within tolerance but not exact, with at most 8e-6 per row against the 2e-5 threshold (40%). The largest is the P2 E1 column.
 - **Expected on Linux:** the analysis side's Linux preflight should show the reverse pattern, with C2 near-exact and R0 within tolerance.
 
-`python -m pytest -q`: 432 passed, 5 skipped.
+`python -m pytest -q`: 437 passed, 5 skipped.
 
 ## Licenses and eligibility
 
