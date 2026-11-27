@@ -606,7 +606,7 @@ def test_deploy_prepare_and_infer_from_precomputed_features(built, tmp_path):
     args = type("A", (), {"bundle": bundle, "input": built["base"] / data.DEV_INPUT, "images": built["base"],
                           "output": tmp_path / "inferred", "features": tmp_path / "features.npz",
                           "cscva": [built["overlay"] / "reference/exp036_standalone_submission.zip", *seeds],
-                          "c6": original / "exp038_R0_fixed_submission.zip"})()
+                          "c6": original / "exp038_R0_fixed_submission.zip", "selected_only": False})()
     # C6 for these keys is the saved EXP-037 C6 standalone; package it as a ZIP for the same keys.
     c6 = submission.read_predictions(built["overlay"] / "reference/exp037_c6_standalone/predictions.csv", dev)
     args.c6 = io38.write_submission(c6, dev, tmp_path / "c6", "c6")
@@ -888,3 +888,95 @@ def test_config_hash_pins_are_well_formed():
         with pytest.raises(ValueError, match="Malformed hash pins"):
             io38.check_config_pins(broken)
     assert "check_config_pins(config)" in (ROOT / "scripts/package_exp038.py").read_text(encoding="utf-8")
+
+
+
+def test_deploy_selected_only_skips_unused_arms_and_matches(built, tmp_path, monkeypatch):
+    import deploy_exp038
+    import run_exp038
+
+    monkeypatch.setattr(science, "select", lambda gates, order, tolerance: "C2")
+    ctx = fx.context(built, tmp_path)
+    run_exp038.run_pipeline(ctx, fx.MockBackend(ctx))
+    bundle = tmp_path / "deploy"
+    deploy_exp038.prepare(type("A", (), {"results": ctx.output / "exp038_results.zip", "output": bundle,
+                                         "identity": built["overlay_sha"]})())
+    dev = data.read_dev_input(built["base"])
+    features, _ = run_exp038.features_with_arms(ctx, ("E1", "E2", "E3"))
+    names = sorted(dev.painting.unique())
+    np.savez(tmp_path / "features.npz", paintings=np.asarray(names),
+             **{n: features[n].loc[names].to_numpy() for n in [*ENCODERS, "E1", "E2", "E3"]})
+    c6 = submission.read_predictions(built["overlay"] / "reference/exp037_c6_standalone/predictions.csv", dev)
+    seeds = [ctx.root / f"development/submissions/exp038_CSCVA_seed_{s}_submission.zip"
+             for s in built["config"]["cscva"]["new_seeds"]]
+    args = type("A", (), {"bundle": bundle, "input": built["base"] / data.DEV_INPUT, "images": built["base"],
+                          "output": tmp_path / "inferred", "features": tmp_path / "features.npz",
+                          "cscva": [built["overlay"] / "reference/exp036_standalone_submission.zip", *seeds],
+                          "c6": io38.write_submission(c6, dev, tmp_path / "c6", "c6"), "selected_only": True})()
+    deploy_exp038.compose(args)
+    receipt = read(tmp_path / "inferred/inference_receipt.json")
+    assert receipt["arms_extracted"] == ["E1", "E2", "E3"] and receipt["best_available"]
+    assert not {"E4", "C3", "B2_C3_cscva3"} & set(receipt["archives"])
+    run_archives = read(ctx.root / "development/scores.json")["archives"]
+    best = tmp_path / "inferred/exp038_best_submission.zip"
+    assert io38.zip_member(best) == io38.zip_member(ctx.root / run_archives["B2_C2_cscva3"]["zip"])
+
+
+# Closure tooling: Linux preflight of the exact upload ZIP.
+
+def preflight_inputs(built, tmp_path):
+    archive = overlay_zip(built, tmp_path)
+    handoff = tmp_path / "handoff.json"
+    handoff.write_text(json.dumps({"archive_sha256": sha(archive), "manifest_sha256": built["overlay_sha"],
+                                   "source": "fixture", "base_manifest_sha256": built["base_sha"]}))
+    return archive, handoff
+
+
+def test_linux_preflight_argument_handling(built, tmp_path):
+    import linux_preflight
+
+    archive, handoff = preflight_inputs(built, tmp_path)
+    base = ["--base", str(built["base"]), "--receipt", str(tmp_path / "r.json")]
+    with pytest.raises(SystemExit):
+        linux_preflight.parse(["--overlay-zip", str(tmp_path / "missing.zip"), "--handoff", str(handoff),
+                               "--work", str(tmp_path / "w"), *base])
+    other = tmp_path / "other.zip"
+    other.write_bytes(archive.read_bytes() + b"x")
+    with pytest.raises(SystemExit):
+        linux_preflight.parse(["--overlay-zip", str(other), "--handoff", str(handoff), "--work", str(tmp_path / "w"),
+                               *base, "--allow-non-linux"])
+    busy = tmp_path / "busy"
+    busy.mkdir()
+    (busy / "f").write_text("x")
+    with pytest.raises(SystemExit):
+        linux_preflight.parse(["--overlay-zip", str(archive), "--handoff", str(handoff), "--work", str(busy), *base,
+                               "--allow-non-linux"])
+    import platform
+
+    if platform.system() != "Linux":
+        with pytest.raises(SystemExit):
+            linux_preflight.parse(["--overlay-zip", str(archive), "--handoff", str(handoff),
+                                   "--work", str(tmp_path / "w"), *base])
+    script = (ROOT / "scripts/linux_preflight.sh").read_text(encoding="utf-8")
+    assert "python:3.12.10" in script and "requirements-exp038-cpu-preflight.txt" in script
+
+
+def test_linux_preflight_runs_both_layouts_and_writes_a_receipt(built, tmp_path):
+    import linux_preflight
+
+    archive, handoff = preflight_inputs(built, tmp_path)
+    seen = []
+
+    def fake_validate(root, base, handoff, output):
+        seen.append(root)
+        restored = io38.restore_overlay(root, handoff["manifest_sha256"], handoff["base_manifest_sha256"],
+                                        output / "restored")
+        assert (restored / "reference/corrected_ridge_submission.zip").is_file()
+        return {"status": "PASS", "exact": False}
+
+    code = linux_preflight.main(["--overlay-zip", str(archive), "--handoff", str(handoff), "--base", str(built["base"]),
+                                 "--work", str(tmp_path / "w"), "--receipt", str(tmp_path / "r.json"),
+                                 "--allow-non-linux"], run_validate=fake_validate)
+    receipt = read(tmp_path / "r.json")
+    assert code == 0 and receipt["status"] == "PASS" and set(receipt["layouts"]) == {"intact", "recursive"}
+    assert len(seen) == 2 and receipt["overlay_zip_sha256"] == sha(archive)

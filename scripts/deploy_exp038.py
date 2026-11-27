@@ -134,16 +134,28 @@ def extract_features(inputs, args, arms, config):
     return features, delta, hashes
 
 
-def predict(bundle, inputs, test_features, delta):
+def recipe_arms(manifest, selection):
+    """Arms the selected recipe needs; none for a NO_GO (the best ZIP is then the archived EXP-037 blend)."""
+    selected = selection.get("selected_candidate")
+    return tuple(manifest["candidates"][selected]) if selected else ()
+
+
+def predict(bundle, inputs, test_features, delta, keep_arms=None):
     manifest = read(bundle / "manifest.json")
     check(bundle, manifest["files"])
     config = manifest["config"]
     arms = tuple(manifest["arms"])
     candidates = {k: tuple(v) for k, v in manifest["candidates"].items()}
     heads = load_heads(bundle)
+    if keep_arms is not None:
+        arms = tuple(a for a in arms if a in keep_arms)
+        candidates = {k: v for k, v in candidates.items() if set(v) <= set(arms)}
+        heads = {name: head for name, head in heads.items() if name in ENCODERS or name in arms}
     with np.load(bundle / "train_features.npz", allow_pickle=False) as saved:
         train_paintings = saved["paintings"].tolist()
-        train = {name: pd.DataFrame(saved[name], index=train_paintings) for name in saved.files if name != "paintings"}
+        needed = {*ENCODERS, *[science.image_encoder(a) for a in arms]}
+        train = {name: pd.DataFrame(saved[name], index=train_paintings) for name in saved.files
+                 if name != "paintings" and name in needed}
     if set(train_paintings) & set(inputs.painting):
         raise ValueError("A requested painting ID is also a training bank painting")
     features = {name: pd.concat([train[name], test_features[name].astype(train[name].dtypes.iloc[0])])
@@ -162,20 +174,23 @@ def compose(args):
     manifest = read(bundle / "manifest.json")
     official = read(ROOT / "configs/e50_inference.json")["official_languages"]
     inputs = read_input(args.input, official)
+    selection = read(args.bundle / "selection.json")
+    keep = recipe_arms(manifest, selection) if args.selected_only else None
+    wanted = tuple(manifest["arms"]) if keep is None else keep
     if args.features:
         with np.load(args.features, allow_pickle=False) as saved:
             paintings = saved["paintings"].tolist()
             test = {name: pd.DataFrame(saved[name], index=paintings) for name in saved.files
                     if name not in {"paintings", "pair_keys", "E4"}}
             delta = None
-            if "E4" in saved.files:
+            if "E4" in saved.files and "E4" in wanted:
                 keys = pd.DataFrame([k.split("|", 1) for k in saved["pair_keys"].tolist()], columns=data.KEYS)
                 delta = science.PairDelta.build(keys, saved["E4"], test["E3"])
         receipt_features = {"precomputed": sha(args.features)}
     else:
-        test, delta, hashes = extract_features(inputs, args, tuple(manifest["arms"]), manifest["config"])
+        test, delta, hashes = extract_features(inputs, args, wanted, manifest["config"])
         receipt_features = {"image_sha256": hashes}
-    frame, config, arms, candidates = predict(bundle, inputs, test, delta)
+    frame, config, arms, candidates = predict(bundle, inputs, test, delta, keep)
     dev = inputs
     outputs = {name: science.system_frame(frame, name) for name in ["R0_fixed", "R0_corrected", *arms, *candidates]}
     cscva = {}
@@ -190,7 +205,6 @@ def compose(args):
         c6 = submission.validate_archive(args.c6, dev)
         bases = {"R0": outputs["R0_corrected"]} | {name: outputs[name] for name in candidates}
         outputs |= science.blends(bases, cscva, c6, dev, config)
-    selection = read(args.bundle / "selection.json")
     with new_output(args.output) as stage:
         archives = {}
         for name, prediction in outputs.items():
@@ -207,7 +221,7 @@ def compose(args):
             "external_components": {"cscva": [sha(p) for p in args.cscva or []],
                                     "c6": sha(args.c6) if args.c6 else None},
             "selection": selection, "archives": archives,
-            "best_available": chosen in outputs,
+            "best_available": chosen in outputs, "arms_extracted": list(wanted),
             "inputs_used": "artwork pixels and target language only"})
     print(f"Validated {len(inputs)} pairs; outputs in {args.output}", flush=True)
 
@@ -225,6 +239,8 @@ if __name__ == "__main__":
     i.add_argument("--cscva", type=Path, action="append", help="EXP-036 CS-CVA ZIP(s) for the same keys")
     i.add_argument("--c6", type=Path, help="EXP-037 C6 standalone ZIP for the same keys")
     i.add_argument("--features", type=Path, help="Precomputed feature NPZ (CPU replay and tests)")
+    i.add_argument("--selected-only", action="store_true",
+                   help="Extract and score only the arms of the selected recipe (C2: E1, E2, E3; no E4)")
     i.add_argument("--device", default="cuda")
     i.add_argument("--cache-dir", type=Path, default=ROOT / "cache")
     i.add_argument("--siglip2-python", type=Path, default=ROOT / ".venv-siglip2" /

@@ -1,13 +1,14 @@
 # SemEval-2027 ST3 project state
 
-Updated 26 November 2026. **The active incumbent is the EXP-036 ensemble, 75% Corrected Ridge and 25% epoch-5 CS-CVA.** Corrected Ridge is the primary fallback. E50+L remains the historical released fallback, with E50 and CLIP available explicitly. [Experiment registry](experiment_registry.md) · [Evaluation inference](exp036_evaluation.md) · [E50+L release](competition_release.md)
+Updated 27 November 2026. **The active incumbent is EXP-038 `B2_C2_cscva3`** = round6(0.80 × round6(0.75 × C2 + 0.25 × CS-CVA-3) + 0.20 × C6), adopted by the owner on 2026-11-27, owner-reported hosted 0.4737 (#1071328), `UNCONFIRMED_QWEN_ST3`. **The VLM-free fallback remains the EXP-036 ensemble** (75% Corrected Ridge and 25% epoch-5 CS-CVA), then Corrected Ridge. E50+L remains the historical released fallback, with E50 and CLIP available explicitly. [Experiment registry](experiment_registry.md) · [Evaluation inference](exp036_evaluation.md) · [E50+L release](competition_release.md)
 
 ## Hosted Development
 
 | System | Hosted Contrast | Submission | Repository status |
 | --- | ---: | ---: | --- |
+| **EXP-038 `B2_C2_cscva3`** | **0.4737** | **#1071328** | Active incumbent (owner decision 2026-11-27); owner-reported 2026-11-27 18:09 UTC+7, matches local 0.473743 / 0.725075; Qwen (E3, C6) eligibility unresolved; MetaCLIP 2 CC-BY-NC-4.0 |
 | EXP-037 original C6 blend | 0.4728 | #1068597 | Owner-reported 2026-11-26, matches local 0.472818; Qwen eligibility unresolved; incumbent decision is the owner's |
-| **EXP-036 ensemble** | **0.4703** | **#1065924** | Active incumbent, local Development replay 0.470339 / 0.729709 |
+| EXP-036 ensemble | 0.4703 | #1065924 | VLM-free fallback, local Development replay 0.470339 / 0.729709 |
 | Corrected Ridge | 0.4655 | #1063064 | Primary fallback, local Development replay 0.465462 / 0.740305 |
 | E50+L | 0.4643 | #1046158 | Released production fallback |
 | EL8 | 0.4537 | #1053827 | Archived, production NO-GO |
@@ -41,6 +42,8 @@ P2 uses five grouped folds over 1,335 official training paintings and 13,600 pai
 
 ## Completed experiments
 
+- **EXP-038 — closed GO, selected C2; adopted as incumbent.** Kaggle run 5 (2026-11-27, worker `8b42a10`) completed. P2 test-like gate vs on-platform Corrected Ridge (0.463108): C2 **0.468648**, +0.005540 [+0.002561, +0.008476], 5/5 folds, PASS; C3 passed but lost the tie rule; C1 (VLM-free) +0.001696 failed. E3 (Qwen3-VL-Embedding-2B, neutral) alone matches Fixed Ridge (0.4604 vs 0.4600) with better Log Loss; E4's language instruction adds nothing (E4 − E3 −0.000027 [−0.000571, +0.000511]). Development (reporting only): `B2_C2_cscva3` 0.473743 / 0.725075 full, 0.456763 Evaluation-like; owner-reported hosted 0.4737 (#1071328). Independent CPU audit: no mismatches. No VLM-free improvement. [Closure](../reports/exp038_final.md) · [Evaluation inference](exp038_evaluation.md)
+
 - **EXP-037 — complete and artifact-verified, experimental.** Original C6 blend: **0.472818 / 0.728088** full and **0.454041 / 0.750275** Evaluation-like. Separately selected post-hoc 65/15/20: **0.473143 / 0.729246** full and **0.453667 / 0.751549** Evaluation-like. Both are local Development results with unresolved Qwen eligibility. The incumbent stays EXP-036. [Closure](../reports/exp037_final.md) · [Deployment](exp037_evaluation.md)
 
 - **EXP-036 — closed as the selected competition candidate.** Kaggle completed six epochs. Epoch-5 standalone scored **0.437632 / 0.742911**. The frozen 75/25 blend gained **+0.004876 Contrast** and reduced Macro Log Loss by **0.010597 bits** versus Corrected Ridge on Development. The deployment bundle is in `runs/exp036/deployment/`. Fresh CS-CVA GPU inference passed on two new synthetic artworks. Hidden Evaluation remains unmeasured. [Closure report](../reports/exp036_final.md) · [Smoke test](exp037_evaluation.md#closure-replay)
@@ -53,7 +56,7 @@ Default to a single resumable Kaggle run on the full authorized official trainin
 
 ## Active, blocked and proposed work
 
-- **EXP-038 — approved 2026-11-26, implementation in progress (prepared and tested on CPU; no GPU run).** Cultural-deviation ensemble: frozen SigLIP2 So400m (E1), MetaCLIP 2 worldwide ViT-H/14 (E2) and Qwen3-VL-Embedding-2B neutral (E3) and language-instructed (E4) features, each through the unchanged Track 1 full-interaction ridge, mixed 50/50 with Fixed Ridge and corrected with the frozen neighborhood formula. Pre-registered candidates C1 (VLM-free), C2 and C3 face a frozen P2 gate against Corrected Ridge (+0.004 filtered Contrast, positive paired lower bound, 4/5 fold wins, positive trimmed gain, no full regression, Log Loss within +0.005 bits). Development is reporting only. The earlier shared-basis design is superseded. [Runbook](exp038_kaggle.md) · [Evaluation inference](exp038_evaluation.md) · [Superseded recommendation](../reports/exp038_design_recommendation.md)
+- **EXP-038 shared-basis recommendation — SUPERSEDED** by the closed cultural-deviation ensemble. [Superseded recommendation](../reports/exp038_design_recommendation.md)
 
 - **DINOv3 — access pending.** The official ViT-B/16 gate returned authenticated HTTP 403 for the pinned weights and config. Hugging Face approval is pending in the project record. A valid checkpoint preflight, feature extraction and outer evaluation are all unmeasured. Preserve the existing runner and its frozen scope. [Track 2 access receipt and runner](experiment_registry.md#competition-candidates-and-controls)
 - **EXP-034 — paused, proposal only.** No implementation or run is recorded. The latest possible CPU-only direction is a whole-image color, tone and coarse-composition branch. It is an untested idea. More Qwen Pearson fine-tuning was declined in the latest audit. [Diagnostics and proposals](experiment_registry.md#diagnostics-and-strategy)
