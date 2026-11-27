@@ -59,7 +59,7 @@ finally:
 
 ## Pre-upload checklist (mandatory before every Kaggle handoff)
 
-Added after EXP-038, where four Kaggle runs stopped before any GPU work on four different packaging or replay issues ([incident log](../reports/exp038_final.md#technical-incident-log)). Every item must hold for the exact ZIP the owner will upload. Record the evidence in the handoff receipt.
+Added after EXP-038, where three Kaggle runs stopped before any GPU work on three different packaging or replay issues ([incident log](../reports/exp038_final.md#technical-incident-log)). Every item must hold for the exact ZIP the owner will upload. Record the evidence in the handoff receipt.
 
 1. **No nested archives.** Kaggle expands archives nested inside an uploaded dataset, recursively. An upload must contain no member with an archive extension (`.zip .tar .gz .tgz .7z .bz2 .xz .whl`) and no member that starts with the ZIP magic `PK\x03\x04`. `.npz` files are ZIP containers too. Store such members as base64 `.b64` text with both the stored and the decoded SHA-256 in the manifest. Decode them into `/kaggle/temp`, verify the decoded hash, and keep the mount read-only. The packager must refuse to build otherwise (EXP-038: `encode_members` / `refuse_archives`), and a test must simulate recursive expansion. Exempt inherited base dataset: `exp037_inputs.zip` (`eaf16b93…`), whose one ZIP-magic member `training/targets.npz` already verified on Kaggle.
 2. **Pins are generated, never typed.** Hash pins come from code: from the downloaded files at the pinned revision or from the Hugging Face tree API. The packager checks formats and refuses bad pins: 40 lowercase hex characters for git blobs, 64 for every `*_sha256` (EXP-038: `check_config_pins`).

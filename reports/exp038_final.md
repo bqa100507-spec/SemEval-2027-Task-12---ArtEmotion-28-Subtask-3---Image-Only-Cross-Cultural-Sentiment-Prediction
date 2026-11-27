@@ -15,7 +15,7 @@ Contrast depends only on the image-specific language deviation. Earlier gains ca
 
 ## Run
 
-Kaggle run 5 finished on 2026-11-27, ending `COMPLETE` at Release with decision GO.
+Kaggle run 4 finished on 2026-11-27, ending `COMPLETE` at Release with decision GO.
 
 - **Identity:** worker `8b42a10775f0bfa88c4266855f21bce1fb834e94`; overlay manifest `b3303f03…`; base manifest `026720f4…`; one Tesla T4; Python 3.12.10, Torch 2.7.1+cu126, Transformers 4.57.6, qwen-vl-utils 0.0.14, numpy 2.2.6, scipy 1.15.3; Linux 6.18 with OpenBLAS 0.3.29 Haswell kernels and 2 ridge threads.
 - **Archive integrity:** all 112 export members match the export manifest. All 10 stage seals match their files and identity; the feature caches seal the run identity plus their arm, spec and chunk size.
@@ -129,26 +129,25 @@ All 16 B1/B2 ZIPs and CS-CVA-3 were recomposed from their component ZIPs, and th
 
 ## Technical incident log
 
-Four Kaggle runs stopped before any GPU work, each time on a different packaging or replay issue. Run 5 succeeded.
+Three Kaggle runs stopped before any GPU work, each time on a different packaging or replay issue. Run 4 succeeded (results archive `b80e7cda…`).
 
 1. **Run 1: nested archives expanded.**
    - *Symptom:* the overlay's `reference/*.zip` members arrived as directories, failing with "Missing or corrupt file …".
    - *Root cause:* Kaggle expands archives nested inside an uploaded dataset. `.npz` files are ZIP containers too.
    - *Fix (patch 2):* every member with an archive extension or ZIP magic is stored as `.b64` text, decoded into `/kaggle/temp` and checked against its decoded SHA-256. The packager refuses archive-like members, and a test simulates the recursive expansion.
    - *Rule:* pre-upload checklist item 1.
-2. **Run 2.** The patch prompts and logs available to this closure do not document a separate run-2 failure, so none is recorded here. Patch 1 was a pre-run change, not a run failure: it made E3/E4 optional so a Qwen failure cannot discard C1 (checklist item 6).
-3. **Run 3: truncated pin.**
+2. **Run 2: truncated pin.**
    - *Symptom:* "Pinned metadata differs … `special_tokens_map.json`".
    - *Root cause:* a hand-copied git-blob pin had 39 characters.
    - *Fix (patch 3):* the value was recomputed from a fresh download. The packager now refuses any malformed pin.
    - *Rule:* checklist item 2.
-4. **Run 4: bit-exact replay across platforms.**
+3. **Run 3: bit-exact replay across platforms.**
    - *Symptom:* "Fold 1 failed exact replay of the Track 1 inner component probabilities".
    - *Root cause:* the iterative ridge solver and platform math libraries make Windows and Linux differ by ≤ 5e-6 in probability and ≤ 1e-7 in metrics.
    - *Fix (patch 4):* replay uses measured tolerances recorded in the config, with receipts. Gates use on-platform references.
    - *Rule:* checklist item 3.
-5. **Common root cause:** the implementation was validated only on Windows before handoff. Rule: checklist item 4, Linux preflight from the exact upload ZIP (`scripts/linux_preflight.sh`). Each failure also surfaced one layer at a time (checklist item 5).
-6. **Cosmetic:** every Kaggle log line printed twice (launcher plus tee). This is recorded as a known defect for the next launcher template. The EXP-038 runtime is unchanged.
+4. **Common root cause:** the implementation was validated only on Windows before handoff. Rule: checklist item 4, Linux preflight from the exact upload ZIP (`scripts/linux_preflight.sh`). Each failure also surfaced one layer at a time (checklist item 5).
+5. **Cosmetic:** every Kaggle log line printed twice (launcher plus tee). This is recorded as a known defect for the next launcher template. The EXP-038 runtime is unchanged.
 
 ## Possible successors (not designed or started)
 
