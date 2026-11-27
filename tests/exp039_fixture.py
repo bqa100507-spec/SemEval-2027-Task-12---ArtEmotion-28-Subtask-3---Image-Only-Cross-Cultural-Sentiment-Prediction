@@ -29,6 +29,31 @@ def fake_e5_pins():
             "metadata_git_blobs": {"config.json": HEX40}}
 
 
+CHECKPOINT = {"E3": ["model.language_model.embed_tokens.weight", "model.visual.patch_embed.proj.weight"],
+              "E5": ["model.language_model.embed_tokens.weight", "model.language_model.norm.weight",
+                     "model.visual.patch_embed.proj.weight"]}
+CONFIGS = {"E3": {"model_type": "qwen3_vl", "tie_word_embeddings": True, "text_config": {"tie_word_embeddings": True}},
+           "E5": {"model_type": "qwen3_vl", "tie_word_embeddings": False, "text_config": {}}}
+
+
+def git_blob(content):
+    return hashlib.sha1(f"blob {len(content)}\0".encode() + content, usedforsecurity=False).hexdigest()
+
+
+def audit_files():
+    out = {}
+    for arm in ("E3", "E5"):
+        out[f"keys/{arm}_config.json"] = json.dumps(CONFIGS[arm]).encode()
+        out[f"keys/{arm}_checkpoint_keys.json"] = json.dumps(CHECKPOINT[arm]).encode()
+    return out
+
+
+def fake_class_keys(config):
+    """Stand-in for building Qwen3VLForConditionalGeneration on meta: the checkpoint names plus lm_head."""
+    arm = "E3" if config.get("tie_word_embeddings") else "E5"
+    return sorted([*CHECKPOINT[arm], "lm_head.weight"]), ("lm_head.weight",)
+
+
 def build(tmp):
     import make_exp039_config
     import package_exp039
@@ -43,10 +68,14 @@ def build(tmp):
     config = make_exp039_config.build(base38["config"], results, fake_e5_pins(),
                                       {k: e3[k] for k in ("revision", "weights_sha256", "metadata_git_blobs")})
     config["arms"]["E5"] |= {"width": 5, "batch": 3}
+    keys = audit_files()
+    for arm in ("E3", "E5"):
+        config["arms"][arm]["metadata_git_blobs"] = config["arms"][arm]["metadata_git_blobs"] | {
+            "config.json": git_blob(keys[f"keys/{arm}_config.json"])}
     config["arms"]["E6"]["batch"] = 3
     config["arms"]["E7"]["batch"] = 3
     members = package_exp039.overlay_members(base38["logical"], results, {"runtime/scripts/run_exp039.py": b"#\n"},
-                                             config["references"])
+                                             config["references"]) | keys
     stored, encoded = encode_members(members)
     mounted = tmp / "mounted39"
     for name, content in stored.items():

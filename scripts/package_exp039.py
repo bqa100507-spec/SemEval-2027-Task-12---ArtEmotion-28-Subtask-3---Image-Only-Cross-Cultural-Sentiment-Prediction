@@ -63,6 +63,30 @@ def overlay_members(exp038_overlay, results_zip, runtime, references):
     return members
 
 
+def audit_members(config):
+    """Checkpoint names and config.json for the CPU key audit, fetched by code at the pinned revisions."""
+    import urllib.request
+
+    from st3.exp038_gpu import git_blob_sha1
+    from st3.key_audit import remote_keys
+
+    out = {}
+    for arm in ("E3", "E5"):
+        spec = config["arms"][arm]
+        url = f"https://huggingface.co/{spec['model']}/resolve/{spec['revision']}/config.json"
+        with urllib.request.urlopen(url, timeout=60) as response:
+            content = response.read()
+        scratch = Path(tempfile.mkdtemp()) / "config.json"
+        scratch.write_bytes(content)
+        if git_blob_sha1(scratch) != spec["metadata_git_blobs"]["config.json"]:
+            raise ValueError(f"{arm} config.json differs from its pinned git blob")
+        sharded = "model.safetensors.index.json" in spec["metadata_git_blobs"]
+        out[f"keys/{arm}_config.json"] = content
+        out[f"keys/{arm}_checkpoint_keys.json"] = (json.dumps(remote_keys(spec["model"], spec["revision"], sharded),
+                                                              indent=0) + "\n").encode()
+    return out
+
+
 def write_overlay(members, destination, manifest):
     stored, encoded = encode_members(members)
     files = {name: digest(content) for name, content in sorted(stored.items())}
@@ -98,7 +122,7 @@ def package(args):
                                  sha(args.exp038_overlay))
         exp038 = restore_overlay(mounted, run38["overlay_manifest_sha256"], refs["base_manifest_sha256"],
                                  Path(scratch) / "r38")
-        members = overlay_members(exp038, args.exp038_results, runtime_members, refs)
+        members = overlay_members(exp038, args.exp038_results, runtime_members, refs) | audit_members(config)
         manifest = {"experiment": "EXP-039", "source": source, "packaging": "patch-2 rules: archive-like members as .b64",
                     "base": {"zip_sha256": refs["base_inputs_zip_sha256"], "manifest_sha256": refs["base_manifest_sha256"]},
                     "references": refs, "exp038_overlay_zip_sha256": sha(args.exp038_overlay),

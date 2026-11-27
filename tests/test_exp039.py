@@ -25,6 +25,14 @@ from st3 import exp039 as plan39  # noqa: E402
 from st3.exp036_io import read, sha  # noqa: E402
 
 
+@pytest.fixture(autouse=True)
+def class_keys(monkeypatch):
+    """Local transformers lacks Qwen3-VL; the real meta-device build runs in cpu-validate and on Kaggle."""
+    from st3 import key_audit
+
+    monkeypatch.setattr(key_audit, "qwen_class_keys", fx.fake_class_keys)
+
+
 @pytest.fixture(scope="module")
 def built(tmp_path_factory):
     return fx.build(tmp_path_factory.mktemp("exp039"))
@@ -263,13 +271,13 @@ def test_validate_collects_every_independent_failure(built, tmp_path):
     with pytest.raises(run_exp039.ValidationFailed) as error:
         run_exp039.run_pipeline(ctx, backend)
     text = str(error.value)
-    assert "pin_formats" in text and "snapshot_8B" in text and "sealed_exp038" in text
-    assert len(error.value.failures) == 3
+    assert "pin_formats" in text and "snapshot_8B" in text and "sealed_exp038" in text and "key_audit" in text
+    assert len(error.value.failures) == 4
     receipts = read(ctx.root / "validate_failures.json")
     assert receipts["r0_replay"]["status"] == "PASS" and receipts["c2_replay"]["status"] == "SKIPPED_DEPENDENCY"
     assert not [c for c in backend.calls if c[0] in {"benchmark", "extract"}]
     status = read(ctx.root / "status.json")
-    assert status["state"] == "FAILED" and status["stage"] == "Validate" and len(status["failures"]) == 3
+    assert status["state"] == "FAILED" and status["stage"] == "Validate" and len(status["failures"]) == 4
     assert (ctx.output / "exp039_diagnostic.zip").is_file() and not (ctx.output / "exp039_best_submission.zip").exists()
 
 
@@ -402,3 +410,99 @@ def test_deploy_selected_only_reproduces_the_run(built, tmp_path):
     assert receipt["arms_extracted"] == ["E1", "E2", "E6"]
     run_zip = ctx.root / read(ctx.root / "development/scores.json")["archives"]["B2_D2_cscva3"]["zip"]
     assert io38.zip_member(tmp_path / "jan/exp039_best_submission.zip") == io38.zip_member(run_zip)
+
+
+
+# Patch 1: checkpoint key audit and the 8B loader allowance.
+
+def test_key_audit_rules():
+    from st3 import key_audit as ka
+
+    names = ["model.a", "model.b"]
+    tied_2b = {"tie_word_embeddings": True, "text_config": {"tie_word_embeddings": True}}
+    untied_8b = {"tie_word_embeddings": False, "text_config": {}}
+    two = ka.audit(names, [*names, "lm_head.weight"], tied_2b)
+    assert two["status"] == "PASS" and two["tied_missing"] == ["lm_head.weight"] and two["ignored_missing_keys"] == []
+    eight = ka.audit(names, [*names, "lm_head.weight"], untied_8b)
+    assert eight["status"] == "PASS" and eight["ignored_missing_keys"] == ["lm_head.weight"]
+    assert ka.audit(names, [*names, "lm_head.weight", "model.c"], untied_8b)["status"] == "FAIL"
+    assert ka.audit([*names, "model.extra"], [*names, "lm_head.weight"], untied_8b)["unexpected"] == ["model.extra"]
+    renamed = ka.audit(["model.a", "model.b_renamed"], [*names, "lm_head.weight"], tied_2b)
+    assert renamed["status"] == "FAIL" and renamed["missing"] == ["model.b"]
+    with pytest.raises(ValueError, match="key mismatch"):
+        ka.require(renamed, "E3")
+
+
+def test_loader_allowance_only_for_untied_lm_head():
+    from st3 import key_audit as ka
+
+    tied_2b, untied = {"tie_word_embeddings": True}, {"tie_word_embeddings": False, "text_config": {}}
+    assert ka.loader_ignored({"missing_keys": []}, tied_2b) == ([], [])
+    assert ka.loader_ignored({"missing_keys": ["lm_head.weight"]}, untied) == (["lm_head.weight"], ["lm_head.weight"])
+    for info, config in (({"missing_keys": ["lm_head.weight"]}, tied_2b),
+                         ({"missing_keys": ["lm_head.weight", "model.x"]}, untied),
+                         ({"missing_keys": [], "unexpected_keys": ["model.y"]}, untied),
+                         ({"missing_keys": [], "mismatched_keys": [("w", (1,), (2,))]}, tied_2b)):
+        with pytest.raises(ValueError, match="loading failed"):
+            ka.loader_ignored(info, config)
+
+
+def test_embedding_path_never_calls_lm_head():
+    import torch
+
+    from st3 import key_audit as ka
+
+    model = torch.nn.Module()
+    model.lm_head = torch.nn.Linear(2, 2)
+    ka.forbid_head(model)
+    with pytest.raises(RuntimeError, match="lm_head must not be used"):
+        model.lm_head(torch.zeros(1, 2))
+    source = (ROOT / "src/st3/exp038_gpu.py").read_text(encoding="utf-8")
+    assert "self.model.model(**inputs).last_hidden_state" in source and "forbid_head(model)" in source
+
+
+def test_snapshot_and_remote_key_readers(tmp_path):
+    import struct
+
+    from st3 import key_audit as ka
+
+    header = json.dumps({"__metadata__": {}, "b": {}, "a": {}}).encode()
+    (tmp_path / "model.safetensors").write_bytes(struct.pack("<Q", len(header)) + header)
+    assert ka.snapshot_keys(tmp_path) == ["a", "b"]
+    (tmp_path / "model.safetensors.index.json").write_text(json.dumps({"weight_map": {"z": "1", "y": "2"}}))
+    assert ka.snapshot_keys(tmp_path) == ["y", "z"]
+
+    class Response(io.BytesIO):
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return False
+
+    def opener(request, timeout):
+        rng = request.headers.get("Range")
+        payload = struct.pack("<Q", len(header)) + header
+        if rng == "bytes=0-7":
+            return Response(payload[:8])
+        return Response(payload[8:])
+
+    assert ka.remote_keys("m/x", "r", False, opener=opener) == ["a", "b"]
+
+
+def test_validate_runs_the_key_audit_and_fails_on_a_mismatch(built, tmp_path):
+    import run_exp039
+
+    run_exp039_, ctx, backend = run(built, tmp_path)
+    run_exp039.run_pipeline(ctx, backend)
+    audit = read(ctx.root / "validate/validate.json")["key_audit"]
+    assert audit["status"] == "PASS"
+    assert audit["result"]["E5"]["ignored_missing_keys"] == ["lm_head.weight"]
+    assert audit["result"]["E3"]["ignored_missing_keys"] == [] and audit["result"]["E3"]["missing"] == []
+
+    def change(members, config):
+        members["keys/E5_checkpoint_keys.json"] = json.dumps([*fx.CHECKPOINT["E5"], "model.extra"]).encode()
+
+    changed = fx.rebuild(built, tmp_path / "bad", change)
+    ctx = fx.context(changed, tmp_path / "bad")
+    with pytest.raises(run_exp039.ValidationFailed, match="key_audit"):
+        run_exp039.run_pipeline(ctx, fx.Backend(ctx))

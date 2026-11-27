@@ -166,8 +166,11 @@ class QwenEmbedder:
         elif placement != "single":
             raise ValueError(f"Unknown Qwen placement {placement}")
         model, info = Qwen3VLForConditionalGeneration.from_pretrained(directory, **options)
-        if any(info.get(k) for k in ("missing_keys", "mismatched_keys", "error_msgs")):
-            raise ValueError(f"Qwen3-VL-Embedding loading failed: {info}")
+        from .key_audit import forbid_head, loader_ignored
+
+        # Embedding checkpoints of untied models (8B) ship no lm_head; the embedding path never calls it.
+        self.ignored_missing_keys, self.loader_missing_keys = loader_ignored(info, model.config.to_dict())
+        forbid_head(model)
         if model.config.text_config.hidden_size != spec["width"]:
             raise ValueError("Unexpected Qwen3-VL-Embedding width")
         self.model = (model.to(device) if placement == "single" else model).eval()

@@ -2,6 +2,15 @@
 
 **Status: approved 2026-11-27 · implemented · tested CPU · not run on GPU.** Nothing on this page is an EXP-039 result. [Config](../configs/exp039.json) · [Evaluation inference](exp039_evaluation.md) · [EXP-038 closure](../reports/exp038_final.md)
 
+## Run history
+
+| Run | Worker / overlay | Outcome |
+| --- | --- | --- |
+| 1 | `471e400` / `6e2e53ad…` | **TECHNICAL_PARTIAL (E5 loader).** COMPLETE and NO_GO, with `exp039_results.zip` `bde0d198b129a1818ce33283bf1e5c1cd8c34de3847a63540145d9e4e082b242` (evidence in `runs/exp039/run1/`). Validate passed. E6 and E7 completed. **E5 failed in Benchmark**: Qwen3-VL-Embedding-8B has `tie_word_embeddings: false` and its checkpoint ships no `lm_head.weight`, but the 2B-oriented loader treated any missing key as fatal. D1 was therefore never tested. Gates against on-platform C2: D2 −0.000528 [−0.001711, +0.000690], 2/5 folds; D3 −0.000694 [−0.001283, −0.000092], 0/5; D4 (E3+E6+E7) +0.001218 [−0.000528, +0.002973], 3/5. All failed. The best ZIP was the incumbent `62093a31…`. **Superseded by run 2.** |
+| 2 | patch 1 (below) | Full Run All from scratch (no resume from run-1 caches); about 1 h 15 min including E5. Its decision supersedes run 1. |
+
+**Patch 1 loader choice.** The worker keeps the E3 class and options, `Qwen3VLForConditionalGeneration` with the embedding read from `model.model(...).last_hidden_state`, which is the same backbone path as the official `Qwen3VLForEmbedding`. It accepts exactly one missing key, `lm_head.weight`, and only when the config has `tie_word_embeddings == false`. Any other missing, unexpected or mismatched key is still fatal. A forward pre-hook makes any call into `lm_head` raise. Loading the backbone class without the head would match the official class more closely, but it would change the 2B loader. Keeping the class keeps E3/E6/E7 loading unchanged, and the CPU key audit can verify the allowance exactly. The E5 benchmark receipt records `ignored_missing_keys`; 2B receipts must show none.
+
 ## Question
 
 EXP-038 selected C2. Nearly all of its gain came from E3 (Qwen3-VL-Embedding-2B, frozen, one neutral instruction, `max_pixels` 262,144). E3 alone matched the three-encoder Fixed Ridge on P2 test-like Contrast. **Hypothesis:** the VLM-embedding image representation has not saturated. A larger checkpoint, a pool of neutral instructions, or a higher input resolution each give a better image-level estimate of the deviation term, and passed through the unchanged C2 recipe they raise test-like Contrast over C2.
@@ -64,7 +73,7 @@ The gate compares each candidate with **C2 recomputed in this run** from the sea
 
 **Stages:** Setup → Validate → Benchmark → Feature extraction (E5, E6, E7) → P2 evaluation → Full refit and Development → Submission validation → Export → Release.
 
-**Validate** runs every independent integrity check and reports all failures together before stopping:
+**Validate** runs every independent integrity check and reports all failures together before stopping. These include the CPU checkpoint key audit for 2B and 8B, cross-checked against the downloaded snapshots:
 - the inputs and the overlay restore;
 - pin formats;
 - the 2B and 8B snapshot hashes;

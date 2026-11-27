@@ -438,5 +438,5 @@ def check_config_pins(config):
 
     visit(config, "")
     if problems:
-        raise ValueError(f"Malformed hash pins in configs/exp038.json: {problems}")
+        raise ValueError(f"Malformed hash pins in the experiment config: {problems}")
     return True

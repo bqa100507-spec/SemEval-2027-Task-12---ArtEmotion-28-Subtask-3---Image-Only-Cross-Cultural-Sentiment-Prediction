@@ -198,6 +198,32 @@ def c2_development_checks(ctx, frame):
     return checks
 
 
+KEY_ARMS = ("E3", "E5")
+
+
+def key_audit(ctx):
+    """Checkpoint weight names vs the exact model class on the meta device (checklist item 8)."""
+    from st3 import key_audit as ka
+    from st3.exp038_gpu import git_blob_sha1
+
+    out = {}
+    for arm in KEY_ARMS:
+        arm_spec = ctx.config["arms"][arm]
+        config_path = ctx.overlay / f"keys/{arm}_config.json"
+        if git_blob_sha1(config_path) != arm_spec["metadata_git_blobs"]["config.json"]:
+            raise ValueError(f"{arm} audit config.json differs from its pinned git blob")
+        config = read(config_path)
+        keys = read(ctx.overlay / f"keys/{arm}_checkpoint_keys.json")
+        if arm in ctx.models:  # On Kaggle the downloaded snapshot must hold exactly the audited names.
+            if ka.snapshot_keys(ctx.models[arm]) != sorted(keys):
+                raise ValueError(f"{arm} downloaded checkpoint names differ from the audited list")
+        class_keys, tied_keys = ka.qwen_class_keys(config)
+        out[arm] = ka.require(ka.audit(keys, class_keys, config, tied_keys), arm) | {
+            "model": arm_spec["model"], "revision": arm_spec["revision"],
+            "snapshot_cross_checked": arm in ctx.models}
+    return out
+
+
 def collect(checks):
     """Run independent checks, skip dependants of failures, and report every failure together."""
     receipts, failures, failed = {}, [], set()
@@ -253,6 +279,7 @@ def stage_validate(ctx, backend, status):
         ("snapshot_2B", lambda: backend.fetch("E3"), ()),
         ("snapshot_8B", lambda: backend.fetch("E5"), ()),
         ("sealed_exp038", sealed, ("inputs",)),
+        ("key_audit", lambda: key_audit(ctx), ("inputs",)),
         ("r0_replay", r0, ("inputs",)),
         ("c2_replay", c2, ("inputs", "sealed_exp038")),
     ])
@@ -634,8 +661,10 @@ def gpu_bench(args):
     embed = gpu.encoder(args.arm, arm_spec, args.snapshot, device)
     loaded = time.time() - tick
     items = [tuple(i) for i in json.loads(args.items.read_text(encoding="utf-8"))]
-    write(args.out, gpu.benchmark(args.arm, arm_spec, embed, items, device) | {"load_seconds": loaded,
-                                                                               "placement": arm_spec.get("placement")})
+    write(args.out, gpu.benchmark(args.arm, arm_spec, embed, items, device) | {
+        "load_seconds": loaded, "placement": arm_spec.get("placement"),
+        "loader_missing_keys": getattr(embed, "loader_missing_keys", None),
+        "ignored_missing_keys": getattr(embed, "ignored_missing_keys", None)})
 
 
 def gpu_extract(args):
@@ -685,6 +714,7 @@ def cpu_validate(args):
         ("pin_formats", lambda: check_config_pins(ctx.config), ()),
         ("inputs", lambda: len(r38.population(ctx)["gold"]), ()),
         ("sealed_exp038", lambda: {arm: len(sealed_feature(ctx, arm)[0]) for arm in plan39.SEALED}, ("inputs",)),
+        ("key_audit", lambda: key_audit(ctx), ("inputs",)),
         ("r0_replay", lambda: {"p2": r38.r0_p2(ctx), "development": r38.r0_development(ctx)}, ("inputs",)),
         ("c2_replay", lambda: _c2_only(ctx), ("inputs", "sealed_exp038")),
     ])
@@ -694,6 +724,7 @@ def cpu_validate(args):
         for part in (result.get("p2", {}), result.get("development", {}), result):
             checks += part.get("checks", []) if isinstance(part, dict) else []
     summary = {"status": "FAIL" if failures else "PASS", "failures": failures, "checks": len(checks),
+               "key_audit": (receipts.get("key_audit") or {}).get("result"),
                "exact": bool(checks) and all(c["exact"] for c in checks),
                "max_ratio_to_threshold": max((c["max_abs_difference"] / c["threshold"] for c in checks), default=None),
                "platform": r38.platform_receipt(ctx)}
