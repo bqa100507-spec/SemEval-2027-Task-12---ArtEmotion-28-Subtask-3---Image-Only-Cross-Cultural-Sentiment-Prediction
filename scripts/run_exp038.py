@@ -49,6 +49,11 @@ def configs():
 
 
 class Context:
+    name = "exp038"
+    manifest_name = "exp038_manifest.json"
+    config_file = "configs/exp038.json"
+    script = Path(__file__)
+
     def __init__(self, *, base, overlay, root, output, base_sha, overlay_sha, clock, snapshots=None,
                  config=None, track1=None, neighborhood=None, echo=True):
         default = configs()
@@ -112,9 +117,10 @@ class Status:
 
 def population(ctx):
     if "population" not in ctx.cache:
-        base_manifest, overlay_manifest = verify_both(ctx.base, ctx.overlay, ctx.base_sha, ctx.overlay_sha)
+        base_manifest, overlay_manifest = verify_both(ctx.base, ctx.overlay, ctx.base_sha, ctx.overlay_sha,
+                                                      manifest_name=ctx.manifest_name)
         if overlay_manifest["references"] != ctx.refs:
-            raise ValueError("Overlay reference pins differ from configs/exp038.json")
+            raise ValueError(f"Overlay reference pins differ from {ctx.config_file}")
         train, dev = training_population(ctx.base, ctx.refs["training_pair_sha256"])
         paintings = painting_images(ctx.base, base_manifest, train, dev)
         gold, protocol = p2_population(ctx.overlay, train, ctx.refs)
@@ -185,7 +191,7 @@ def features_with_arms(ctx, arms):
 
 # GPU backends.
 
-def run_child(arguments, deadline, ctx):
+def run_child(arguments, deadline, ctx, env=None):
     """Run one GPU child with live output; kill it 60 s after its deadline."""
     from threading import Thread
 
@@ -194,8 +200,9 @@ def run_child(arguments, deadline, ctx):
         raise TimeoutError("Session allowance reached before a GPU stage")
     log = ctx.root / "gpu_children.log"
     with log.open("a", encoding="utf-8") as stream, subprocess.Popen(
-            [sys.executable, "-u", str(Path(__file__)), *map(str, arguments)], stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT, text=True, encoding="utf-8", errors="replace", start_new_session=True) as child:
+            [sys.executable, "-u", str(ctx.script), *map(str, arguments)], stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT, text=True, encoding="utf-8", errors="replace", start_new_session=True,
+            env=env) as child:
         def relay():
             for line in child.stdout:
                 stream.write(line)
@@ -285,10 +292,10 @@ class SubprocessBackend:
 
 def stage_setup(ctx, backend, status):
     runtime = backend.runtime()
-    manifest = read(ctx.overlay / "exp038_manifest.json")
+    manifest = read(ctx.overlay / ctx.manifest_name)
     identity = {"overlay_manifest_sha256": ctx.overlay_sha, "base_manifest_sha256": ctx.base_sha,
                 "source": manifest["source"], "python": runtime["python"], "gpu": runtime["gpu"],
-                "packages": runtime["packages"], "config_sha256": sha(ROOT / "configs/exp038.json")}
+                "packages": runtime["packages"], "config_sha256": sha(ROOT / ctx.config_file)}
     run = ctx.root / "run.json"
     if run.is_file() and read(run) != identity:
         raise BlockedCache("Resume requires the original source, inputs, runtime and GPU type")
@@ -299,7 +306,7 @@ def stage_setup(ctx, backend, status):
             or runtime["packages"]["transformers"] != expected["transformers"] \
             or runtime["packages"]["qwen-vl-utils"] != expected["qwen_vl_utils"]:
         raise RuntimeError(f"Pinned runtime differs: {runtime}")
-    write(ctx.root / "configs_used.json", {"exp038": ctx.config, "track1": ctx.track1,
+    write(ctx.root / "configs_used.json", {ctx.name: ctx.config, "track1": ctx.track1,
                                           "neighborhood": ctx.neighborhood})
 
 
@@ -737,7 +744,10 @@ def save_bundle(folder, heads, bank_set, features, train_paintings, candidates, 
     np.savez_compressed(folder / "train_features.npz", paintings=np.asarray(train_paintings, dtype=str),
                         **{name: features[name].loc[train_paintings].to_numpy() for name in names})
     write(folder / "manifest.json", {"arms": [a for a in heads if a not in ENCODERS],
-                                     "candidates": {k: list(v) for k, v in candidates.items()},
+                                     "candidates": {k: ({"rule": "vlm_third", "clip_arms": list(v.clip_arms),
+                                                         "vlm_arms": list(v.vlm_arms)}
+                                                        if isinstance(v, science.VlmThird) else list(v))
+                                                    for k, v in candidates.items()},
                                      "config": ctx.config, "track1_ridge": ctx.track1["ridge"],
                                      "neighborhood": ctx.neighborhood, "identity": ctx.identity,
                                      "files": {p.name: sha(p) for p in folder.iterdir()}})
@@ -778,7 +788,7 @@ def stage_development(ctx, status, gates):
     archives = {}
     zips = folder / "submissions"
     for name, prediction in predictions.items():
-        archive = write_submission(science.canonical(prediction, dev), dev, zips, f"exp038_{name}_submission")
+        archive = write_submission(science.canonical(prediction, dev), dev, zips, f"{ctx.name}_{name}_submission")
         archives[name] = {"zip": archive.relative_to(ctx.root).as_posix(), "sha256": sha(archive),
                           "eligibility": science.eligibility(name, ctx.config)}
     gold = pd.read_csv(ctx.base / "scoring/dev_gold.csv")
@@ -815,7 +825,7 @@ def stage_submissions(ctx, status, gates, scores, pieces):
                                                                               frame.p_positive.round(6)):
             raise ValueError(f"{name} failed key order or six-decimal validation")
     selected = gates["selected"]
-    best = ctx.root / "exp038_best_submission.zip"
+    best = ctx.root / f"{ctx.name}_best_submission.zip"
     if selected:
         cscva = "cscva3" if "cscva3" in scores["cscva"] else "original"
         name = f"B2_{selected}_{cscva}"
@@ -868,19 +878,19 @@ def stage_submissions(ctx, status, gates, scores, pieces):
 
 def progress(ctx):
     try:
-        publish(ctx.root.parent / "exp038_progress.zip", ctx.root, list(exportable(ctx.root)), ctx.overlay_sha)
+        publish(ctx.root.parent / f"{ctx.name}_progress.zip", ctx.root, list(exportable(ctx.root)), ctx.overlay_sha)
     except Exception as error:  # A failed periodic transfer never stops the run; it is recorded.
         ctx.log(f"Progress export failed: {error}")
 
 
 def stage_export(ctx, scores, decision):
     output = ctx.output
-    result = output / "exp038_results.zip"
-    digests = {"exp038_results.zip": publish(result, ctx.root, list(exportable(ctx.root)), ctx.overlay_sha)}
-    digests["exp038_best_submission.zip"] = copy_verified(ctx.root / "exp038_best_submission.zip",
-                                                          output / "exp038_best_submission.zip")
+    result = output / f"{ctx.name}_results.zip"
+    digests = {result.name: publish(result, ctx.root, list(exportable(ctx.root)), ctx.overlay_sha)}
+    best = f"{ctx.name}_best_submission.zip"
+    digests[best] = copy_verified(ctx.root / best, output / best)
     for name, item in scores["archives"].items():
-        target = output / f"exp038_{name}_submission.zip"
+        target = output / f"{ctx.name}_{name}_submission.zip"
         digests[target.name] = copy_verified(ctx.root / item["zip"], target)
     for name, digest in digests.items():
         receipt = output / f"{name}.sha256"
@@ -890,11 +900,11 @@ def stage_export(ctx, scores, decision):
 
 
 def diagnostic(ctx, status, error):
-    path = ctx.output / "exp038_diagnostic.json"
+    path = ctx.output / f"{ctx.name}_diagnostic.json"
     write(path, {"failed_stage": status.state.get("stage"), "item": status.state.get("item"),
                  "state": status.state.get("state"), "reason": status.state.get("reason"),
                  "completed_stages": status.state.get("completed_stages"), "pieces": status.state.get("pieces"),
-                 "resume_scope": "Attach exp038_progress.zip (or results) as RESUME_INPUT with the same inputs, "
+                 "resume_scope": f"Attach {ctx.name}_progress.zip (or results) as RESUME_INPUT with the same inputs, "
                                  "runtime and GPU type; sealed stages and caches are reused.",
                  "traceback": "".join(traceback.format_exception(error))[-20000:],
                  "submission_claimed": False})
@@ -907,13 +917,13 @@ def diagnostic(ctx, status, error):
     scratch.mkdir()
     for file in files:
         shutil.copyfile(file, scratch / file.name)
-    export(ctx.output / "exp038_diagnostic.zip", scratch, list(scratch.iterdir()), ctx.overlay_sha)
+    export(ctx.output / f"{ctx.name}_diagnostic.zip", scratch, list(scratch.iterdir()), ctx.overlay_sha)
     shutil.rmtree(scratch, ignore_errors=True)
 
 
 def run_pipeline(ctx, backend):
     ctx.root.mkdir(parents=True, exist_ok=True)
-    for stale in ("exp038_SUCCESS.json",):
+    for stale in (f"{ctx.name}_SUCCESS.json",):
         if (ctx.output / stale).exists():
             (ctx.output / stale).unlink()  # Revoke stale success evidence before a new attempt.
     status = Status(ctx)
@@ -959,7 +969,7 @@ def run_pipeline(ctx, backend):
         status.begin(STAGES[9])
         status.state |= {"state": "COMPLETE", "decision": decision["decision"], "selected": decision["selected"]}
         status.save()
-        write(ctx.output / "exp038_SUCCESS.json", {"decision": decision["decision"], "selected": decision["selected"],
+        write(ctx.output / f"{ctx.name}_SUCCESS.json", {"decision": decision["decision"], "selected": decision["selected"],
                                                    "best_sha256": selection["best_sha256"], "exports": digests,
                                                    "note": "Kaggle keeps these only in a saved version or download."})
         status.done(STAGES[9])
@@ -977,8 +987,8 @@ def run_pipeline(ctx, backend):
             diagnostic(ctx, status, error)
         raise
     finally:
-        if outcome != "COMPLETE" and (ctx.output / "exp038_SUCCESS.json").exists():
-            (ctx.output / "exp038_SUCCESS.json").unlink()
+        if outcome != "COMPLETE" and (ctx.output / f"{ctx.name}_SUCCESS.json").exists():
+            (ctx.output / f"{ctx.name}_SUCCESS.json").unlink()
 
 
 # GPU child entry points.

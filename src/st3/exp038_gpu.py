@@ -151,14 +151,29 @@ class QwenEmbedder:
         from transformers import Qwen3VLForConditionalGeneration
         from transformers.models.qwen3_vl.processing_qwen3_vl import Qwen3VLProcessor
 
-        model, info = Qwen3VLForConditionalGeneration.from_pretrained(
-            directory, dtype=torch.float16, attn_implementation=spec["attention"], local_files_only=True,
-            output_loading_info=True)
+        placement = spec.get("placement", "single")
+        options = {"dtype": torch.float16, "attn_implementation": spec["attention"], "local_files_only": True,
+                   "output_loading_info": True}
+        if placement == "two_gpu":
+            # FP16 weights split across both visible GPUs; the only change from E3 is model size.
+            options |= {"device_map": "auto",
+                        "max_memory": {i: f"{spec['max_memory_gib']}GiB" for i in range(torch.cuda.device_count())}}
+        elif placement == "nf4":
+            from transformers import BitsAndBytesConfig
+
+            options |= {"device_map": {"": 0}, "quantization_config": BitsAndBytesConfig(
+                load_in_4bit=True, bnb_4bit_quant_type="nf4", bnb_4bit_compute_dtype=torch.float16)}
+        elif placement != "single":
+            raise ValueError(f"Unknown Qwen placement {placement}")
+        model, info = Qwen3VLForConditionalGeneration.from_pretrained(directory, **options)
         if any(info.get(k) for k in ("missing_keys", "mismatched_keys", "error_msgs")):
             raise ValueError(f"Qwen3-VL-Embedding loading failed: {info}")
         if model.config.text_config.hidden_size != spec["width"]:
             raise ValueError("Unexpected Qwen3-VL-Embedding width")
-        self.model = model.to(device).eval()
+        self.model = (model.to(device) if placement == "single" else model).eval()
+        if placement != "single":
+            device = model.get_input_embeddings().weight.device
+        self.placement = placement
         self.processor = Qwen3VLProcessor.from_pretrained(directory, local_files_only=True, padding_side="right")
         self.spec, self.device = spec, device
 
@@ -188,7 +203,7 @@ def encoder(arm, spec, directory, device):
         return SiglipEncoder(spec, directory, device)
     if kind == "metaclip2":
         return MetaClipEncoder(spec, directory, device)
-    if kind in {"qwen3_vl_embedding", "qwen3_vl_embedding_language"}:
+    if kind in {"qwen3_vl_embedding", "qwen3_vl_embedding_language", "qwen3_vl_embedding_pool"}:
         return QwenEmbedder(spec, directory, device)
     raise ValueError(f"Unknown encoder kind for {arm}")
 
@@ -196,6 +211,9 @@ def encoder(arm, spec, directory, device):
 def instructions_for(arm, spec, items):
     if arm == "E4":
         return [spec["instruction_template"].format(language=item[2]) for item in items]
+    if spec.get("instructions"):
+        # Instruction pools: item[2] is the index of the instruction for that item.
+        return [spec["instructions"][int(item[2])] for item in items]
     if spec.get("instruction"):
         return [spec["instruction"]] * len(items)
     return None

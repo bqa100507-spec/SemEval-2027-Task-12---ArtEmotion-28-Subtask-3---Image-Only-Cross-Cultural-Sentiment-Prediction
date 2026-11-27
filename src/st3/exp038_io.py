@@ -76,12 +76,12 @@ def legacy_layout(root, files):
                              f"nested archive. {PATCH2}")
 
 
-def verify_overlay(root, expected_manifest, base_manifest_sha, layout="restored"):
+def verify_overlay(root, expected_manifest, base_manifest_sha, layout="restored", manifest_name=OVERLAY_MANIFEST):
     """``mounted``: stored members as packaged. ``restored``: encoded members decoded under logical names."""
-    if sha(root / OVERLAY_MANIFEST) != expected_manifest:
-        raise ValueError("EXP-038 overlay manifest checksum differs")
-    manifest = read(root / OVERLAY_MANIFEST)
-    safe_members([*manifest["files"], OVERLAY_MANIFEST])
+    if sha(root / manifest_name) != expected_manifest:
+        raise ValueError(f"Overlay manifest checksum differs: {manifest_name}")
+    manifest = read(root / manifest_name)
+    safe_members([*manifest["files"], manifest_name])
     legacy_layout(root, manifest["files"])
     encoded = manifest.get("encoded", {})
     if layout == "mounted":
@@ -101,11 +101,12 @@ def verify_overlay(root, expected_manifest, base_manifest_sha, layout="restored"
     return manifest
 
 
-def restore_overlay(mounted, expected_manifest, base_manifest_sha, destination):
+def restore_overlay(mounted, expected_manifest, base_manifest_sha, destination, manifest_name=OVERLAY_MANIFEST):
     """Verify the read-only mounted overlay, then decode every .b64 member into working storage."""
     import base64
 
-    manifest = verify_overlay(mounted, expected_manifest, base_manifest_sha, layout="mounted")
+    manifest = verify_overlay(mounted, expected_manifest, base_manifest_sha, layout="mounted",
+                              manifest_name=manifest_name)
     encoded = manifest.get("encoded", {})
     if destination.exists():
         shutil.rmtree(destination)
@@ -129,32 +130,33 @@ def restore_overlay(mounted, expected_manifest, base_manifest_sha, destination):
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_bytes(content)
         restored[logical] = {"stored_sha256": item["stored_sha256"], "decoded_sha256": digest}
-    shutil.copyfile(mounted / OVERLAY_MANIFEST, destination / OVERLAY_MANIFEST)
-    verify_overlay(destination, expected_manifest, base_manifest_sha)
+    shutil.copyfile(mounted / manifest_name, destination / manifest_name)
+    verify_overlay(destination, expected_manifest, base_manifest_sha, manifest_name=manifest_name)
     write(destination / "restore_receipt.json", {"mounted": str(mounted), "restored": restored})
     return destination
 
 
-def unpack_overlay(archive, destination, expected_manifest, expected_archive):
+def unpack_overlay(archive, destination, expected_manifest, expected_archive, manifest_name=OVERLAY_MANIFEST,
+                   prefix=ARCHIVE_PREFIX):
     """Extract an intact overlay ZIP; the result is the mounted layout (restore it before use)."""
     if sha(archive) != expected_archive:
         raise ValueError("Overlay ZIP checksum differs")
     with ZipFile(archive) as z:
         safe_members(z.namelist())
-        content = z.read(ARCHIVE_PREFIX + OVERLAY_MANIFEST)
+        content = z.read(prefix + manifest_name)
         if hashlib.sha256(content).hexdigest() != expected_manifest:
             raise ValueError("Overlay manifest checksum differs")
         manifest = json.loads(content)
-        expected = {ARCHIVE_PREFIX + name for name in [*manifest["files"], OVERLAY_MANIFEST]}
+        expected = {prefix + name for name in [*manifest["files"], manifest_name]}
         if set(z.namelist()) != expected:
             raise ValueError("Overlay ZIP coverage differs from its manifest")
         z.extractall(destination)
-    return destination / ARCHIVE_PREFIX.rstrip("/")
+    return destination / prefix.rstrip("/")
 
 
-def verify_both(base, overlay, base_manifest_sha, overlay_manifest_sha):
+def verify_both(base, overlay, base_manifest_sha, overlay_manifest_sha, manifest_name=OVERLAY_MANIFEST):
     base_manifest = verify_inputs(base, base_manifest_sha)
-    overlay_manifest = verify_overlay(overlay, overlay_manifest_sha, base_manifest_sha)
+    overlay_manifest = verify_overlay(overlay, overlay_manifest_sha, base_manifest_sha, manifest_name=manifest_name)
     return base_manifest, overlay_manifest
 
 
