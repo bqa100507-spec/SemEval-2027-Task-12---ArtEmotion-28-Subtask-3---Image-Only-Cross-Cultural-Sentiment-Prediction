@@ -3,6 +3,11 @@ on every decoder layer's q/k/v/o and the ridge-initialized interaction head.
 
 Heavy imports stay inside functions so CPU tests can import this module. One painting is forwarded once per
 micro-step and scores all its eligible languages; 16 paintings form one optimizer step (gradient accumulation).
+
+Optional vision cache (efficiency only): the vision tower is frozen and runs in eval mode, so its outputs per image
+(merged image embeddings and the deepstack features) and the processor's text inputs are computed once, under the
+same FP16 autocast, and injected into later forwards through ``get_image_features``. It is enabled only when
+Validate's step-0 check shows the cached path matching the uncached path within 1e-5.
 """
 
 import json
@@ -164,6 +169,79 @@ class Paintings:
         return len(self.names)
 
 
+class VisionCache:
+    """Per-image CPU store of the frozen vision outputs; entries past ``max_bytes`` are computed but not kept."""
+
+    def __init__(self, max_bytes):
+        self.max_bytes, self.entries, self.bytes = int(max_bytes), {}, 0
+        self.hits = self.misses = self.overflow = self.max_entry = 0
+
+    @staticmethod
+    def size(entry):
+        tensors = [*entry["inputs"].values(), entry["embeds"], *entry["deep"]]
+        return int(sum(t.numel() * t.element_size() for t in tensors))
+
+    def get(self, key):
+        entry = self.entries.get(key)
+        if entry is None:
+            self.misses += 1
+        else:
+            self.hits += 1
+        return entry
+
+    def put(self, key, entry):
+        size = self.size(entry)
+        self.max_entry = max(self.max_entry, size)
+        if self.bytes + size > self.max_bytes:
+            self.overflow += 1
+            return
+        self.entries[key] = entry
+        self.bytes += size
+
+    def receipt(self):
+        return {"entries": len(self.entries), "bytes": self.bytes, "hits": self.hits, "misses": self.misses,
+                "overflow": self.overflow, "max_bytes": self.max_bytes, "max_entry_bytes": self.max_entry,
+                "bytes_per_entry": self.bytes / len(self.entries) if self.entries else None}
+
+
+def attach_vision_cache(backbone):
+    """Route ``get_image_features`` through an injection slot; returns (original, slot)."""
+    original = backbone.get_image_features
+    slot = {"value": None}
+
+    def get_image_features(pixel_values, image_grid_thw=None):
+        if slot["value"] is not None:
+            embeds, deep = slot["value"]
+            return (embeds,), deep
+        return original(pixel_values, image_grid_thw)
+
+    backbone.get_image_features = get_image_features
+    return original, slot
+
+
+def cache_entry(backbone, original, inputs):
+    """The frozen vision outputs for one encoded image (FP16 autocast, no grad) plus its non-pixel inputs."""
+    import torch
+
+    with torch.no_grad(), torch.autocast("cuda", dtype=torch.float16):
+        embeds, deep = original(inputs["pixel_values"], inputs["image_grid_thw"])
+    return {"inputs": {k: v.detach().cpu() for k, v in inputs.items() if k != "pixel_values"},
+            "embeds": torch.cat(embeds, dim=0).detach().cpu(), "deep": [d.detach().cpu() for d in deep]}
+
+
+def cached_pooled(backbone, slot, entry, device):
+    """``pooled`` with the vision outputs injected; the placeholder only satisfies ``pixel_values is not None``."""
+    import torch
+
+    inputs = {k: v.to(device) for k, v in entry["inputs"].items()}
+    inputs["pixel_values"] = torch.zeros(1, device=device)
+    slot["value"] = (entry["embeds"].to(device), [d.to(device) for d in entry["deep"]])
+    try:
+        return pooled(backbone, inputs)
+    finally:
+        slot["value"] = None
+
+
 class E3L:
     """Backbone (frozen, LoRA on q/k/v/o) + interaction head; ``self.trainable`` lists LoRA then head params."""
 
@@ -179,6 +257,13 @@ class E3L:
         extra = [n for n, p in self.backbone.named_parameters() if p.requires_grad and id(p) not in trainable_ids]
         if extra:
             raise RuntimeError(f"Unexpected trainable backbone parameters: {extra[:3]}")
+        self.cache = None
+
+    def enable_cache(self, max_bytes):
+        if self.backbone.visual.training:
+            raise RuntimeError("The vision tower must stay in eval mode for its outputs to be cached")
+        self._original, self._slot = attach_vision_cache(self.backbone)
+        self.cache = VisionCache(max_bytes)
 
     def train(self, mode=True):
         self.backbone.eval()
@@ -186,12 +271,28 @@ class E3L:
         self.head.train(mode)
 
     def features(self, image_paths):
-        """FP16 autocast for training and prediction alike (the step-0 check uses this same path)."""
+        """FP16 autocast for training and prediction alike (the step-0 check uses this same path).
+
+        With the vision cache each image is forwarded on its own (training and prediction use batch 1 anyway).
+        """
         import torch
 
-        images = [load_rgb(path) for path in image_paths]
-        with torch.autocast("cuda", dtype=torch.float16):
-            return pooled(self.backbone, encode(self.processor, self.spec, images, self.device))
+        if self.cache is None:
+            images = [load_rgb(path) for path in image_paths]
+            with torch.autocast("cuda", dtype=torch.float16):
+                return pooled(self.backbone, encode(self.processor, self.spec, images, self.device))
+        if self.backbone.visual.training:
+            raise RuntimeError("The vision tower left eval mode; cached outputs would be stale")
+        rows = []
+        for path in image_paths:
+            entry = self.cache.get(path)
+            if entry is None:
+                inputs = encode(self.processor, self.spec, [load_rgb(path)], self.device)
+                entry = cache_entry(self.backbone, self._original, inputs)
+                self.cache.put(path, entry)
+            with torch.autocast("cuda", dtype=torch.float16):
+                rows.append(cached_pooled(self.backbone, self._slot, entry, self.device))
+        return torch.cat(rows, dim=0)
 
     def state(self):
         names = {id(p): n for n, p in self.backbone.named_parameters()}
@@ -432,6 +533,10 @@ def run_request(request, log=print):
     e3l, receipt = build(request["spec"], request["lora"], head_fields, languages, request["train"]["lambda"],
                          request["snapshot"], device, request["seed"])
     receipt["load_seconds"] = time.time() - tick
+    receipt["gpu"] = gpu_identity()
+    cache_cfg = request.get("vision_cache") or {}
+    if cache_cfg.get("enabled") and request["mode"] != "step0":
+        e3l.enable_cache(cache_cfg["max_bytes"])
 
     def panel(names):
         return Paintings(pairs[pairs.painting.isin(set(names))], images, languages)
@@ -448,8 +553,11 @@ def run_request(request, log=print):
         embeddings, frame, rate = predict(e3l, held, log, "step-0")
         embeddings.to_csv(folder / "step0_embeddings.csv", float_format="%.9g")
         frame.to_csv(folder / "step0_probabilities.csv", index=False, float_format="%.12g")
-        write(folder / "step0.json", receipt | {"paintings": len(held), "paintings_per_second": rate,
-                                              "lora_right_zero": all(float(p.abs().max()) == 0 for p in e3l.lora[1::2])})
+        receipt |= {"paintings": len(held), "paintings_per_second": rate,
+                    "lora_right_zero": all(float(p.abs().max()) == 0 for p in e3l.lora[1::2])}
+        if cache_cfg.get("check"):
+            receipt["vision_cache"] = cache_check(e3l, held, embeddings, frame, cache_cfg, folder, log)
+        write(folder / "step0.json", receipt)
         return
     if mode == "smoke":
         return smoke(e3l, panel, request, folder, receipt, log)
@@ -479,6 +587,43 @@ def run_request(request, log=print):
     write(folder / "result.json", result)
     (folder / "state.pt").unlink(missing_ok=True)
     return result
+
+
+def gpu_identity():
+    import os
+
+    import torch
+
+    props = torch.cuda.get_device_properties(0)
+    return {"name": torch.cuda.get_device_name(0), "visible_devices": os.environ.get("CUDA_VISIBLE_DEVICES"),
+            "uuid": str(getattr(props, "uuid", "")) or None, "pci_bus_id": getattr(props, "pci_bus_id", None),
+            "total_memory": props.total_memory}
+
+
+def cache_check(e3l, held, embeddings, frame, cache_cfg, folder, log):
+    """Step-0 predictions through the cached path (first pass fills, second pass hits) vs the uncached path."""
+    e3l.enable_cache(cache_cfg["max_bytes"])
+    passes = {}
+    for name in ("fill", "hit"):
+        cached, cached_frame, rate = predict(e3l, held, log, f"step-0 cached ({name})")
+        if not cached_frame[["painting", "language"]].equals(frame[["painting", "language"]]):
+            raise ValueError("Cached step-0 keys differ")
+        passes[name] = {
+            "paintings_per_second": rate,
+            "max_abs_probability_difference": float(np.abs(cached_frame.p_positive.to_numpy()
+                                                           - frame.p_positive.to_numpy()).max()),
+            "max_abs_embedding_difference": float(np.abs(cached.to_numpy() - embeddings.to_numpy()).max()),
+            "bitwise": bool(np.array_equal(cached.to_numpy(), embeddings.to_numpy()))}
+        if name == "fill":
+            cached_frame.to_csv(folder / "step0_cached_probabilities.csv", index=False, float_format="%.12g")
+    worst = max(p["max_abs_probability_difference"] for p in passes.values())
+    receipt = {"passes": passes, "max_abs_probability_difference": worst, "tolerance": cache_cfg["tolerance"],
+               "passed": worst <= cache_cfg["tolerance"], "cache": e3l.cache.receipt(),
+               "definition": "the same held-out step-0 forward with the frozen vision outputs computed once per image "
+                             "under FP16 autocast and injected, vs the uncached forward"}
+    e3l.cache = None
+    e3l.backbone.get_image_features = e3l._original
+    return receipt
 
 
 def smoke(e3l, panel, request, folder, receipt, log):
@@ -511,15 +656,18 @@ def smoke(e3l, panel, request, folder, receipt, log):
             "total_bytes": torch.cuda.get_device_properties(e3l.device).total_memory}
     rows = boundary["log"]
     _, inner_frame, inner_rate = predict(e3l, inner, log, "smoke inner pass")
-    # Determinism: two identical 2-step runs from the same initialization and seed.
-    repeats = []
-    for attempt in range(2 if request.get("determinism", True) else 0):
+    _, _, inner_rate_again = predict(e3l, inner, log, "smoke inner pass (repeat)")
+    # Two 2-step runs from the same initialization and seed over paintings already seen (cache hits when the
+    # vision cache is on): the second-visit step time, and with ``determinism`` a bitwise comparison.
+    repeats, revisit = [], []
+    for attempt in range(2 if request.get("determinism", True) else 1):
         e3l.load_state(init)
         deterministic(request["seed"])
         trial = train(e3l, train_panel, request["train"], folder / f"smoke_repeat_{attempt}", request["deadline"],
                       request["seed"], epochs_to_run=1, identity=request["identity"], log=lambda *_: None, max_steps=2)
         repeats.append(([r["nll"] for r in trial["log"]], e3l.state()))
-    if repeats:
+        revisit += [r["seconds"] for r in trial["log"]]
+    if len(repeats) == 2:
         loss_difference = float(np.abs(np.asarray(repeats[0][0]) - np.asarray(repeats[1][0])).max())
         weight_difference = max(float((repeats[0][1][k] - repeats[1][1][k]).abs().max()) for k in repeats[0][1])
     else:
@@ -531,12 +679,15 @@ def smoke(e3l, panel, request, folder, receipt, log):
         "train_paintings_per_second": len(rows) * request["train"]["batch_paintings"] / max(seconds, 1e-9),
         "warm_seconds_per_optimizer_step": float(np.median([r["seconds"] for r in rows[1:]])) if len(rows) > 1 else None,
         "inner_paintings": len(inner), "inner_paintings_per_second": inner_rate,
+        "revisit_seconds_per_optimizer_step": float(np.median(revisit)),
+        "revisit_inner_paintings_per_second": inner_rate_again,
+        "vision_cache": e3l.cache.receipt() if e3l.cache is not None else None,
         "inner_pairs_scored": len(inner_frame), "peak_memory": peak, "devices": devices,
         "losses": [r["nll"] for r in rows], "finite_losses": bool(np.isfinite([r["nll"] for r in rows]).all()),
         "grad_norms": [r["grad_norm"] for r in rows],
         "eval_forward_bitwise_repeatable": bool(torch.equal(first, second)),
-        "two_pass_training": {"steps": 2 if repeats else 0, "max_loss_difference": loss_difference,
+        "two_pass_training": {"steps": 2 if len(repeats) == 2 else 0, "max_loss_difference": loss_difference,
                               "max_weight_difference": weight_difference,
-                              "bitwise": bool(repeats) and loss_difference == 0 and weight_difference == 0}}
+                              "bitwise": len(repeats) == 2 and loss_difference == 0 and weight_difference == 0}}
     write(folder / "smoke.json", result)
     return result

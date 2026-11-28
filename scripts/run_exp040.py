@@ -3,8 +3,13 @@
 
 Full mode: Setup -> Validate (collect-all) -> Benchmark -> P2 LoRA folds (sealed per fold, resumable) ->
 P2 evaluation -> Full refit and Development -> Submission validation -> Export -> Release.
-SMOKE_ONLY: Setup -> Validate (replays may be skipped) -> one fold x N optimizer steps + one inner pass ->
-exp040_smoke.json with throughput, VRAM, devices, finiteness, determinism and a full-run forecast; no submission.
+SMOKE_ONLY: Setup -> Validate (replays may be skipped) -> one fold per GPU x N optimizer steps + inner passes, all
+GPUs at once -> exp040_smoke.json with per-GPU throughput, VRAM, placement, finiteness, determinism and the parallel
+full-run forecast; no submission.
+
+GPU work runs as child processes, one per GPU, each seeing only its GPU (CUDA_VISIBLE_DEVICES) with the whole model
+on it. Outer folds are independent children: each GPU takes the next unsealed fold when it is free. The full refit
+runs after every fold, on one GPU.
 
 The EXP-038/039 workers are the library (context, population, sealed caches, R0/C2 replays, bundles, export).
 C2 is recomputed on-platform from the sealed EXP-038 features and is the gate reference. If E3L fails
@@ -15,8 +20,11 @@ byte-identical incumbent as the best ZIP.
 import argparse
 import json
 import os
+import queue
 import shutil
+import subprocess
 import sys
+import threading
 import time
 from pathlib import Path
 
@@ -36,7 +44,8 @@ from st3 import exp040 as plan
 from st3.competition_ridge import fit_head as track1_fit_head
 from st3.competition_ridge import make_panel
 from st3.exp036_io import read, restore, sha, write
-from st3.exp038_io import BudgetStop, Clock, check_config_pins, completed, copy_verified, restore_overlay, seal
+from st3.exp038_io import (BudgetStop, Clock, check_config_pins, completed, copy_verified, exportable, publish,
+                           restore_overlay, seal)
 
 STAGES = ("Setup", "Validate", "Benchmark", "P2 LoRA folds", "P2 evaluation", "Full refit and Development",
           "Submission validation", "Export", "Release")
@@ -63,6 +72,7 @@ class Context(r39.Context):
         kwargs.setdefault("neighborhood", default[2])
         super().__init__(**kwargs)
         self.e3l = {"available": True, "reason": None}
+        self.vision_cache = {"enabled": False, "reason": "not decided yet"}
 
 
 class ValidationFailed(r39.ValidationFailed):
@@ -131,15 +141,100 @@ def request(ctx, name, mode, *, pairs, train_paintings, inner, held, embed, head
             "images": str(folder / "images.json"), "train_paintings": list(train_paintings), "inner": list(inner),
             "held": list(held), "embed": list(embed), "epochs_to_run": int(epochs_to_run), "deadline": deadline,
             "identity": identity, "seed": int(seed), "excluded": ctx.config["test_like_excluded"],
-            "snapshot": str(ctx.models.get("E3")), "folder": None} | (extra or {})
+            "snapshot": str(ctx.models.get("E3")), "folder": None,
+            "vision_cache": {"enabled": bool(ctx.vision_cache.get("enabled")),
+                             "max_bytes": ctx.config["vision_cache"]["max_bytes_per_child"]}} | (extra or {})
     return folder, body
 
 
-def dispatch(ctx, backend, body, folder, deadline):
+def dispatch(ctx, backend, body, folder, deadline, gpu=0):
     path = ctx.root / "tmp_requests" / f"{Path(body['folder']).name}_request.json"
     body = body | {"deadline": deadline}
     path.write_text(json.dumps(body), encoding="utf-8")
-    backend.e3l(path, deadline)
+    backend.e3l(path, deadline, gpu=gpu)
+
+
+# GPU children in parallel: one child per GPU at a time.
+
+def run_jobs(ctx, backend, jobs, gpus, on_done=None):
+    """Run ``jobs`` ({label, body, request, gpu: pinned GPU or None}) with one worker thread per GPU.
+
+    Each worker takes, in order, the first pending job pinned to its GPU or unpinned. ``on_done(job, gpu)`` runs
+    in the calling thread (sealing, status and progress stay single-threaded). A technical failure stops new work
+    and kills the other children (their checkpoints stay resumable) and is returned as (job, error). A session
+    timeout stops new work and is re-raised once every child has stopped.
+    """
+    pending, lock, events, stop = list(jobs), threading.Lock(), queue.Queue(), threading.Event()
+
+    def take(gpu):
+        with lock:
+            for i, job in enumerate(pending):
+                if job.get("gpu") in (None, gpu):
+                    return pending.pop(i)
+        return None
+
+    def worker(gpu):
+        while not stop.is_set():
+            job = take(gpu)
+            if job is None:
+                return
+            events.put(("start", job, gpu, None))
+            try:
+                dispatch(ctx, backend, job["body"], job["request"], ctx.clock.work_deadline(), gpu=gpu)
+            except BaseException as error:  # Reported to the calling thread, which decides.
+                events.put(("error", job, gpu, error))
+                return
+            events.put(("done", job, gpu, None))
+
+    threads = [threading.Thread(target=worker, args=(gpu,), name=f"exp040-gpu{gpu}", daemon=True) for gpu in gpus]
+    for thread in threads:
+        thread.start()
+    failure = timeout = None
+    try:
+        while any(t.is_alive() for t in threads) or not events.empty():
+            try:
+                kind, job, gpu, error = events.get(timeout=.5)
+            except queue.Empty:
+                continue
+            if kind == "start":
+                ctx.log(f"{job['label']}: started on GPU {gpu}")
+            elif kind == "done":
+                ctx.log(f"{job['label']}: finished on GPU {gpu}")
+                if on_done is not None:
+                    on_done(job, gpu)
+            elif isinstance(error, TimeoutError):
+                timeout = timeout or error
+                stop.set()
+            elif failure is None:
+                failure = (job, error)
+                ctx.log(f"{job['label']}: failed on GPU {gpu}: {type(error).__name__}: {error}")
+                stop.set()
+                backend.cancel()
+            else:
+                ctx.log(f"{job['label']}: stopped after {failure[0]['label']} failed ({type(error).__name__})")
+    except BaseException:
+        stop.set()
+        backend.cancel()
+        raise
+    finally:
+        for thread in threads:
+            thread.join()
+    if failure is None and timeout is not None:
+        raise timeout
+    return failure
+
+
+def progress_sealed(ctx):
+    """Progress export while children run: in-flight fold folders (no seal yet) are left out of the snapshot."""
+    def stable(path):
+        rel = path.relative_to(ctx.root).parts
+        return not (len(rel) > 2 and rel[0] == "p2_folds" and not (ctx.root / rel[0] / rel[1] / "seal.json").is_file())
+
+    try:
+        publish(ctx.root.parent / f"{ctx.name}_progress.zip", ctx.root,
+                [p for p in exportable(ctx.root) if stable(p)], ctx.overlay_sha)
+    except Exception as error:  # A failed periodic transfer never stops the run; it is recorded.
+        ctx.log(f"Progress export failed: {error}")
 
 
 # Validate.
@@ -196,10 +291,13 @@ def step0(ctx, backend):
     folder, body = request(ctx, f"step0_fold{fold}", "step0", pairs=held, train_paintings=[], inner=[],
                            held=sorted(held.painting.unique()), embed=[], head=head, epochs_to_run=0,
                            deadline=ctx.clock.work_deadline(), identity=ctx.identity, seed=ctx.config["train"]["seed"])
+    cache = ctx.config["vision_cache"]
+    body["vision_cache"] = {"enabled": False, "check": True, "tolerance": cache["tolerance"],
+                            "max_bytes": cache["max_bytes_per_child"]}
     out = ctx.root / "validate_step0"
     shutil.rmtree(out, ignore_errors=True)
     body["folder"] = str(out)
-    dispatch(ctx, backend, body, folder, ctx.clock.work_deadline())
+    dispatch(ctx, backend, body, folder, ctx.clock.work_deadline(), gpu=ctx.config["parallel"]["step0_gpu"])
     receipt = read(out / "step0.json")
     embeddings = pd.read_csv(out / "step0_embeddings.csv", index_col=0)
     model = pd.read_csv(out / "step0_probabilities.csv")
@@ -225,6 +323,43 @@ def step0(ctx, backend):
     if result["diagnostic_vs_sealed_E3"]["min_cosine"] < .99:
         raise ValueError("E3L step-0 embeddings disagree with sealed E3 (cosine < 0.99): formatting differs")
     return result
+
+
+def available_memory():
+    """MemAvailable in bytes on Linux; None where /proc/meminfo is absent."""
+    try:
+        for line in Path("/proc/meminfo").read_text(encoding="ascii").splitlines():
+            if line.startswith("MemAvailable:"):
+                return int(line.split()[1]) * 1024
+    except OSError:
+        return None
+    return None
+
+
+def vision_cache_decision(ctx, step0_result, gpus):
+    """Enable the vision cache only if step 0 matched the uncached path and the projected cache fits."""
+    cfg = ctx.config["vision_cache"]
+    check = (step0_result or {}).get("vision_cache")
+    if not check:
+        return {"enabled": False, "reason": "no step-0 cache check (step 0 did not run)"}
+    summary = {k: check[k] for k in ("max_abs_probability_difference", "tolerance", "passed")} | {
+        "bitwise": all(p["bitwise"] for p in check["passes"].values()), "cache": check["cache"]}
+    if not check["passed"]:
+        return {"enabled": False, "check": summary, "reason": (
+            f"cached step-0 predictions differ from the uncached path by {check['max_abs_probability_difference']:.3g}"
+            f" > {check['tolerance']}; the cache is skipped")}
+    n = counts(ctx)
+    paintings = max([c["embed"] for c in n["folds"].values()] + [n["train"] + n["dev"]])
+    per_entry = check["cache"].get("max_entry_bytes") or check["cache"]["bytes_per_entry"]
+    projected = int(per_entry * paintings)
+    memory = available_memory()
+    summary |= {"projected_bytes_per_child": projected, "paintings_per_child": paintings, "gpus": len(gpus),
+                "available_memory_bytes": memory}
+    if projected > cfg["max_bytes_per_child"]:
+        return {"enabled": False, "check": summary, "reason": "projected cache exceeds max_bytes_per_child"}
+    if memory is not None and len(gpus) * projected > cfg["memory_fraction"] * memory:
+        return {"enabled": False, "check": summary, "reason": "projected caches exceed the memory fraction"}
+    return {"enabled": True, "check": summary, "reason": "step-0 cached path matched within tolerance"}
 
 
 def stage_validate(ctx, backend, status, smoke=False):
@@ -272,6 +407,8 @@ def stage_validate(ctx, backend, status, smoke=False):
         write(ctx.root / "validate_failures.json", receipts)
         raise ValidationFailed(failures)
     receipts["c2_seconds"] = state.get("c2_seconds")
+    receipts["gpus"] = backend.gpus()
+    receipts["vision_cache"] = vision_cache_decision(ctx, receipts["step0_gpu"]["result"], receipts["gpus"])
     if smoke:
         write(ctx.root / "validate_smoke.json", receipts)
         return receipts
@@ -284,15 +421,15 @@ def stage_validate(ctx, backend, status, smoke=False):
 
 # Benchmark, smoke and forecast.
 
-def smoke_request(ctx, name, steps, inner_limit, determinism):
-    fold = ctx.config["smoke"]["fold"]
+def smoke_request(ctx, name, steps, inner_limit, determinism, fold=None):
+    fold = ctx.config["smoke"]["fold"] if fold is None else fold
     outer, held, fit, inner = fold_split(ctx, fold)
     e3 = base_features(ctx)["E3"]
     head, _ = ridge(ctx, outer[outer.painting.isin(fit)], e3)
     inner = inner[:inner_limit] if inner_limit else inner
     folder, body = request(ctx, name, "smoke", pairs=outer[outer.painting.isin(set(fit) | set(inner))],
                            train_paintings=fit, inner=inner, held=[], embed=[], head=head, epochs_to_run=1,
-                           deadline=ctx.clock.work_deadline(), identity=ctx.identity | {"smoke": name},
+                           deadline=ctx.clock.work_deadline(), identity=ctx.identity | {"smoke": name, "fold": fold},
                            seed=ctx.config["train"]["seed"], extra={"smoke_steps": steps, "determinism": determinism})
     out = ctx.root / name
     shutil.rmtree(out, ignore_errors=True)
@@ -311,66 +448,141 @@ def counts(ctx):
     return {"folds": folds, "train": int(pop["train"].painting.nunique()), "dev": int(pop["dev"].painting.nunique())}
 
 
-def forecast(ctx, measured, c2_seconds):
-    """Seconds per piece from measured warm throughput; the full refit assumes the worst case (4 epochs)."""
+def rates(ctx, measured):
+    """Conservative per-piece rates over the GPUs measured concurrently: the slowest step, the slowest forward.
+
+    First visits pay the vision forward; revisits (cache hits) do not. Without the cache both are the first-visit
+    rates.
+    """
+    cached = bool(ctx.vision_cache.get("enabled"))
+    rows = list(measured.values())
+
+    def worst(key, fallback=None, rate=False):
+        values = [m.get(key) or (m.get(fallback) if fallback else None) for m in rows]
+        values = [v for v in values if v]
+        return (1 / min(values)) if rate else max(values)
+
+    step = worst("warm_seconds_per_optimizer_step", "seconds_per_optimizer_step")
+    forward = worst("inner_paintings_per_second", rate=True)
+    step_hit = worst("revisit_seconds_per_optimizer_step", "warm_seconds_per_optimizer_step") if cached else step
+    forward_hit = worst("revisit_inner_paintings_per_second", "inner_paintings_per_second", rate=True) if cached \
+        else forward
+    return {"step": step, "step_revisit": min(step_hit, step) if cached else step, "forward": forward,
+            "forward_revisit": min(forward_hit, forward) if cached else forward,
+            "load": max(m.get("load_seconds", 60) for m in rows) + 30, "vision_cache": cached}
+
+
+def queue_plan(seconds, gpus):
+    """The execution order: folds in order, each to the GPU that frees first (ties to the lower index)."""
+    free, plan_ = {g: 0. for g in gpus}, {g: [] for g in gpus}
+    for fold in sorted(seconds):
+        gpu = min(gpus, key=lambda g: (free[g], g))
+        free[gpu] += seconds[fold]
+        plan_[gpu].append(fold)
+    return {g: {"folds": plan_[g], "seconds": free[g]} for g in gpus}
+
+
+def forecast(ctx, measured, c2_seconds, gpus):
+    """Seconds per piece from measured warm throughput; the full refit assumes the worst case (4 epochs).
+
+    ``measured`` maps GPU -> smoke/benchmark receipt. The fold phase takes the longest GPU queue.
+    """
     train_cfg = ctx.config["train"]
     epochs, batch = train_cfg["epochs"], train_cfg["batch_paintings"]
-    step = measured["warm_seconds_per_optimizer_step"] or measured["seconds_per_optimizer_step"]
-    forward = 1 / measured["inner_paintings_per_second"]
-    load = measured.get("load_seconds", 60) + 30
+    r = rates(ctx, measured)
     n = counts(ctx)
-    pieces = {}
+
+    def training(paintings):
+        return plan.steps_per_epoch(paintings, batch) * (r["step"] + (epochs - 1) * r["step_revisit"])
+
+    folds = {}
     for fold, c in n["folds"].items():
-        pieces[f"fold_{fold}"] = (load + epochs * plan.steps_per_epoch(c["fit"], batch) * step
-                                  + (epochs + 1) * c["inner"] * forward + (c["embed"] + c["held"]) * forward)
-    pieces["full_refit"] = (load + epochs * plan.steps_per_epoch(n["train"], batch) * step
-                            + (n["train"] + 2 * n["dev"]) * forward)
+        folds[fold] = (r["load"] + training(c["fit"]) + c["inner"] * (r["forward"] + epochs * r["forward_revisit"])
+                       + (c["fit"] + c["inner"]) * r["forward_revisit"] + c["held"] * (r["forward"] + r["forward_revisit"]))
+    pieces = {f"fold_{fold}": seconds for fold, seconds in folds.items()}
+    queues = queue_plan(folds, gpus)
+    makespan = max(q["seconds"] for q in queues.values())
+    pieces["full_refit"] = (r["load"] + training(n["train"]) + n["train"] * r["forward_revisit"]
+                            + n["dev"] * (r["forward"] + r["forward_revisit"]))
     cpu = c2_seconds or 900
     pieces["cpu_p2_and_development"] = 2.0 * cpu + 600
     pieces["export"] = 600
-    return {"pieces": pieces, "total": sum(pieces.values()), "inputs": {
-        "seconds_per_optimizer_step": step, "forward_seconds_per_painting": forward, "load_seconds": load,
-        "c2_cpu_seconds": cpu, "counts": n, "method": (
-            "fold = load + epochs x ceil(fit/16) x warm step seconds + (epochs+1) inner passes + embedding of the "
-            "outer-train and held-out paintings + held-out probabilities; full refit assumes the worst-case 4 "
-            "epochs over all training paintings plus train and Development embeddings; CPU = 2 x the measured "
-            "on-platform C2 replay + 600 s; export 600 s")}}
+    after = pieces["full_refit"] + pieces["cpu_p2_and_development"] + pieces["export"]
+    return {"pieces": pieces, "queues": queues, "fold_phase_seconds": makespan, "total": makespan + after,
+            "serial_total": sum(pieces.values()), "gpus": list(gpus), "inputs": {
+                "rates": r, "c2_cpu_seconds": cpu, "counts": n, "method": (
+                    "fold = load + ceil(fit/16) x (first-visit step + (epochs-1) x revisit step) + inner x "
+                    "(first-visit forward + epochs x revisit forward) + (fit+inner) x revisit forward + held x "
+                    "(first-visit + revisit forward); folds run as GPU queues (in order, to the first free GPU) and "
+                    "the fold phase is the longest queue; the full refit (after the folds, one GPU) assumes the "
+                    "worst-case 4 epochs plus train and Development embeddings; CPU = 2 x the measured on-platform "
+                    "C2 replay + 600 s; export 600 s; rates are the slowest GPU measured while all run at once; "
+                    "revisit rates equal first-visit rates unless the vision cache is on")}}
+
+
+def concurrent_smoke(ctx, backend, gpus, prefix, steps, inner_limit, determinism):
+    """One smoke child per GPU at once (fold ``smoke_folds[i]`` on GPU i); returns GPU -> receipt."""
+    folds = ctx.config["parallel"]["smoke_folds"]
+    jobs, outs = [], {}
+    for i, gpu in enumerate(gpus):
+        req, body, out = smoke_request(ctx, f"{prefix}_gpu{gpu}", steps, inner_limit, determinism, fold=folds[i])
+        jobs.append({"label": f"{prefix} GPU {gpu} (fold {folds[i]})", "body": body, "request": req, "gpu": gpu})
+        outs[gpu] = (out, folds[i])
+    failure = run_jobs(ctx, backend, jobs, gpus)
+    if failure is not None:
+        raise failure[1]
+    return {gpu: read(out / "smoke.json") | {"fold": fold} for gpu, (out, fold) in outs.items()}
+
+
+def budget_plan(ctx, measured, validate, gpus, available):
+    estimate = forecast(ctx, measured, validate.get("c2_seconds"), gpus)
+    margin = ctx.config["budget"]["forecast_margin"]
+    return estimate | {"margin": margin, "planned_seconds": margin * estimate["total"],
+                       "serial_planned_seconds": margin * estimate["serial_total"], "available_seconds": available,
+                       "fits": margin * estimate["total"] <= available}
 
 
 def stage_benchmark(ctx, backend, status, validate):
     folder = ctx.root / "benchmark"
+    gpus = validate["gpus"]
     if not completed(folder, ctx.identity, ["benchmark.json"]):
-        steps = ctx.config["smoke"]["benchmark_steps"]
-        req, body, out = smoke_request(ctx, "tmp_benchmark", steps, 32, False)
-        dispatch(ctx, backend, body, req, ctx.clock.work_deadline())
-        measured = read(out / "smoke.json")
+        cfg = ctx.config["smoke"]
+        measured = concurrent_smoke(ctx, backend, gpus, "tmp_benchmark", cfg["benchmark_steps"],
+                                    cfg["benchmark_inner_paintings"], False)
         shutil.rmtree(folder, ignore_errors=True)
         folder.mkdir(parents=True)
-        write(folder / "benchmark.json", measured)
+        write(folder / "benchmark.json", {"per_gpu": {str(g): m for g, m in measured.items()}})
         seal(folder, ctx.identity)
-    measured = read(folder / "benchmark.json")
-    estimate = forecast(ctx, measured, validate.get("c2_seconds"))
-    margin = ctx.config["budget"]["forecast_margin"]
-    remaining = ctx.clock.remaining()
-    budget = estimate | {"margin": margin, "planned_seconds": margin * estimate["total"], "remaining_seconds": remaining,
-                         "fits": margin * estimate["total"] <= remaining}
+    measured = {int(g): m for g, m in read(folder / "benchmark.json")["per_gpu"].items()}
+    budget = budget_plan(ctx, measured, validate, sorted(measured), ctx.clock.remaining())
+    budget["remaining_seconds"] = budget.pop("available_seconds")
     write(ctx.root / "budget_plan.json", budget)
     return budget
 
 
+def smoke_summary(receipt):
+    keys = ("fold", "gpu", "devices", "peak_memory", "optimizer_steps", "warm_seconds_per_optimizer_step",
+            "train_paintings_per_second", "revisit_seconds_per_optimizer_step", "inner_paintings_per_second",
+            "revisit_inner_paintings_per_second", "load_seconds", "finite_losses", "eval_forward_bitwise_repeatable",
+            "two_pass_training", "vision_cache", "placement")
+    return {k: receipt.get(k) for k in keys}
+
+
 def stage_smoke(ctx, backend, status, validate):
     cfg = ctx.config["smoke"]
-    req, body, out = smoke_request(ctx, "tmp_smoke", cfg["optimizer_steps"], None, True)
-    dispatch(ctx, backend, body, req, ctx.clock.work_deadline())
-    measured = read(out / "smoke.json")
-    estimate = forecast(ctx, measured, validate.get("c2_seconds"))
-    margin = ctx.config["budget"]["forecast_margin"]
+    gpus = validate["gpus"]
+    measured = concurrent_smoke(ctx, backend, gpus, "tmp_smoke", cfg["optimizer_steps"], None, True)
     session = ctx.config["budget"]["session_hours"] * 3600 - ctx.config["budget"]["persistence_reserve_seconds"]
-    result = {"mode": "SMOKE_ONLY", "submission_produced": False, "validate": {
-        k: (v.get("status") if isinstance(v, dict) else v) for k, v in validate.items()},
-        "step0": (validate.get("step0_gpu") or {}).get("result"), "smoke": measured,
-        "forecast": estimate | {"margin": margin, "planned_seconds": margin * estimate["total"],
-                                "session_seconds": session, "fits_session": margin * estimate["total"] <= session}}
+    budget = budget_plan(ctx, measured, validate, gpus, session)
+    budget["session_seconds"] = budget.pop("available_seconds")
+    budget["fits_session"] = budget.pop("fits")
+    result = {"mode": "SMOKE_ONLY", "submission_produced": False, "gpus": gpus, "concurrent": len(gpus) > 1,
+              "validate": {k: (v.get("status") if isinstance(v, dict) and "status" in v else v)
+                           for k, v in validate.items() if k not in {"vision_cache", "gpus"}},
+              "vision_cache": validate.get("vision_cache"),
+              "step0": (validate.get("step0_gpu") or {}).get("result"),
+              "per_gpu": {str(g): smoke_summary(m) for g, m in measured.items()},
+              "smoke": {str(g): m for g, m in measured.items()}, "forecast": budget}
     write(ctx.output / "exp040_smoke.json", result)
     return result
 
@@ -386,36 +598,41 @@ def stage_folds(ctx, backend, status, budget):
         return {}
     pop = r38.population(ctx)
     e3 = base_features(ctx)["E3"]
-    results = {}
+    results, jobs, receipts = {}, [], {}
     for fold in sorted(pop["gold"].fold.unique()):
         fold = int(fold)
-        status.item(f"fold {fold}")
         folder = ctx.root / "p2_folds" / f"fold_{fold}"
         if sealed_stage(folder, ctx.identity, ["result.json"]):
             results[fold] = read(folder / "result.json")
             continue
         outer, held, fit, inner = fold_split(ctx, fold)
-        head, fit_receipt = ridge(ctx, outer[outer.painting.isin(fit)], e3)
+        head, receipts[fold] = ridge(ctx, outer[outer.painting.isin(fit)], e3)
         req, body = request(ctx, f"fold_{fold}", "fold", pairs=pd.concat([outer, held]), train_paintings=fit,
                             inner=inner, held=sorted(held.painting.unique()),
                             embed=sorted(set(outer.painting) | set(held.painting)), head=head,
                             epochs_to_run=ctx.config["train"]["epochs"], deadline=ctx.clock.work_deadline(),
-                            identity=ctx.identity | {"fold": fold}, seed=ctx.config["train"]["seed"] + fold)
+                            identity=ctx.identity | {"fold": fold, "vision_cache": bool(ctx.vision_cache["enabled"])},
+                            seed=ctx.config["train"]["seed"] + fold)
         body["folder"] = str(folder)
-        try:
-            dispatch(ctx, backend, body, req, ctx.clock.work_deadline())
-        except TimeoutError:
-            raise
-        except Exception as error:  # E3L is the experiment: a technical failure becomes a reported NO_GO.
-            ctx.e3l = {"available": False, "reason": f"TECHNICAL_FAILURE fold {fold}: {type(error).__name__}: {error}"}
-            status.piece("E3L", "FAILED", ctx.e3l["reason"])
-            return results
-        result = read(folder / "result.json") | {"init_ridge": fit_receipt}
+        jobs.append({"label": f"fold {fold}", "fold": fold, "body": body, "request": req, "gpu": None})
+    status.item(f"folds {[j['fold'] for j in jobs]} on GPUs {budget['gpus']}")
+
+    def done(job, gpu):
+        fold = job["fold"]
+        folder = ctx.root / "p2_folds" / f"fold_{fold}"
+        result = read(folder / "result.json") | {"init_ridge": receipts[fold], "gpu_index": gpu}
         write(folder / "result.json", result)
         seal(folder, ctx.identity)
         results[fold] = result
-        status.piece(f"E3L_fold_{fold}", "COMPLETE", f"selected epoch {result['selected_epoch']}")
-        r38.progress(ctx)
+        status.piece(f"E3L_fold_{fold}", "COMPLETE", f"selected epoch {result['selected_epoch']} on GPU {gpu}")
+        progress_sealed(ctx)
+
+    failure = run_jobs(ctx, backend, jobs, budget["gpus"], done)
+    if failure is not None:  # E3L is the experiment: a technical failure becomes a reported NO_GO.
+        job, error = failure
+        ctx.e3l = {"available": False, "reason": f"TECHNICAL_FAILURE fold {job['fold']}: {type(error).__name__}: {error}"}
+        status.piece("E3L", "FAILED", ctx.e3l["reason"])
+        return results
     status.piece("E3L", "COMPLETE")
     return results
 
@@ -516,11 +733,13 @@ def stage_full(ctx, backend, status, folds):
     req, body = request(ctx, "full", "full", pairs=pd.concat([pop["train"][data.KEYS + ["k", "n"]], dev]),
                         train_paintings=paintings, inner=[], held=sorted(dev.painting.unique()),
                         embed=sorted(set(paintings) | set(dev.painting)), head=head, epochs_to_run=epoch,
-                        deadline=ctx.clock.work_deadline(), identity=ctx.identity | {"full": epoch},
+                        deadline=ctx.clock.work_deadline(),
+                        identity=ctx.identity | {"full": epoch, "vision_cache": bool(ctx.vision_cache["enabled"])},
                         seed=ctx.config["train"]["seed"] + 100)
     body["folder"] = str(folder)
-    dispatch(ctx, backend, body, req, ctx.clock.work_deadline())
-    result = read(folder / "result.json") | {"init_ridge": receipt, "selected_epochs": epochs}
+    gpu = ctx.config["parallel"]["full_refit_gpu"]
+    dispatch(ctx, backend, body, req, ctx.clock.work_deadline(), gpu=gpu)
+    result = read(folder / "result.json") | {"init_ridge": receipt, "selected_epochs": epochs, "gpu_index": gpu}
     write(folder / "result.json", result)
     seal(folder, ctx.identity)
     return result | {"epoch": epoch}
@@ -664,6 +883,9 @@ def run_pipeline(ctx, backend, smoke=False):
         status.done(stages[0])
         status.begin(stages[1])
         validate = stage_validate(ctx, backend, status, smoke)
+        ctx.vision_cache = validate["vision_cache"]
+        ctx.log(f"Vision cache: {'ON' if ctx.vision_cache['enabled'] else 'OFF'} ({ctx.vision_cache['reason']}); "
+                f"GPUs {validate['gpus']}")
         status.done(stages[1])
         if smoke:
             status.begin(stages[2])
@@ -745,9 +967,90 @@ class Backend(r38.SubprocessBackend):
         self.ctx.models["E3"] = path
         return {k: receipt[k] for k in ("model", "revision")}
 
-    def e3l(self, request_path, deadline):
-        env = os.environ | {"CUDA_VISIBLE_DEVICES": "0", "CUBLAS_WORKSPACE_CONFIG": ":4096:8"}
-        r38.run_child(["gpu-e3l", "--request", request_path], deadline, self.ctx, env=env)
+    def __init__(self, ctx):
+        super().__init__(ctx)
+        self.children, self.lock = {}, threading.Lock()
+
+    def gpus(self):
+        """GPU indices in PCI bus order (as nvidia-smi lists them), capped at ``parallel.max_gpus``."""
+        probe = subprocess.run(["nvidia-smi", "--query-gpu=index", "--format=csv,noheader"], capture_output=True,
+                               text=True, check=True)
+        found = [int(line) for line in probe.stdout.split() if line.strip()]
+        return sorted(found)[:self.ctx.config["parallel"]["max_gpus"]]
+
+    def e3l(self, request_path, deadline, gpu=0):
+        env = os.environ | {"CUDA_VISIBLE_DEVICES": str(int(gpu)), "CUDA_DEVICE_ORDER": "PCI_BUS_ID",
+                            "CUBLAS_WORKSPACE_CONFIG": ":4096:8"}
+        run_child(["gpu-e3l", "--request", request_path], deadline, self.ctx, env=env, label=f"gpu{gpu}",
+                  registry=self)
+
+    def cancel(self):
+        with self.lock:
+            children = list(self.children.values())
+        for child in children:
+            kill(child)
+
+
+LOG_LOCK = threading.Lock()
+
+
+def kill(child):
+    """Kill a child started with start_new_session=True (its whole process group on POSIX)."""
+    if child.poll() is not None:
+        return
+    if os.name == "posix":
+        import signal
+
+        try:
+            os.killpg(child.pid, signal.SIGKILL)
+            return
+        except ProcessLookupError:
+            return
+    child.kill()
+
+
+def run_child(arguments, deadline, ctx, env=None, label="gpu0", registry=None, executable=None):
+    """One GPU child with live output, each line relayed once with a ``[label]`` prefix; killed 60 s past its
+    deadline or on ``registry.cancel()``. Exit codes follow the EXP-038 children."""
+    remaining = deadline - time.time()
+    if remaining <= 0:
+        raise TimeoutError("Session allowance reached before a GPU stage")
+    command = executable or [sys.executable, "-u", str(ctx.script)]
+    log = ctx.root / "gpu_children.log"
+    with subprocess.Popen([*command, *map(str, arguments)], stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                          text=True, encoding="utf-8", errors="replace", start_new_session=True, env=env) as child:
+        if registry is not None:
+            with registry.lock:
+                registry.children[child.pid] = child
+
+        def relay():
+            for line in child.stdout:
+                line = f"[{label}] {line}"
+                with LOG_LOCK:
+                    with log.open("a", encoding="utf-8") as stream:
+                        stream.write(line)
+                    print(line, end="", flush=True)
+
+        reader = threading.Thread(target=relay, daemon=True)
+        reader.start()
+        try:
+            code = child.wait(timeout=max(1., remaining + 60))
+        except subprocess.TimeoutExpired:
+            code = None
+        finally:
+            if child.poll() is None:
+                kill(child)
+                child.wait()
+            reader.join(timeout=30)
+            if registry is not None:
+                with registry.lock:
+                    registry.children.pop(child.pid, None)
+    if code == r38.EXIT_BUDGET:
+        raise BudgetStop(f"{arguments[0]} reached its cap")
+    if code == r38.EXIT_TIMEOUT or code is None:
+        raise TimeoutError(f"{arguments[0]} stopped at the session allowance")
+    if code:
+        raise RuntimeError(f"{arguments[0]} ({label}) exited with status {code}; see gpu_children.log")
 
 
 def gpu_e3l(args):

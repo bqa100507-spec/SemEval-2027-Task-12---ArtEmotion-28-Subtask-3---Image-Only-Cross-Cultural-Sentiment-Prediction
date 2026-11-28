@@ -2,6 +2,7 @@
 
 import json
 import sys
+import time
 from pathlib import Path
 from unittest import mock
 from zipfile import ZipFile
@@ -298,15 +299,22 @@ def test_smoke_mode_writes_no_submission(built, tmp_path):
     assert smoke["validate"]["r0_replay"] == "PASS" and smoke["validate"]["step0_gpu"] == "PASS"
     assert read(ctx.root / "validate_smoke.json")["r0_replay"]["result"] == {"status": "SKIPPED_SMOKE"}
     assert smoke["forecast"]["fits_session"] and set(smoke["forecast"]["pieces"]) >= {"fold_1", "full_refit"}
-    assert [c for c in backend.calls if c[0] == "e3l"] == [("e3l", "step0", None), ("e3l", "smoke", None)]
+    # Step 0 on GPU 0, then one smoke child per GPU at once (fold 1 on GPU 0, fold 2 on GPU 1).
+    assert backend.placements[0] == ("step0", None, 0)
+    assert sorted(backend.placements[1:]) == [("smoke", 1, 0), ("smoke", 2, 1)]
+    assert smoke["concurrent"] and set(smoke["per_gpu"]) == {"0", "1"}
+    assert smoke["per_gpu"]["1"]["gpu"] == {"visible_devices": "1"} and smoke["per_gpu"]["1"]["fold"] == 2
+    forecast = smoke["forecast"]
+    assert {str(g) for g in forecast["queues"]} == {"0", "1"}
+    assert forecast["total"] < forecast["serial_total"] and smoke["vision_cache"]["enabled"]
 
 
 def test_validate_collects_failures_and_step0_mismatch(built, tmp_path):
     import run_exp040
 
     class Off(fx.Backend):
-        def e3l(self, request_path, deadline):
-            super().e3l(request_path, deadline)
+        def e3l(self, request_path, deadline, gpu=0):
+            super().e3l(request_path, deadline, gpu)
             body = json.loads(Path(request_path).read_text(encoding="utf-8"))
             if body["mode"] == "step0":
                 path = Path(body["folder"]) / "step0_probabilities.csv"
@@ -333,11 +341,262 @@ def test_single_gpu_placement_is_asserted_and_child_sees_one_gpu(built, tmp_path
         gpu.single_gpu(module, "cuda:0")
     ctx = fx.context(built, tmp_path)
     seen = {}
-    with mock.patch.object(run_exp040.r38, "run_child", lambda args, deadline, ctx, env=None: seen.update(env)):
-        run_exp040.Backend(ctx).e3l(Path("request.json"), 0.)
-    assert seen["CUDA_VISIBLE_DEVICES"] == "0"
+    with mock.patch.object(run_exp040, "run_child", lambda args, deadline, ctx, env=None, label=None,
+                           registry=None: seen.update(env | {"label": label})):
+        run_exp040.Backend(ctx).e3l(Path("request.json"), 0., gpu=1)
+    assert seen["CUDA_VISIBLE_DEVICES"] == "1" and seen["CUDA_DEVICE_ORDER"] == "PCI_BUS_ID" and seen["label"] == "gpu1"
     source = (ROOT / "src/st3/exp040_gpu.py").read_text(encoding="utf-8")
     assert 'device_map={"": 0}' in source and "torch.cuda.device_count() != 1" in source
+
+
+# Two-GPU fold parallelism.
+
+def test_queue_plan_and_parallel_forecast(built, tmp_path):
+    import run_exp040
+
+    queues = run_exp040.queue_plan({1: 10., 2: 10., 3: 10., 4: 10., 5: 10.}, [0, 1])
+    assert queues == {0: {"folds": [1, 3, 5], "seconds": 30.}, 1: {"folds": [2, 4], "seconds": 20.}}
+    queues = run_exp040.queue_plan({1: 30., 2: 10., 3: 10., 4: 10., 5: 10.}, [0, 1])
+    assert queues[1]["folds"] == [2, 3, 4] and queues[0]["folds"] == [1, 5]
+    assert run_exp040.queue_plan({1: 5., 2: 5.}, [0]) == {0: {"folds": [1, 2], "seconds": 10.}}
+    ctx = fx.context(built, tmp_path)
+    measured = {0: {"warm_seconds_per_optimizer_step": 2., "inner_paintings_per_second": 4., "load_seconds": 10.},
+                1: {"warm_seconds_per_optimizer_step": 3., "inner_paintings_per_second": 2., "load_seconds": 10.}}
+    one = run_exp040.forecast(ctx, measured, 100., [0])
+    two = run_exp040.forecast(ctx, measured, 100., [0, 1])
+    assert two["inputs"]["rates"]["step"] == 3. and two["inputs"]["rates"]["forward"] == .5  # slowest GPU
+    folds = [two["pieces"][f"fold_{f}"] for f in range(1, 6)]
+    assert one["fold_phase_seconds"] == pytest.approx(sum(folds))
+    assert two["fold_phase_seconds"] == pytest.approx(max(q["seconds"] for q in two["queues"].values()))
+    after = two["pieces"]["full_refit"] + two["pieces"]["cpu_p2_and_development"] + two["pieces"]["export"]
+    assert two["total"] == pytest.approx(two["fold_phase_seconds"] + after)
+    assert two["serial_total"] == pytest.approx(one["total"])
+    # Revisit rates count only with the vision cache on.
+    measured[0] |= {"revisit_seconds_per_optimizer_step": .5, "revisit_inner_paintings_per_second": 40.}
+    measured[1] |= {"revisit_seconds_per_optimizer_step": 1., "revisit_inner_paintings_per_second": 20.}
+    assert run_exp040.forecast(ctx, measured, 100., [0, 1])["total"] == pytest.approx(two["total"])
+    ctx.vision_cache = {"enabled": True}
+    cached = run_exp040.forecast(ctx, measured, 100., [0, 1])
+    assert cached["inputs"]["rates"]["step_revisit"] == 1. and cached["total"] < two["total"]
+
+
+def test_folds_run_on_both_gpus_and_full_refit_on_one(built, tmp_path):
+    run_exp040, ctx, backend = run(built, tmp_path)
+    run_exp040.run_pipeline(ctx, backend)
+    folds = [p for p in backend.placements if p[0] == "fold"]
+    assert sorted(f for _, f, _ in folds) == [1, 2, 3, 4, 5] and {g for *_, g in folds} == {0, 1}
+    assert [p for p in backend.placements if p[0] == "full"] == [("full", None, 0)]
+    budget = read(ctx.root / "budget_plan.json")
+    assert budget["gpus"] == [0, 1] and budget["fits"] and budget["planned_seconds"] < budget["serial_planned_seconds"]
+    queues = {int(g): q["folds"] for g, q in budget["queues"].items()}
+    assert sorted(queues[0] + queues[1]) == [1, 2, 3, 4, 5] and abs(len(queues[0]) - len(queues[1])) <= 1
+    for fold in range(1, 6):
+        result = read(ctx.root / f"p2_folds/fold_{fold}/result.json")
+        assert (ctx.root / f"p2_folds/fold_{fold}/seal.json").is_file() and result["gpu_index"] in (0, 1)
+    fold_bodies = [b for b in backend.requests if b["mode"] == "fold"]
+    assert all(b["vision_cache"]["enabled"] and b["identity"]["vision_cache"] for b in fold_bodies)
+
+
+def test_sealed_folds_are_reused_whatever_gpu_trained_them(built, tmp_path):
+    run_exp040, ctx, backend = run(built, tmp_path)
+    run_exp040.run_pipeline(ctx, backend)
+    ctx2 = fx.context(built, tmp_path)
+    again = fx.Backend(ctx2, gpu_count=1)
+    with mock.patch.object(run_exp040, "stage_validate", lambda c, b, s, smoke=False: run_exp040.read(
+            ctx.root / "validate/validate.json")):
+        run_exp040.run_pipeline(ctx2, again)
+    assert not [p for p in again.placements if p[0] in {"fold", "full"}]
+
+
+def test_one_gpu_falls_back_to_a_single_queue(built, tmp_path):
+    run_exp040, ctx, backend = run(built, tmp_path, gpu_count=1)
+    run_exp040.run_pipeline(ctx, backend)
+    assert {g for *_, g in backend.placements} == {0}
+    budget = read(ctx.root / "budget_plan.json")
+    assert budget["gpus"] == [0] and budget["planned_seconds"] == pytest.approx(budget["serial_planned_seconds"])
+
+
+def test_failure_on_one_gpu_cancels_the_other_and_is_a_no_go(built, tmp_path):
+    run_exp040, ctx, backend = run(built, tmp_path, fail={("fold", 2): RuntimeError("CUDA error: illegal address")})
+    decision = run_exp040.run_pipeline(ctx, backend)
+    assert backend.cancels >= 1 and "TECHNICAL_FAILURE fold 2" in decision["e3l"]["reason"]
+    assert decision["decision"] == "NO_GO"
+    assert sha(ctx.output / "exp040_best_submission.zip") == ctx.refs["exp038_carried_sha256"]["incumbent_zip"]
+
+
+def test_timeout_on_a_gpu_is_resumable_after_every_child_stops(built, tmp_path):
+    run_exp040, ctx, backend = run(built, tmp_path, fail={("fold", 1): TimeoutError("session allowance")})
+    with pytest.raises(TimeoutError):
+        run_exp040.run_pipeline(ctx, backend)
+    assert read(ctx.root / "status.json")["state"] == "RESUMABLE_STOP" and backend.cancels == 0
+    # The other GPU finished its fold before the stop; it is sealed and reused on resume.
+    sealed = [f for f in range(1, 6) if (ctx.root / f"p2_folds/fold_{f}/seal.json").is_file()]
+    assert sealed and 1 not in sealed
+
+
+def test_run_child_prefixes_each_line_once_and_cancel_kills(built, tmp_path):
+    import threading
+
+    import run_exp040
+
+    ctx = fx.context(built, tmp_path)
+    ctx.root.mkdir(parents=True)
+    run_exp040.run_child(["x"], time.time() + 60, ctx, label="gpu1",
+                         executable=[sys.executable, "-c", "print('alpha'); print('beta')"])
+    log = (ctx.root / "gpu_children.log").read_text(encoding="utf-8").splitlines()
+    assert log == ["[gpu1] alpha", "[gpu1] beta"]
+
+    class Registry:
+        def __init__(self):
+            self.lock, self.children = threading.Lock(), {}
+
+        def cancel(self):
+            with self.lock:
+                for child in self.children.values():
+                    run_exp040.kill(child)
+
+    registry = Registry()
+    timer = threading.Timer(1.5, registry.cancel)
+    timer.start()
+    tick = time.time()
+    with pytest.raises(RuntimeError, match="exited with status"):
+        run_exp040.run_child(["x"], time.time() + 60, ctx, label="gpu0", registry=registry,
+                             executable=[sys.executable, "-c", "import time; print('up', flush=True); time.sleep(60)"])
+    assert time.time() - tick < 30 and not registry.children
+    with pytest.raises(TimeoutError):
+        run_exp040.run_child(["x"], time.time() - 1, ctx, executable=[sys.executable, "-c", "pass"])
+
+
+def test_progress_snapshot_leaves_out_in_flight_folds(built, tmp_path):
+    import run_exp040
+
+    ctx = fx.context(built, tmp_path)
+    for fold, sealed in ((1, True), (2, False)):
+        folder = ctx.root / f"p2_folds/fold_{fold}"
+        (folder / "epochs").mkdir(parents=True)
+        (folder / "epochs/epoch_0.pt").write_bytes(b"w")
+        if sealed:
+            (folder / "seal.json").write_text("{}", encoding="utf-8")
+    (ctx.root / "status.json").write_text("{}", encoding="utf-8")
+    run_exp040.progress_sealed(ctx)
+    with ZipFile(ctx.output / "exp040_progress.zip") as z:
+        names = set(z.namelist())
+    assert any("fold_1/epochs/epoch_0.pt" in n for n in names) and not any("fold_2" in n for n in names)
+
+
+# Vision cache.
+
+def test_vision_cache_decision(built, tmp_path):
+    import run_exp040
+
+    ctx = fx.context(built, tmp_path)
+    check = {"passes": {"fill": {"bitwise": True}, "hit": {"bitwise": True}}, "max_abs_probability_difference": 0.,
+             "tolerance": 1e-5, "passed": True, "cache": {"bytes_per_entry": 3e6, "max_entry_bytes": 4e6}}
+    on = run_exp040.vision_cache_decision(ctx, {"vision_cache": check}, [0, 1])
+    assert on["enabled"] and on["check"]["bitwise"]
+    off = run_exp040.vision_cache_decision(
+        ctx, {"vision_cache": check | {"passed": False, "max_abs_probability_difference": 2e-5}}, [0])
+    assert not off["enabled"] and "skipped" in off["reason"]
+    big = run_exp040.vision_cache_decision(ctx, {"vision_cache": check | {"cache": {"max_entry_bytes": 1e12}}}, [0])
+    assert not big["enabled"] and "max_bytes_per_child" in big["reason"]
+    with mock.patch.object(run_exp040, "available_memory", lambda: 10_000):
+        assert not run_exp040.vision_cache_decision(ctx, {"vision_cache": check}, [0, 1])["enabled"]
+    assert not run_exp040.vision_cache_decision(ctx, {}, [0])["enabled"]
+
+
+def test_cache_mismatch_runs_uncached(built, tmp_path):
+    run_exp040, ctx, backend = run(built, tmp_path, cache_difference=2e-5)
+    run_exp040.run_pipeline(ctx, backend, smoke=True)
+    smoke = read(ctx.output / "exp040_smoke.json")
+    assert not smoke["vision_cache"]["enabled"] and smoke["validate"]["step0_gpu"] == "PASS"
+    assert all(not b["vision_cache"]["enabled"] for b in backend.requests if b["mode"] == "smoke")
+    rates = smoke["forecast"]["inputs"]["rates"]
+    assert rates["step_revisit"] == rates["step"] and rates["forward_revisit"] == rates["forward"]
+
+
+class FakeBackbone(torch.nn.Module):
+    """The Qwen3VLModel contract the cache relies on: ``get_image_features`` is called from ``forward`` when
+    ``pixel_values`` is not None and returns (per-image embeds, deepstack list); image tokens are replaced."""
+
+    IMAGE = 7
+
+    def __init__(self):
+        super().__init__()
+        torch.manual_seed(0)
+        self.embed = torch.nn.Embedding(16, 8)
+        self.visual = torch.nn.Linear(4, 8)
+        self.deep = torch.nn.Linear(4, 8)
+        self.mix = torch.nn.Linear(8, 8)
+        self.calls = 0
+        self.eval()
+
+    def get_image_features(self, pixel_values, image_grid_thw=None):
+        self.calls += 1
+        return (self.visual(pixel_values),), [self.deep(pixel_values)]
+
+    def forward(self, input_ids, attention_mask, pixel_values=None, image_grid_thw=None, use_cache=False):
+        states = self.embed(input_ids)
+        if pixel_values is not None:
+            embeds, deep = self.get_image_features(pixel_values, image_grid_thw)
+            mask = (input_ids == self.IMAGE).unsqueeze(-1).expand_as(states)
+            image = torch.cat(embeds).to(states.dtype) + deep[0]
+            states = states.masked_scatter(mask, image)
+        return type("Out", (), {"last_hidden_state": self.mix(states)})()
+
+
+def test_vision_cache_injection_matches_the_uncached_forward():
+    backbone = FakeBackbone()
+    inputs = {"input_ids": torch.tensor([[1, 7, 7, 7, 2, 3]]), "attention_mask": torch.ones(1, 6, dtype=torch.long),
+              "pixel_values": torch.randn(3, 4), "image_grid_thw": torch.tensor([[1, 2, 6]])}
+    with torch.no_grad():
+        expected = gpu.pooled(backbone, inputs)
+    original, slot = gpu.attach_vision_cache(backbone)
+    entry = gpu.cache_entry(backbone, original, inputs)
+    assert "pixel_values" not in entry["inputs"] and backbone.calls == 2
+    with torch.no_grad():
+        got = gpu.cached_pooled(backbone, slot, entry, "cpu")
+        assert backbone.calls == 2  # injected: the vision tower did not run
+        uncached_again = gpu.pooled(backbone, inputs)  # an empty slot falls through to the vision tower
+    assert torch.equal(got, expected) and torch.equal(uncached_again, expected) and backbone.calls == 3
+    assert slot["value"] is None
+    cache = gpu.VisionCache(max_bytes=gpu.VisionCache.size(entry))
+    cache.put("a", entry)
+    cache.put("b", entry)
+    assert cache.get("a") is entry and cache.get("b") is None
+    receipt = cache.receipt()
+    assert {k: receipt[k] for k in ("entries", "overflow", "hits", "misses")} == \
+        {"entries": 1, "overflow": 1, "hits": 1, "misses": 1}
+    assert receipt["max_entry_bytes"] == gpu.VisionCache.size(entry)
+
+
+def test_vision_cache_on_a_tiny_qwen3_vl():
+    """The real Qwen3-VL forward (random tiny config, CPU): the cached injection equals the uncached path."""
+    qwen = pytest.importorskip("transformers.models.qwen3_vl.modeling_qwen3_vl")
+    from transformers import Qwen3VLConfig
+
+    config = Qwen3VLConfig(
+        text_config={"vocab_size": 64, "hidden_size": 32, "intermediate_size": 64, "num_hidden_layers": 3,
+                     "num_attention_heads": 4, "num_key_value_heads": 2, "head_dim": 8,
+                     "rope_scaling": {"rope_type": "default", "mrope_section": [2, 1, 1], "mrope_interleaved": True}},
+        vision_config={"depth": 3, "hidden_size": 16, "intermediate_size": 32, "num_heads": 2, "patch_size": 4,
+                       "spatial_merge_size": 2, "temporal_patch_size": 2, "out_hidden_size": 32,
+                       "num_position_embeddings": 64, "deepstack_visual_indexes": [0, 1]},
+        image_token_id=60, video_token_id=61, vision_start_token_id=62, vision_end_token_id=63)
+    torch.manual_seed(0)
+    model = qwen.Qwen3VLForConditionalGeneration(config).eval()
+    backbone = model.model
+    grid = torch.tensor([[1, 4, 4]])
+    tokens = int(grid.prod()) // 4
+    ids = torch.tensor([[1, 2, 62, *([60] * tokens), 63, 3, 4]])
+    inputs = {"input_ids": ids, "attention_mask": torch.ones_like(ids), "image_grid_thw": grid,
+              "pixel_values": torch.randn(int(grid.prod()), 3 * 2 * 4 * 4)}
+    with torch.no_grad():
+        expected = gpu.pooled(backbone, inputs)
+        original, slot = gpu.attach_vision_cache(backbone)
+        entry = gpu.cache_entry(backbone, original, inputs)
+        got = gpu.cached_pooled(backbone, slot, entry, "cpu")
+    assert len(entry["deep"]) == 2 and entry["embeds"].shape == (tokens, 32)
+    assert torch.equal(got, expected)
 
 
 def test_fit_and_predict_refuses_overlap(built, tmp_path):

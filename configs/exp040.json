@@ -218,7 +218,7 @@
     "model": "Qwen/Qwen3-VL-Embedding-2B",
     "revision": "9f2f7e710d6d81056aa5c0a4f04764fec6bb7bda",
     "pooling": "E3's official instruction, pixels and last-token pooling; FP16 autocast; unit-norm in FP32",
-    "placement": "single GPU, device_map {'': 0}",
+    "placement": "each model on one GPU, device_map {'': 0} inside a child that sees only that GPU (CUDA_VISIBLE_DEVICES); never split",
     "frozen": [
       "vision tower",
       "merger",
@@ -288,6 +288,23 @@
     "two_pass_steps": 2,
     "benchmark_steps": 6,
     "benchmark_inner_paintings": 32
+  },
+  "parallel": {
+    "max_gpus": 2,
+    "assignment": "outer folds in order; each GPU worker takes the next unsealed fold when it is free (one child per GPU)",
+    "full_refit_gpu": 0,
+    "step0_gpu": 0,
+    "smoke_folds": [
+      1,
+      2
+    ],
+    "forecast": "max over the GPU queues (the same greedy order as execution) + full refit + CPU + export, x margin; per-fold seconds use the slowest GPU measured while both run concurrently"
+  },
+  "vision_cache": {
+    "tolerance": 1e-05,
+    "max_bytes_per_child": 12000000000,
+    "memory_fraction": 0.6,
+    "definition": "efficiency only: the frozen vision tower's outputs per image (merged embeddings and deepstack features) and the processor's text inputs, computed once under FP16 autocast in eval mode and injected into later forwards; enabled only if Validate's step-0 check matches the uncached path within the tolerance and the projected cache fits in memory"
   },
   "mix": {
     "fixed_ridge_weight": 0.5,

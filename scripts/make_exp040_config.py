@@ -42,7 +42,8 @@ def build(exp039, overlay39_zip, handoff39):
         "e3l": {
             "base_arm": "E3", "model": e3["model"], "revision": e3["revision"],
             "pooling": "E3's official instruction, pixels and last-token pooling; FP16 autocast; unit-norm in FP32",
-            "placement": "single GPU, device_map {'': 0}", "frozen": ["vision tower", "merger", "embeddings",
+            "placement": "each model on one GPU, device_map {'': 0} inside a child that sees only that GPU "
+                         "(CUDA_VISIBLE_DEVICES); never split", "frozen": ["vision tower", "merger", "embeddings",
                                                                       "all base linear weights"],
             "gradient_checkpointing": True,
         },
@@ -73,6 +74,18 @@ def build(exp039, overlay39_zip, handoff39):
                            "scope": "P2 filtered (test-like)", "report_only": True},
         "smoke": {"fold": 1, "optimizer_steps": 30, "inner_pass": True, "two_pass_steps": 2,
                   "benchmark_steps": 6, "benchmark_inner_paintings": 32},
+        "parallel": {"max_gpus": 2, "assignment": "outer folds in order; each GPU worker takes the next unsealed "
+                                                  "fold when it is free (one child per GPU)",
+                     "full_refit_gpu": 0, "step0_gpu": 0, "smoke_folds": [1, 2],
+                     "forecast": "max over the GPU queues (the same greedy order as execution) + full refit + "
+                                 "CPU + export, x margin; per-fold seconds use the slowest GPU measured while "
+                                 "both run concurrently"},
+        "vision_cache": {"tolerance": 1e-5, "max_bytes_per_child": 12_000_000_000, "memory_fraction": 0.6,
+                         "definition": "efficiency only: the frozen vision tower's outputs per image (merged "
+                                       "embeddings and deepstack features) and the processor's text inputs, "
+                                       "computed once under FP16 autocast in eval mode and injected into later "
+                                       "forwards; enabled only if Validate's step-0 check matches the uncached "
+                                       "path within the tolerance and the projected cache fits in memory"},
         "budget": {"session_hours": 10.5, "persistence_reserve_seconds": 1200, "forecast_margin": 1.15,
                    "progress_interval_seconds": 900, "mandatory": ["R0", "C2_replay"],
                    "on_forecast_over": "stop before training and report (no protocol shrinking)"},

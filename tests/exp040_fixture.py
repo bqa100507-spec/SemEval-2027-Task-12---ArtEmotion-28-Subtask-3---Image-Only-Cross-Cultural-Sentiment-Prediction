@@ -82,10 +82,21 @@ def load_head(path):
 class Backend:
     """Mock E3L child. ``epochs`` maps fold -> selected epoch (default 2); ``fail`` maps a mode/fold to an error."""
 
-    def __init__(self, ctx, epochs=None, fail=None, rate=50., step_seconds=.01, gpu_count=2):
+    def __init__(self, ctx, epochs=None, fail=None, rate=50., step_seconds=.01, gpu_count=2, cache_difference=0.,
+                 entry_bytes=4_000_000):
+        import threading
+
         self.ctx, self.epochs, self.fail = ctx, epochs or {}, fail or {}
         self.rate, self.step_seconds, self.gpu_count = rate, step_seconds, gpu_count
-        self.calls, self.requests = [], []
+        self.cache_difference, self.entry_bytes = cache_difference, entry_bytes
+        self.calls, self.requests, self.placements, self.cancels = [], [], [], 0
+        self.lock = threading.Lock()
+
+    def gpus(self):
+        return list(range(self.gpu_count))
+
+    def cancel(self):
+        self.cancels += 1
 
     def runtime(self):
         expected = self.ctx.config["runtime"]
@@ -108,12 +119,14 @@ class Backend:
         values = e3.to_numpy() + rng.normal(scale=scale, size=e3.shape)
         return pd.DataFrame(values / np.linalg.norm(values, axis=1, keepdims=True), index=e3.index)
 
-    def e3l(self, request_path, deadline):
+    def e3l(self, request_path, deadline, gpu=0):
         body = json.loads(Path(request_path).read_text(encoding="utf-8"))
-        self.requests.append(body)
         mode = body["mode"]
         fold = body["identity"].get("fold")
-        self.calls.append(("e3l", mode, fold))
+        with self.lock:
+            self.requests.append(body)
+            self.calls.append(("e3l", mode, fold))
+            self.placements.append((mode, fold, gpu))
         error = self.fail.get((mode, fold)) or self.fail.get(mode)
         if error is not None:
             raise error
@@ -128,13 +141,26 @@ class Backend:
             x.to_csv(folder / "step0_embeddings.csv", float_format="%.17g")
             keys.assign(p_positive=plan.ridge_probabilities(head, x, keys)).to_csv(
                 folder / "step0_probabilities.csv", index=False, float_format="%.17g")
-            write(folder / "step0.json", {"paintings": len(x), "lora_right_zero": True, "placement": ["cuda:0"]})
+            receipt = {"paintings": len(x), "lora_right_zero": True, "placement": ["cuda:0"]}
+            if (body.get("vision_cache") or {}).get("check"):
+                d = self.cache_difference
+                passes = {n: {"paintings_per_second": self.rate, "max_abs_probability_difference": d,
+                              "max_abs_embedding_difference": d, "bitwise": d == 0} for n in ("fill", "hit")}
+                receipt["vision_cache"] = {"passes": passes, "max_abs_probability_difference": d,
+                                           "tolerance": body["vision_cache"]["tolerance"],
+                                           "passed": d <= body["vision_cache"]["tolerance"],
+                                           "cache": {"entries": len(x), "bytes_per_entry": self.entry_bytes,
+                                                     "max_entry_bytes": self.entry_bytes}}
+            write(folder / "step0.json", receipt)
             return
         if mode == "smoke":
             write(folder / "smoke.json", {"mode": "SMOKE_ONLY", "load_seconds": 1., "optimizer_steps": body["smoke_steps"],
                                           "seconds_per_optimizer_step": self.step_seconds,
                                           "warm_seconds_per_optimizer_step": self.step_seconds,
                                           "inner_paintings_per_second": self.rate, "finite_losses": True,
+                                          "revisit_seconds_per_optimizer_step": self.step_seconds / 2,
+                                          "revisit_inner_paintings_per_second": self.rate * 2,
+                                          "gpu": {"visible_devices": str(gpu)},
                                           "peak_memory": {"allocated_bytes": 1}, "devices": {"hidden": "cuda:0"},
                                           "two_pass_training": {"bitwise": True}})
             return

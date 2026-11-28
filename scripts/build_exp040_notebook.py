@@ -2,9 +2,9 @@
 """Write notebooks/EXP040_Kaggle.ipynb pinned to one packaged overlay and the existing EXP-037 base dataset.
 
 New launcher template (checklist item 9): ``SMOKE_ONLY = True`` runs Setup, Validate (inputs, restore, pins, key
-audit, the step-0 equality on one fold; replays skipped), one fold x 30 optimizer steps plus one inner pass, and
-writes ``exp040_smoke.json`` with throughput, VRAM, devices, finiteness, determinism and a full-run forecast. It
-produces no submission and no SUCCESS marker. The locate code and single-relay ``stream`` are shared with EXP-039.
+audit, the step-0 equality and the vision-cache check on one fold; replays skipped), then one fold per GPU at once
+x 30 optimizer steps plus inner passes, and writes ``exp040_smoke.json`` with per-GPU throughput, VRAM, placement,
+finiteness, determinism and the parallel full-run forecast. It produces no submission and no SUCCESS marker. The locate code and single-relay ``stream`` are shared with EXP-039.
 """
 
 import argparse
@@ -20,15 +20,18 @@ from build_exp038_notebook import cell  # noqa: E402
 INTRO = """# EXP-040 · E3-LoRA (Qwen3-VL-Embedding-2B adapted from a ridge-initialized interaction head)
 
 Attach **two private datasets**: the existing EXP-037 input (`exp037_inputs.zip`) and the EXP-040 overlay
-(`exp040_inputs.zip`). Select **GPU T4 ×2** (E3L trains on GPU 0 only) and **Internet on**.
+(`exp040_inputs.zip`). Select **GPU T4 ×2** and **Internet on**. Each GPU runs its own child process with the
+whole model on that GPU (never split): outer folds run two at a time, and the full refit runs afterwards on GPU 0.
 
 1. **Smoke first:** keep `SMOKE_ONLY = True`, set `AUTHORIZE_RUN = True`, **Run All**. It validates the inputs, the
-   key audit and the step-0 equality, trains one fold for 30 optimizer steps, runs one inner pass, and writes
-   `exp040_smoke.json` (throughput, peak VRAM, devices, finite losses, two-pass determinism, full-run forecast).
+   key audit, the step-0 equality and the vision-cache check, then trains fold 1 on GPU 0 and fold 2 on GPU 1 at
+   the same time for 30 optimizer steps each, runs their inner passes, and writes `exp040_smoke.json` (per-GPU
+   throughput, peak VRAM, placement, finite losses, two-pass determinism, the parallel full-run forecast).
    No submission is produced.
-2. **Full run:** set `SMOKE_ONLY = False` and **Run All** once. Stages: Setup → Validate → Benchmark → P2 LoRA
-   folds (sealed per fold, resumable) → P2 evaluation → Full refit and Development → Submission validation →
-   Export → Release. If the forecast exceeds the session, the run stops before training and exports a NO_GO report.
+2. **Full run:** set `SMOKE_ONLY = False` and **Run All** once. Stages: Setup → Validate → Benchmark (both GPUs) →
+   P2 LoRA folds (two GPU queues, sealed per fold, resumable) → P2 evaluation → Full refit (GPU 0) and Development →
+   Submission validation → Export → Release. If the forecast exceeds the session, the run stops before training
+   and exports a NO_GO report.
    C2 is recomputed from the sealed EXP-038 features and is the gate reference. Development is reporting only.
 
 Keep everything private. Download from **Output**: `exp040_smoke.json`, or `exp040_results.zip`,
@@ -59,6 +62,8 @@ probe = subprocess.run(["nvidia-smi", "-L"], capture_output=True, text=True) if 
 if probe is None or probe.returncode != 0 or "GPU 0" not in probe.stdout:
     raise RuntimeError("Select a CUDA GPU in Kaggle Settings, then Run All again.")
 print(probe.stdout.strip())
+if "GPU 1" not in probe.stdout:
+    print("WARNING: one GPU is visible. The run falls back to a single fold queue; select GPU T4 x2 for two.")
 base_root, base_manifest = locate(MOUNT, Path("/kaggle/temp/exp040_base"), "exp037_manifest.json",
                                   BASE_MANIFEST_SHA256, "exp037_inputs.zip", BASE_ARCHIVE_SHA256, "exp037_inputs")
 overlay_root, overlay_manifest = locate(MOUNT, Path("/kaggle/temp/exp040_overlay_zip"), "exp040_manifest.json",
@@ -93,7 +98,8 @@ for name in ("status.json", "budget_plan.json", "decision.json", "selection.json
 smoke = OUTPUT / "exp040_smoke.json"
 if smoke.is_file():
     result = json.loads(smoke.read_text())
-    print("SMOKE_ONLY receipt:", json.dumps({k: result[k] for k in ("validate", "step0", "forecast")}, indent=1)[:6000])
+    print("SMOKE_ONLY receipt:", json.dumps({k: result[k] for k in ("validate", "vision_cache", "per_gpu", "forecast")},
+                                            indent=1)[:9000])
 for name in ("exp040_SUCCESS.json", "exp040_results.zip", "exp040_best_submission.zip", "exp040_progress.zip",
              "exp040_diagnostic.zip"):
     path = OUTPUT / name

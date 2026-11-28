@@ -1,7 +1,9 @@
 """Launch the verified EXP-040 worker in a pinned, session-scoped Kaggle environment.
 
-E3L trains on one GPU: the worker pins its GPU child to the first device (``device_map {'': 0}``). With
-``--smoke`` the worker runs SMOKE_ONLY (Validate, one short fold, a forecast) and produces no submission. Kaggle never imports or calls Colab APIs. Every output line is relayed exactly once: the
+Each E3L model sits on one GPU: the worker starts one child per GPU with CUDA_VISIBLE_DEVICES set to that GPU,
+and the child loads with ``device_map {'': 0}``. Outer folds run as two GPU queues; the full refit runs on GPU 0.
+With ``--smoke`` the worker runs SMOKE_ONLY (Validate, one short fold per GPU at once, a parallel forecast) and
+produces no submission. Kaggle never imports or calls Colab APIs. Every output line is relayed exactly once: the
 notebook reads this launcher through a pipe, and this launcher reads the worker through a pipe.
 """
 
