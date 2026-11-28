@@ -349,15 +349,19 @@ def vision_cache_decision(ctx, step0_result, gpus):
             f"cached step-0 predictions differ from the uncached path by {check['max_abs_probability_difference']:.3g}"
             f" > {check['tolerance']}; the cache is skipped")}
     n = counts(ctx)
-    paintings = max([c["embed"] for c in n["folds"].values()] + [n["train"] + n["dev"]])
+    fold_paintings = max(c["embed"] for c in n["folds"].values())
+    full_paintings = n["train"] + n["dev"]
     per_entry = check["cache"].get("max_entry_bytes") or check["cache"]["bytes_per_entry"]
-    projected = int(per_entry * paintings)
+    per_child = int(per_entry * max(fold_paintings, full_paintings))
+    # Fold children run one per GPU at once; the full refit runs alone afterwards.
+    peak = int(per_entry * max(len(gpus) * fold_paintings, full_paintings))
     memory = available_memory()
-    summary |= {"projected_bytes_per_child": projected, "paintings_per_child": paintings, "gpus": len(gpus),
+    summary |= {"projected_bytes_per_child": per_child, "projected_peak_bytes": peak,
+                "fold_paintings": fold_paintings, "full_refit_paintings": full_paintings, "gpus": len(gpus),
                 "available_memory_bytes": memory}
-    if projected > cfg["max_bytes_per_child"]:
+    if per_child > cfg["max_bytes_per_child"]:
         return {"enabled": False, "check": summary, "reason": "projected cache exceeds max_bytes_per_child"}
-    if memory is not None and len(gpus) * projected > cfg["memory_fraction"] * memory:
+    if memory is not None and peak > cfg["memory_fraction"] * memory:
         return {"enabled": False, "check": summary, "reason": "projected caches exceed the memory fraction"}
     return {"enabled": True, "check": summary, "reason": "step-0 cached path matched within tolerance"}
 

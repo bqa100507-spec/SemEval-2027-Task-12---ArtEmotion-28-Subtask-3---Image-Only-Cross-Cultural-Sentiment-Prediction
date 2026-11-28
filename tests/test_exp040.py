@@ -501,6 +501,11 @@ def test_vision_cache_decision(built, tmp_path):
     assert not big["enabled"] and "max_bytes_per_child" in big["reason"]
     with mock.patch.object(run_exp040, "available_memory", lambda: 10_000):
         assert not run_exp040.vision_cache_decision(ctx, {"vision_cache": check}, [0, 1])["enabled"]
+    # The peak is two fold children at once or the full refit alone, never the full refit times the GPU count.
+    n = run_exp040.counts(ctx)
+    fold, full = max(c["embed"] for c in n["folds"].values()), n["train"] + n["dev"]
+    assert on["check"]["projected_peak_bytes"] == int(4e6 * max(2 * fold, full))
+    assert on["check"]["projected_bytes_per_child"] == int(4e6 * max(fold, full))
     assert not run_exp040.vision_cache_decision(ctx, {}, [0])["enabled"]
 
 
