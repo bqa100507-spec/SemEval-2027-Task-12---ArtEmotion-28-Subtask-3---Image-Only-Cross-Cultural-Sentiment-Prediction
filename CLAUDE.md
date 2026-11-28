@@ -8,7 +8,8 @@
 
 - The root checkout is on `codex/exp035-qwen3-cultural-residual` (2026-11-22) and is **stale**.
 - EXP-037 is the worktree `runs/exp037/review/` on `codex/exp037-progressive-joint-adaptation` at `bcc8d846508428ac5d3e2231af49462ada00faa5`, open PR #44 (not merged).
-- **H1 Gate 0** (CPU analysis) is the worktree `runs/h1_gate0/review/` on `codex/h1-gate0`, branched from the EXP-039 tip `39adfa8`. It is the newest branch; read its `docs/project_state.md`.
+- **EXP-040** (E3-LoRA, prepared, not run) is the worktree `runs/exp040/review/` on `codex/exp040-e3-lora`, branched from `codex/h1-gate0` at `8961b86`. It is the newest branch; read its `docs/project_state.md` and `docs/exp040_kaggle.md`.
+- **H1 Gate 0** (CPU analysis) is the worktree `runs/h1_gate0/review/` on `codex/h1-gate0`, branched from the EXP-039 tip `39adfa8`.
 - **EXP-038** is the worktree `runs/exp038/review/` on `codex/exp038-cultural-deviation-ensemble`, branched from that EXP-037 commit (draft PR #47, not merged; EXP-038 closed). Open Claude Code there for EXP-038 work and read `docs/project_state.md`, `docs/experiment_registry.md`, `docs/experiment_workflow_standard.md`, `docs/exp038_kaggle.md` and `configs/exp038.json`.
 
 ## Current competition position
@@ -17,6 +18,7 @@
 - **VLM-free fallback: the EXP-036 ensemble** (75% Corrected Ridge + 25% epoch-5 CS-CVA), hosted 0.4703 (#1065924), then Corrected Ridge, then E50+L.
 - EXP-037 original C6 blend: hosted 0.4728 (#1068597), closed.
 - **EXP-039 (VLM-embedding scaling): closed NO_GO 2026-11-28; the incumbent is unchanged.** D2/D3/D4 failed against on-platform C2; E5/8B untested (patch 2 not executed by owner decision). Report `reports/exp039_final.md`, audit `runs/exp039/closure/audit.json`. No successor designed.
+- **EXP-040 (E3-LoRA): prepared, not run.** Overlay `runs/exp040/handoff/exp040_inputs.zip` (`c386ad41…`); the owner runs `SMOKE_ONLY` on Kaggle first. The RTX 4060 forecast exceeds one session; do not change the protocol without an owner decision.
 - **H1 Gate 0: STOP_H1 (2026-11-28).** Gold en/ar/zh deviations do not inform the 22 scored languages: oracle over C2 −0.0143 [−0.0211, −0.0076], split-reference r −0.009 [−0.020, +0.004]. Do not build H1 (ArtELingo en/ar/zh deviation pretraining). ArtELingo eligibility is pending organizer issue #2. Report `reports/h1_gate0.md`.
 - **EXP-038: closed GO (C2).** Report `reports/exp038_final.md`, audit `runs/exp038/closure/audit.json`. The old shared-basis design is SUPERSEDED. Its successor EXP-039 is closed NO_GO (above).
 - Before any new Kaggle handoff, follow the pre-upload checklist in `docs/experiment_workflow_standard.md` (Linux preflight from the exact upload ZIP).
