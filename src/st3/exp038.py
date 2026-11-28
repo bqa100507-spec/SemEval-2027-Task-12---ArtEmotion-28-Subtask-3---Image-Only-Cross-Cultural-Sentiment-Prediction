@@ -178,9 +178,31 @@ def arm_probabilities(head, keys, features, delta, arm):
     return expit(z).round(6)
 
 
+@dataclass(frozen=True)
+class VlmThird:
+    """(Fixed Ridge + round6(mean of the CLIP-family arms) + round6(mean of the VLM arms)) / 3, round6.
+
+    Iterates over all its arms, so banks, similarity spaces and availability treat it like a candidate tuple.
+    """
+
+    clip_arms: tuple
+    vlm_arms: tuple
+
+    def __iter__(self):
+        return iter((*self.clip_arms, *self.vlm_arms))
+
+    def __len__(self):
+        return len(self.clip_arms) + len(self.vlm_arms)
+
+
 def mix_columns(frame, candidates):
     frame = frame.assign(fixed=blend(frame[list(ENCODERS)].to_numpy(dtype=np.float64), None, fixed=True))
     for name, arms in candidates.items():
+        if isinstance(arms, VlmThird):
+            clip = frame[list(arms.clip_arms)].to_numpy(dtype=np.float64).mean(axis=1).round(6)
+            vlm = frame[list(arms.vlm_arms)].to_numpy(dtype=np.float64).mean(axis=1).round(6)
+            frame[name] = ((frame.fixed.to_numpy() + clip + vlm) / 3).round(6)
+            continue
         values = frame[list(arms)].to_numpy(dtype=np.float64)
         frame[name] = (0.5 * frame.fixed.to_numpy() + 0.5 * values.mean(axis=1)).round(6)
     return frame
@@ -196,7 +218,8 @@ def predict_frame(heads, keys, features, delta, candidates):
 
 
 def available_candidates(candidates, arms):
-    return {name: tuple(parts) for name, parts in candidates.items() if set(parts) <= set(arms)}
+    return {name: parts if isinstance(parts, VlmThird) else tuple(parts)
+            for name, parts in candidates.items() if set(parts) <= set(arms)}
 
 
 def r0_space(features):

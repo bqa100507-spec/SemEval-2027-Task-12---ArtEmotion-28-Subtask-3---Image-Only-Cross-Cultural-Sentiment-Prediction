@@ -20,6 +20,10 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 ARCHIVE_SUFFIXES = (".zip", ".tar", ".gz", ".tgz", ".7z", ".bz2", ".xz", ".whl")
+EXPERIMENTS = {"exp038": {"manifest": "exp038_manifest.json", "zip": "exp038_inputs.zip", "prefix": "exp038_inputs",
+                          "worker": "run_exp038.py", "notebook": "build_exp038_notebook"},
+               "exp039": {"manifest": "exp039_manifest.json", "zip": "exp039_inputs.zip", "prefix": "exp039_inputs",
+                          "worker": "run_exp039.py", "notebook": "build_exp039_notebook"}}
 
 
 def sha(path):
@@ -34,6 +38,7 @@ def parse(argv=None):
     parser.add_argument("--work", type=Path, required=True, help="Fresh scratch directory")
     parser.add_argument("--receipt", type=Path, required=True)
     parser.add_argument("--allow-non-linux", action="store_true", help="Only for tests; the receipt says so")
+    parser.add_argument("--experiment", choices=sorted(EXPERIMENTS), default="exp038")
     args = parser.parse_args(argv)
     for name in ("overlay_zip", "handoff", "base"):
         if not getattr(args, name).exists():
@@ -62,11 +67,12 @@ def expand_recursively(target):
                 archive.extractall(path)
 
 
-def layouts(overlay_zip, work):
-    intact = work / "intact" / "input" / "exp038-inputs"
+def layouts(overlay_zip, work, experiment="exp038"):
+    names = EXPERIMENTS[experiment]
+    intact = work / "intact" / "input" / names["prefix"].replace("_", "-")
     intact.mkdir(parents=True)
-    shutil.copyfile(overlay_zip, intact / "exp038_inputs.zip")
-    expanded = work / "recursive" / "input" / "exp038-inputs"
+    shutil.copyfile(overlay_zip, intact / names["zip"])
+    expanded = work / "recursive" / "input" / names["prefix"].replace("_", "-")
     with zipfile.ZipFile(overlay_zip) as archive:
         archive.extractall(expanded)
     expand_recursively(expanded)
@@ -82,23 +88,26 @@ def base_root(base, work):
     return target / "exp037_inputs"
 
 
-def notebook_locate():
-    sys.path.insert(0, str(ROOT / "scripts"))
-    import build_exp038_notebook
+def notebook_locate(experiment="exp038"):
+    import importlib
 
+    sys.path.insert(0, str(ROOT / "scripts"))
     scope = {}
-    exec(build_exp038_notebook.DEFS, scope)
+    exec(importlib.import_module(EXPERIMENTS[experiment]["notebook"]).DEFS, scope)
     return scope["locate"]
 
 
-def validate(root, base, handoff, output):
-    command = [sys.executable, str(root / "runtime/scripts/run_exp038.py"), "cpu-validate", "--base", str(base),
+def validate(root, base, handoff, output, experiment="exp038"):
+    worker = EXPERIMENTS[experiment]["worker"]
+    command = [sys.executable, str(root / "runtime/scripts" / worker), "cpu-validate", "--base", str(base),
                "--overlay", str(root), "--output", str(output), "--base-sha", handoff["base_manifest_sha256"],
                "--overlay-sha", handoff["manifest_sha256"]]
     result = subprocess.run(command, capture_output=True, text=True)
     if result.returncode:
         return {"status": "FAILED", "error": (result.stdout + result.stderr)[-6000:]}
     receipt = json.loads((output / "cpu_validate.json").read_text(encoding="utf-8"))
+    if "summary" in receipt:
+        return {"status": receipt["summary"]["status"]} | receipt["summary"]
     checks = receipt["r0_p2"]["checks"] + receipt["r0_development"]["checks"]
     return {"status": "PASS", "exact": receipt["exact"], "checks": len(checks),
             "exact_checks": sum(c["exact"] for c in checks),
@@ -110,18 +119,21 @@ def main(argv=None, run_validate=validate):
     args, handoff = parse(argv)
     args.work.mkdir(parents=True, exist_ok=True)
     base = base_root(args.base, args.work)
-    locate = notebook_locate()
+    names = EXPERIMENTS[args.experiment]
+    locate = notebook_locate(args.experiment)
     out = {"overlay_zip_sha256": handoff["archive_sha256"], "overlay_manifest_sha256": handoff["manifest_sha256"],
            "source": handoff["source"], "os": platform.platform(), "linux": platform.system() == "Linux",
            "layouts": {}}
-    for name, mount in layouts(args.overlay_zip, args.work).items():
+    for name, mount in layouts(args.overlay_zip, args.work, args.experiment).items():
         try:
-            root, _ = locate(mount, args.work / f"{name}_zip", "exp038_manifest.json", handoff["manifest_sha256"],
-                             "exp038_inputs.zip", handoff["archive_sha256"], "exp038_inputs")
+            root, _ = locate(mount, args.work / f"{name}_zip", names["manifest"], handoff["manifest_sha256"],
+                             names["zip"], handoff["archive_sha256"], names["prefix"])
         except Exception as error:
             out["layouts"][name] = {"status": "FAILED", "error": f"locate: {type(error).__name__}: {error}"}
             continue
-        out["layouts"][name] = run_validate(root, base, handoff, args.work / f"{name}_validate")
+        output = args.work / f"{name}_validate"
+        out["layouts"][name] = (run_validate(root, base, handoff, output) if args.experiment == "exp038"
+                                else run_validate(root, base, handoff, output, args.experiment))
     out["status"] = "PASS" if all(v["status"] == "PASS" for v in out["layouts"].values()) else "FAILED"
     args.receipt.parent.mkdir(parents=True, exist_ok=True)
     args.receipt.write_text(json.dumps(out, indent=1) + "\n", encoding="utf-8")

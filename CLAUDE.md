@@ -15,7 +15,8 @@
 - **Active incumbent: EXP-038 `B2_C2_cscva3`** = round6(0.80 × round6(0.75 × C2 + 0.25 × CS-CVA-3) + 0.20 × C6), adopted by the owner on 2026-11-27. Owner-reported hosted Dev **0.4737** (#1071328, best ZIP SHA-256 `62093a31da2cd1d864bad7b7818adf082524c09180e75ca0953d5177250ee4e6`), matching local 0.473743. It depends on Qwen (E3, C6): `UNCONFIRMED_QWEN_ST3`; E2 MetaCLIP 2 is CC-BY-NC-4.0.
 - **VLM-free fallback: the EXP-036 ensemble** (75% Corrected Ridge + 25% epoch-5 CS-CVA), hosted 0.4703 (#1065924), then Corrected Ridge, then E50+L.
 - EXP-037 original C6 blend: hosted 0.4728 (#1068597), closed.
-- **EXP-038: closed GO (C2).** Report `reports/exp038_final.md`, audit `runs/exp038/closure/audit.json`. The old shared-basis design is SUPERSEDED. No successor is designed or started.
+- **EXP-039 (VLM-embedding scaling): closed NO_GO 2026-11-28; the incumbent is unchanged.** D2/D3/D4 failed against on-platform C2; E5/8B untested (patch 2 not executed by owner decision). Report `reports/exp039_final.md`, audit `runs/exp039/closure/audit.json`. No successor designed.
+- **EXP-038: closed GO (C2).** Report `reports/exp038_final.md`, audit `runs/exp038/closure/audit.json`. The old shared-basis design is SUPERSEDED. Its successor EXP-039 is closed NO_GO (above).
 - Before any new Kaggle handoff, follow the pre-upload checklist in `docs/experiment_workflow_standard.md` (Linux preflight from the exact upload ZIP).
 
 ## Limits for Claude
