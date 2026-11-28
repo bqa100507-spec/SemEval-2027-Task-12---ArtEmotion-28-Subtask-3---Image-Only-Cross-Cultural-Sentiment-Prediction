@@ -23,7 +23,9 @@ ARCHIVE_SUFFIXES = (".zip", ".tar", ".gz", ".tgz", ".7z", ".bz2", ".xz", ".whl")
 EXPERIMENTS = {"exp038": {"manifest": "exp038_manifest.json", "zip": "exp038_inputs.zip", "prefix": "exp038_inputs",
                           "worker": "run_exp038.py", "notebook": "build_exp038_notebook"},
                "exp039": {"manifest": "exp039_manifest.json", "zip": "exp039_inputs.zip", "prefix": "exp039_inputs",
-                          "worker": "run_exp039.py", "notebook": "build_exp039_notebook"}}
+                          "worker": "run_exp039.py", "notebook": "build_exp039_notebook"},
+               "exp040": {"manifest": "exp040_manifest.json", "zip": "exp040_inputs.zip", "prefix": "exp040_inputs",
+                          "worker": "run_exp040.py", "notebook": "build_exp040_notebook"}}
 
 
 def sha(path):
