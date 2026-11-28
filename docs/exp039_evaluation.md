@@ -1,6 +1,6 @@
 # EXP-039 · Evaluation-phase inference runbook
 
-**Prepared and tested on CPU fixtures only; the selected candidate is not yet known.** If EXP-039 is NO_GO, the January recipe stays EXP-038's [`B2_C2_cscva3`](exp038_evaluation.md). [Kaggle runbook](exp039_kaggle.md)
+**EXP-039 closed NO_GO: the January recipe stays EXP-038's [`B2_C2_cscva3`](exp038_evaluation.md).** This EXP-039 path is kept for reference only and was tested on CPU fixtures only. [Kaggle runbook](exp039_kaggle.md)
 
 The path uses artwork pixels and the requested target language only.
 

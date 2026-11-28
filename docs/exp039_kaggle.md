@@ -1,13 +1,13 @@
 # EXP-039 · Scale the VLM-embedding axis (size, instructions, resolution)
 
-**Status: approved 2026-11-27 · implemented · tested CPU · not run on GPU.** Nothing on this page is an EXP-039 result. [Config](../configs/exp039.json) · [Evaluation inference](exp039_evaluation.md) · [EXP-038 closure](../reports/exp038_final.md)
+**Status: CLOSED NO_GO (2026-11-28).** Run 2 is the official result; the incumbent is unchanged. Patch 2 (E5 multi-GPU placement) was **not executed** by owner decision. [Final report](../reports/exp039_final.md) [Config](../configs/exp039.json) · [Evaluation inference](exp039_evaluation.md) · [EXP-038 closure](../reports/exp038_final.md)
 
 ## Run history
 
 | Run | Worker / overlay | Outcome |
 | --- | --- | --- |
 | 1 | `471e400` / `6e2e53ad…` | **TECHNICAL_PARTIAL (E5 loader).** COMPLETE and NO_GO, with `exp039_results.zip` `bde0d198b129a1818ce33283bf1e5c1cd8c34de3847a63540145d9e4e082b242` (evidence in `runs/exp039/run1/`). Validate passed. E6 and E7 completed. **E5 failed in Benchmark**: Qwen3-VL-Embedding-8B has `tie_word_embeddings: false` and its checkpoint ships no `lm_head.weight`, but the 2B-oriented loader treated any missing key as fatal. D1 was therefore never tested. Gates against on-platform C2: D2 −0.000528 [−0.001711, +0.000690], 2/5 folds; D3 −0.000694 [−0.001283, −0.000092], 0/5; D4 (E3+E6+E7) +0.001218 [−0.000528, +0.002973], 3/5. All failed. The best ZIP was the incumbent `62093a31…`. **Superseded by run 2.** |
-| 2 | patch 1 (below) | Full Run All from scratch (no resume from run-1 caches); about 1 h 15 min including E5. Its decision supersedes run 1. |
+| 2 (official) | `8f99b9f` / `1ebcfca8…` | COMPLETE, **NO_GO**, `exp039_results.zip` `7aa681d59f6d2109150d573188de413f336cb146be6b4951cc948b8563ce0192` (`runs/exp039/closure/`). E5 failed again in Benchmark on multi-GPU device placement in `last_token`; it was not fixed. D2/D3/D4 gate numbers are identical to run 1's. |
 
 **Patch 1 loader choice.** The worker keeps the E3 class and options, `Qwen3VLForConditionalGeneration` with the embedding read from `model.model(...).last_hidden_state`, which is the same backbone path as the official `Qwen3VLForEmbedding`. It accepts exactly one missing key, `lm_head.weight`, and only when the config has `tie_word_embeddings == false`. Any other missing, unexpected or mismatched key is still fatal. A forward pre-hook makes any call into `lm_head` raise. Loading the backbone class without the head would match the official class more closely, but it would change the 2B loader. Keeping the class keeps E3/E6/E7 loading unchanged, and the CPU key audit can verify the allowance exactly. The E5 benchmark receipt records `ignored_missing_keys`; 2B receipts must show none.
 
