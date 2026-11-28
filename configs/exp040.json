@@ -1,0 +1,297 @@
+{
+  "experiment": "EXP-040",
+  "title": "E3-LoRA: adapt Qwen3-VL-Embedding-2B with a ridge-initialized interaction head",
+  "owner_approval": "2026-11-28",
+  "eligibility": {
+    "vlm_free": [
+      "R0_fixed",
+      "R0_corrected",
+      "E1",
+      "E2"
+    ],
+    "unconfirmed_label": "UNCONFIRMED_QWEN_ST3"
+  },
+  "arms": {
+    "E1": {
+      "kind": "siglip2",
+      "model": "google/siglip2-so400m-patch14-384",
+      "revision": "e8e487298228002f3d8a82e0cd5c8ea9c567f57f",
+      "license": "Apache-2.0",
+      "weights_sha256": {
+        "model.safetensors": "9f4f4a49f908ef0c979bce8ff5a5c0e88882dc6c5dc4304387cbbd152558e2c2"
+      },
+      "metadata_git_blobs": {
+        "config.json": "7c1e0ed1759922fc4eb362d3b405958e829f364d",
+        "preprocessor_config.json": "e9e084ab5a0d74573432f1dcf11c1bdd8d9b3655"
+      },
+      "processor": "EXP-036 AutoImageProcessor, use_fast=False, 384 px",
+      "feature": "vision pooler_output under FP16 autocast, L2-normalized in FP32",
+      "width": 1152,
+      "batch": 16
+    },
+    "E2": {
+      "kind": "metaclip2",
+      "model": "facebook/metaclip-2-worldwide-huge-quickgelu",
+      "revision": "c139061af7b10fdb2e754b60d2b1182a3d5526c2",
+      "license": "CC-BY-NC-4.0",
+      "weights_sha256": {
+        "model-00001-of-00002.safetensors": "613cf23d7b12306a69ce77ece08379275af188c6cb46d5502a8e0e307c2dfcfb",
+        "model-00002-of-00002.safetensors": "41a5a3fe8de6fa1c1157b729a8263870182cb7625e7af3a25ba6a60d616d6a83"
+      },
+      "metadata_git_blobs": {
+        "config.json": "6367ff0fddb6efde80716f087df767dcc105dd30",
+        "preprocessor_config.json": "6b87f9bc7511073f32189607eaf7d534529b025d",
+        "model.safetensors.index.json": "fc4c68b049959b528cf4c205aa35a5ede27147cd"
+      },
+      "processor": "CLIPImageProcessor, use_fast=False, shortest edge 224 then 224 center crop",
+      "feature": "MetaClip2Model.get_image_features (projected image embeds, FP16 weights), L2-normalized in FP32",
+      "width": 1024,
+      "batch": 32
+    },
+    "E3": {
+      "kind": "qwen3_vl_embedding",
+      "model": "Qwen/Qwen3-VL-Embedding-2B",
+      "revision": "9f2f7e710d6d81056aa5c0a4f04764fec6bb7bda",
+      "license": "Apache-2.0",
+      "weights_sha256": {
+        "model.safetensors": "c73fa9caeddeb3ff831d46c085a7a5708343248ca777e90f2d486964464509c1",
+        "tokenizer.json": "def76fb086971c7867b829c23a26261e38d9d74e02139253b38aeb9df8b4b50a"
+      },
+      "metadata_git_blobs": {
+        "config.json": "e426469143f8255335f039fa32c959584558d1cc",
+        "preprocessor_config.json": "0dfe4c69669474dcbc3a9cb2880759b51c888973",
+        "video_preprocessor_config.json": "e32b1d90356f74457edbfca27aa1e121dab7cdc7",
+        "tokenizer_config.json": "1d4fba2de0e94e8f97e08927cfb7d084160c2880",
+        "chat_template.jinja": "a0b161f8af53a32ce7e659103babce500990a863",
+        "special_tokens_map.json": "ac23c0aaa2434523c494330aeb79c58395378103",
+        "added_tokens.json": "b54f9135e44c1e81047e8d05cb027af8bc039eed",
+        "vocab.json": "4783fe10ac3adce15ac8f358ef5462739852c569",
+        "merges.txt": "31349551d90c7606f325fe0f11bbb8bd5fa0d7c7"
+      },
+      "official_usage": "scripts/qwen3_vl_embedding.py at the pinned revision: system message carries the instruction, user message holds one image with min/max pixels, apply_chat_template(add_generation_prompt=True), qwen_vl_utils.process_vision_info(image_patch_size=16), processor(do_resize=False, padding=True, padding_side right), last non-padding token of last_hidden_state, L2 normalization",
+      "instruction": "Represent the emotion a viewer would feel looking at this artwork.",
+      "min_pixels": 4096,
+      "max_pixels": 262144,
+      "max_length": 8192,
+      "dtype": "float16",
+      "attention": "sdpa",
+      "width": 2048,
+      "batch": 8
+    }
+  },
+  "chunk_items": 256,
+  "candidates": {
+    "C2": [
+      "E1",
+      "E2",
+      "E3"
+    ],
+    "F1": [
+      "E1",
+      "E2",
+      "E3L"
+    ],
+    "F2": [
+      "E1",
+      "E2",
+      "E3",
+      "E3L"
+    ]
+  },
+  "gate": {
+    "reference": "C2",
+    "minimum_filtered_gain": 0.003,
+    "minimum_fold_wins": 4,
+    "maximum_log_loss_delta": 0.005,
+    "bootstrap_seed": 204003,
+    "bootstrap_draws": 20000,
+    "trim_fraction": 0.05,
+    "tie_tolerance": 0.001
+  },
+  "diagnostic_seed": 204004,
+  "replay_tolerance": {
+    "note": "Cross-platform R0 replay (Windows-built references, Linux Kaggle). Each threshold is about 4x or more above the measured Linux-Windows difference.",
+    "probability": 2e-05,
+    "pooled": 1e-06,
+    "heads": 0.0001,
+    "bank": 0.0001
+  },
+  "blends": {
+    "B1_cscva_weight": 0.25,
+    "B2_c6_weight": 0.2
+  },
+  "budget": {
+    "session_hours": 10.5,
+    "persistence_reserve_seconds": 1200,
+    "forecast_margin": 1.15,
+    "progress_interval_seconds": 900,
+    "mandatory": [
+      "R0",
+      "C2_replay"
+    ],
+    "on_forecast_over": "stop before training and report (no protocol shrinking)"
+  },
+  "runtime": {
+    "python": "3.12.10",
+    "torch": "2.7.1+cu126",
+    "transformers": "4.57.6",
+    "qwen_vl_utils": "0.0.14",
+    "openblas_coretype": "Haswell",
+    "ridge_threads": 2
+  },
+  "references": {
+    "base_inputs_zip_sha256": "eaf16b9301cb131fbdf61a1b86fb191d3617b2141e39398f0c3b12bcf57ffce2",
+    "base_manifest_sha256": "026720f406c02236aeaf5bfdc806853816323b66267f81f0e3e2dbbfe1ce7e0e",
+    "p2_protocol_sha256": "869b2fe227fb614d83827d8124a80bd02c5f7677482bf64ae7098856b9c70eed",
+    "p2_pairs_sha256": "50798ddac6d9bda709c53b0ab7fc5ff2bfc6fbc33a4e581c1ab5c45f94d57534",
+    "track1_oof_sha256": "d57d56b83cb3fb68caccea2ed5762dd5938a0db024580085f86f72ccfea2930d",
+    "track1_metrics_sha256": "1aa52db94f65d5173bc46d6818e9ed1bcadebfcac0d218288c41462d09c62c45",
+    "track1_inner_oof_sha256": {
+      "1": "5e412a1261745e37918a5391a89ec1a30d9629cd41ec33826e7a31c0bcc86808",
+      "2": "ae0b3e5224df1a0f201c4f588a9ddd531bd5c24a0988a950b71eda0e302be14f",
+      "3": "ffccbead293d32977c6e30d13913e949699f863907c46f35cdbb27167012d02e",
+      "4": "46ee1bba38e5de317a466af24cef10bea3b9daaa36b7b359cea68698cc9efdf5",
+      "5": "83c2d4277e9a88defef7e47fa8a02efc7f90d63dd7004561a2ecfb6d4747b873"
+    },
+    "fixed_manifest_sha256": "1d211fc70c27d5ababaf6b7f05afa75c498854c4201b6039e333891d5016185a",
+    "exp037_c6_standalone_csv_sha256": "b84b8ae699492d9b53427554acf2c96601e77202a3133d467cd1c423458a5adc",
+    "exp037_results_zip_sha256": "852154e257a198f575dde6d47475aa80588aa48348b50792d47e34603bacb194",
+    "exp036_results_zip_sha256": "9c89585579a2af68e8589027d9f1269c1192bd4bf9373c99984f3e61fe554aa1",
+    "corrected_oof_sha256": "fc8273e3a05438f2058d41d47e5743102afd6b450cc86beb6c2b049bde3095fd",
+    "corrected_metrics_sha256": "7ba632ec0abf487e26b02ca8480a30370785458fb3163603c6258739a4ce7199",
+    "training_pair_sha256": "c7cf5585752d451c7ae13f427337a37cbe9c20ae0b28c7f686afed87a57a3e69",
+    "fixed_heads_sha256": "9105a0623867916c046dfd3ec4e1fa9fb6854c2d69068570c3b169bf47c89e76",
+    "corrected_bank_sha256": "e2cd9dd4ca3acc67320e8165279b1c2d8b36010c7c64dd12759e786163c4f08e",
+    "fixed_dev_zip_sha256": "d77f1bf6881afef898a73ea2a6d41c218dfccbd735295d8017509e3e09069b24",
+    "corrected_dev_zip_sha256": "39db05b31bb37a82c327a55c0d981af73db957e7133377308200218dfc67f958",
+    "exp036_standalone_zip_sha256": "d4feaa9dc09422eb78bf530b3cf9d36a6c76bcc2fc8e5cc50f57be5acdb25df1",
+    "exp036_ensemble_zip_sha256": "bd6752c9a8a60f7c3754053afe11eec0187172838e9c67d43880b9c41fb5b274",
+    "exp037_original_blend_zip_sha256": "b50861a1414fd863b4293bb6a8b3dd336bd6f2bc9071f8e20559b2774f4e1f33",
+    "caption_targets_sha256": "1df461afd51011e37a6b9af1e34e20c9d2983b4e5606fe2130bc2739b4b41cb8",
+    "exp038_results_zip_sha256": "b80e7cda21ee9381b947c2a1707742d4bbf7dff44c864130185b71ccefbe9e09",
+    "exp038_carried_sha256": {
+      "run": "ba8847642d621a21a5e34a19c4611991b313968283a17a120d20d4a26f626248",
+      "p2_oof": "26639b401a161fe0e16572239c0d32ec752bf8a1a8cfc3e08de917021d7b00be",
+      "development_predictions": "19fdeacd0e1fb1bf7d83c849f72685144468909c0829fcbb94f4680077da2a60",
+      "cscva3_zip": "432d27553d1324192394fde4b3f4795aa79a81245d1ecb343e28d17b83e96867",
+      "incumbent_zip": "62093a31da2cd1d864bad7b7818adf082524c09180e75ca0953d5177250ee4e6",
+      "feature_E1_features.npz": "bbd96e7b8e858503e8d8742d32067bc48d93dd2c91e0f5e00649d8330b1e4ad8",
+      "feature_E1_seal.json": "2bb21e68be693728204c622e67b8aa63e36942f22788dd6a90d06b4de2a34b71",
+      "feature_E2_features.npz": "633278e1fad03442eddb1487de7ec4c0edf5d591388a6107ef966f25bf4d8b93",
+      "feature_E2_seal.json": "94ae8799d53d3f6cfd6ed28cce7911c16a27149997ed83f78a8e30a4365eda1f",
+      "feature_E3_features.npz": "08e304af79397bc14d88b93e3069485b39e5cae1d04a8afb84e52e238572c681",
+      "feature_E3_seal.json": "daf117ea59cebebd9365b4566f5cf1df959506fd4b067f90319db9e946334e37"
+    },
+    "exp039_overlay_zip_sha256": "4e918a8c44b6f762ee33420e61ad4f47a3fff33de82d31b4197471e88ba1ed36",
+    "exp039_overlay_manifest_sha256": "1ebcfca80a6e0eea5387be22bd4017b4b9807aa012395a67a78fce20fae9cad0"
+  },
+  "test_like_excluded": [
+    "English",
+    "Arabic",
+    "Chinese"
+  ],
+  "gated": [
+    "F1",
+    "F2"
+  ],
+  "selection": {
+    "inner_fraction": 0.1,
+    "inner_seed": 204002,
+    "epochs": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "metric": "inner test-like Contrast of E3L standalone",
+    "tie": "smaller epoch",
+    "epoch_zero": "no adaptation: E3L is the frozen E3 (its features and predictions)",
+    "deployment": "median of the five selected epochs, ties to the smaller epoch; the full refit uses the same 4-epoch schedule stopped after that epoch"
+  },
+  "similarity": {
+    "candidates": "every image encoder feeding the candidate (CLIP-B, SigLIP2-Base, CLIP-L and the arm image encoders; E4 contributes its E3 image features), each block L2-normalized, concatenated and divided by sqrt(number of blocks); E3L contributes its adapted pooled embedding (fold-specific)",
+    "R0": "original frozen space: concat(SigLIP2-Base, CLIP-L) / sqrt(2)"
+  },
+  "e3l": {
+    "base_arm": "E3",
+    "model": "Qwen/Qwen3-VL-Embedding-2B",
+    "revision": "9f2f7e710d6d81056aa5c0a4f04764fec6bb7bda",
+    "pooling": "E3's official instruction, pixels and last-token pooling; FP16 autocast; unit-norm in FP32",
+    "placement": "single GPU, device_map {'': 0}",
+    "frozen": [
+      "vision tower",
+      "merger",
+      "embeddings",
+      "all base linear weights"
+    ],
+    "gradient_checkpointing": true
+  },
+  "lora": {
+    "rank": 16,
+    "alpha": 32,
+    "dropout": 0.05,
+    "targets": [
+      "q_proj",
+      "k_proj",
+      "v_proj",
+      "o_proj"
+    ],
+    "decoder_layers": 28,
+    "implementation": "EXP-037 LowRankUpdate (FP32 factors, zero right factor) with LoRA input dropout",
+    "init_seed_offset": 1
+  },
+  "head": {
+    "structure": "Track 1 E3 component: W[l] = shared + deviation[l], b[l] = intercept + language_intercept[l], on the unit-norm pooled embedding",
+    "init": "frozen E3 Track 1 ridge fitted on the same training paintings",
+    "step0_tolerance": 1e-05
+  },
+  "train": {
+    "epochs": 4,
+    "batch_paintings": 16,
+    "micro_paintings": 1,
+    "lora_lr": 5e-05,
+    "head_lr": 0.0005,
+    "lora_weight_decay": 0.01,
+    "head_weight_decay": 0.0,
+    "warmup_fraction": 0.05,
+    "schedule": "EXP-036: linear warmup, cosine to a 0.1 floor",
+    "gradient_clip": 1.0,
+    "grad_scaler_init": 128.0,
+    "lambda": 0.001,
+    "lambda_rationale": "lambda = 1e-3 on the per-vote binomial NLL scale. Measured on P2 fold-1 training paintings with the sealed E3 features (scratch probe, not a tuning run): the frozen ridge head has RMS 0.358 per weight coordinate, and a 16-painting minibatch NLL gradient at W0 has RMS 7.07e-5 per coordinate. With lambda = 1e-3 the anchor gradient 2 * lambda * (W - W0) equals that minibatch gradient when the head has drifted by about 10% of W0's RMS (2 * 1e-3 * 0.0358 = 7.2e-5). Smaller drifts are driven by the data; larger ones are pulled back toward the ridge solution, so adaptation has to come mainly from the backbone. The head gets no AdamW weight decay (decay toward zero would fight the anchor); LoRA uses EXP-036's 0.01.",
+    "checkpoint_steps": 20,
+    "log_steps": 10,
+    "seed": 204001,
+    "augmentation": "none"
+  },
+  "learning_curve": {
+    "fractions": [
+      0.25,
+      0.5,
+      0.75,
+      1.0
+    ],
+    "seeds": [
+      0,
+      1,
+      2
+    ],
+    "recipe": "frozen C2",
+    "scope": "P2 filtered (test-like)",
+    "report_only": true
+  },
+  "smoke": {
+    "fold": 1,
+    "optimizer_steps": 30,
+    "inner_pass": true,
+    "two_pass_steps": 2,
+    "benchmark_steps": 6,
+    "benchmark_inner_paintings": 32
+  },
+  "mix": {
+    "fixed_ridge_weight": 0.5,
+    "arm_mean_weight": 0.5,
+    "formula": "round6(0.5 * FixedRidge + 0.5 * mean(arms)) in probability space; FixedRidge is the Track 1 nested-rounded 0.25/0.25/0.50 blend"
+  }
+}
